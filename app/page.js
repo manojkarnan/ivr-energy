@@ -1294,7 +1294,7 @@ function BentoSolutionsWhyUs({ content }) {
   const smoothCardY = useSpring(rawCardY, springConfig)
   const cardYMap = [smoothCardY, smoothCardY, smoothCardY, smoothCardY, smoothCardY, smoothCardY, smoothCardY, smoothCardY]
 
-  const whyUsTitleHtml = content?.whyUsTitle || 'Built for <span class="text-gradient-red">performance</span>, engineered for <span class="text-gradient-red">longevity.</span>'
+  const whyUsTitleHtml = content?.whyUsTitle || 'Built for <span class="text-gradient-red">performance</span>, engineered for <span class="text-gradient-red">longevity</span>'
   const whyUsList = content?.whyUsList || WHY_US
 
   return (
@@ -1409,18 +1409,7 @@ function BentoSolutionsWhyUs({ content }) {
                           alt={activeTabKey}
                           className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-transparent to-transparent opacity-80" />
-                        <div className="absolute bottom-6 left-6 md:bottom-8 md:left-8 text-white max-w-sm">
-                          <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur flex items-center justify-center border border-white/10">
-                              <Icon className="h-5 w-5 text-[#D71920]" />
-                            </div>
-                            <div>
-                              <div className="text-xs text-neutral-400 font-semibold uppercase tracking-widest">Solutions</div>
-                              <div className="text-lg font-bold">{activeTabKey} Rooftop</div>
-                            </div>
-                          </div>
-                        </div>
+                        <div className="absolute inset-0 bg-gradient-to-t from-neutral-950/40 via-transparent to-transparent" />
                       </motion.div>
                     </AnimatePresence>
 
@@ -2169,7 +2158,6 @@ function Calc({ content }) {
           <a href="#contact" className="inline-flex items-center gap-2.5 rounded-full bg-neutral-900 text-white px-8 py-4 font-semibold text-lg hover:bg-neutral-800 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]" >
             Get your free quote <ArrowRight className="h-5 w-5" />
           </a>
-          <p className="text-xs text-neutral-400 mt-3" >No obligation · Free site survey · Response within 24 hours</p>
         </motion.div>
       </div>
     </Section>

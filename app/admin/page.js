@@ -1034,7 +1034,7 @@ function WhyUsSectionEditor({ content, save }) {
 
   const [f, setF] = useState({
     whyUsEyebrow: content.whyUsEyebrow || 'Why Choose IVR Energy',
-    whyUsTitle: content.whyUsTitle || 'Built for <span class="text-gradient-red">performance</span>, engineered for <span class="text-gradient-red">longevity</span>.',
+    whyUsTitle: content.whyUsTitle || 'Built for <span class="text-gradient-red">performance</span>, engineered for <span class="text-gradient-red">longevity</span>',
     whyUsList: content.whyUsList || seedWhyUs
   })
 
@@ -1375,7 +1375,7 @@ const DEFAULT_TERMS_HTML = `<section>
     <li>Site shadow analysis and structural feasibility studies</li>
     <li>Design, engineering, and equipment supply (Tier-1 PV modules & inverters)</li>
     <li>Erection, testing, and commissioning of rooftop or ground-mounted solar systems</li>
-    <li>Assistance with DISCOM net-metering approvals and PM Surya Ghar subsidy processing</li>
+    <li>Assistance with DISCOM net-metering approvals and government solar subsidy processing</li>
     <li>Operations & Maintenance (O&M) contracts as specified in individual agreements</li>
   </ul>
 </section>
@@ -1383,13 +1383,13 @@ const DEFAULT_TERMS_HTML = `<section>
 <section class="pt-6 border-t border-neutral-100">
   <h2 class="text-xl md:text-2xl font-bold text-neutral-900 mb-4 flex items-center gap-3">
     <span class="w-8 h-8 rounded-lg bg-red-50 text-[#D71920] font-extrabold text-sm flex items-center justify-center border border-red-100">3</span>
-    Estimates, Pricing & PM Surya Ghar Subsidy
+    Estimates & Pricing
   </h2>
   <p class="mb-3">
     All financial estimates generated on our savings calculator or initial quotations are indicative. Final system sizing and pricing depend on detailed technical site surveys.
   </p>
   <p>
-    Government subsidy assistance (such as PM Surya Ghar Muft Bijli Yojana up to ₹78,000) is subject to eligibility guidelines published by the Ministry of New and Renewable Energy (MNRE) and local DISCOMs (e.g., TANGEDCO). IVR Energy facilitates filing and coordination but is not responsible for delays caused by DISCOM portal downtime or government disbursal schedules.
+    Government subsidy assistance is subject to eligibility guidelines published by the Ministry of New and Renewable Energy (MNRE) and local DISCOMs (e.g., TANGEDCO). IVR Energy facilitates filing and coordination but is not responsible for delays caused by DISCOM portal downtime or government disbursal schedules.
   </p>
 </section>
 

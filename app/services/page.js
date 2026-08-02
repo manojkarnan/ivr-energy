@@ -12,6 +12,8 @@ import { Button } from '@/components/ui/button'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
+import { TestimonialsSection } from '@/components/ui/testimonials-with-marquee'
+import InstallationTimeline from '@/components/InstallationTimeline'
 
 const NAV = [
   { label: 'Home', href: '/#home' },
@@ -99,7 +101,7 @@ function StackingServicesCard({ s, i, total, scrollYProgress }) {
         opacity,
         zIndex: i + 1,
       }}
-      className="absolute inset-0 bg-[#ffffff] rounded-[28px] md:rounded-[32px] p-8 md:p-10 border border-white/80 shadow-[0_15px_45px_rgba(0,0,0,0.08)] flex flex-col justify-between overflow-hidden" 
+      className="absolute inset-0 bg-[#ffffff] rounded-[28px] md:rounded-[32px] p-8 md:p-10 border border-white/80 shadow-[0_15px_45px_rgba(0,0,0,0.08)] flex flex-col justify-between overflow-hidden"
     >
       <div className="absolute inset-0 bg-[#ffffff] z-0" />
 
@@ -140,7 +142,7 @@ function StackingServicesSection() {
       <div className="sticky top-0 h-screen w-full flex flex-col justify-center items-center px-4 sm:px-6 pt-16 md:pt-20 pb-6 overflow-hidden z-20">
         <div className="w-full max-w-4xl mx-auto text-center mb-6 relative z-10">
           <SectionHeader
-            eyebrow="What We Do" 
+            eyebrow="What We Do"
             title={<>Complete <span className="text-gradient-red">turnkey solar</span> services</>}
             sub="From consultancy to commissioning — one accountable partner for every step of your solar journey." />
         </div>
@@ -195,9 +197,9 @@ function StackingAdvantageCard({ adv, i, total, scrollYProgress }) {
         opacity,
         zIndex: i + 1,
       }}
-      className="absolute inset-0 bg-white rounded-3xl p-8 md:p-10 border border-neutral-200/80 shadow-[0_15px_45px_rgba(0,0,0,0.09)] flex flex-col justify-between overflow-hidden " 
+      className="absolute inset-0 bg-white rounded-3xl p-8 md:p-10 border border-neutral-200/80 shadow-[0_15px_45px_rgba(0,0,0,0.09)] flex flex-col justify-between overflow-hidden "
     >
-      <div className="absolute inset-0 bg-white z-0 "  />
+      <div className="absolute inset-0 bg-white z-0 " />
 
       <div className="relative z-10 flex flex-col justify-between h-full">
         <div className="mb-4">
@@ -230,9 +232,9 @@ function StackingAdvantageSection() {
       <div className="sticky top-0 h-screen w-full flex flex-col justify-center items-center px-4 sm:px-6 pt-16 md:pt-20 pb-4 overflow-hidden z-20">
         <div className="w-full max-w-3xl mx-auto text-center mb-8 relative z-10">
           <SectionHeader
-            eyebrow="Our Execution Standards " 
+            eyebrow="Our Execution Standards "
             title={<>Why choose our <span className="text-gradient-red">engineering team</span>?</>}
-            sub="We combine premium component selection, zero-hassle documentation, and strict wind-load analyses to ensure your plant produces peak power for 25+ years. " 
+            sub="We combine premium component selection, zero-hassle documentation, and strict wind-load analyses to ensure your plant produces peak power for 25+ years. "
           />
         </div>
 
@@ -274,9 +276,9 @@ function ProcessSection() {
     <section className="py-20 bg-[#ffffff] border-t border-b border-neutral-200/50">
       <div className="container mx-auto px-6">
         <SectionHeader
-          eyebrow="Our Process " 
+          eyebrow="Our Process "
           title={<>Your solar journey in <span className="text-gradient-red">8 seamless steps</span></>}
-          sub="A refined, transparent execution playbook honed across 180+ projects. " 
+          sub="A refined, transparent execution playbook honed across 180+ projects. "
         />
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {PROCESS.map((p, i) => (
@@ -287,11 +289,11 @@ function ProcessSection() {
               viewport={{ once: false, amount: 0.12 }}
               transition={{ duration: 0.8, delay: (i % 4) * 0.1, ease: [0.16, 1, 0.3, 1] }}
               whileHover={{ y: -10, scale: 1.03 }}
-              className="relative rounded-3xl bg-white p-6 border border-neutral-200/60 hover:border-red-200 hover:shadow-xl transition-colors duration-200 cursor-pointer " 
+              className="relative rounded-3xl bg-white p-6 border border-neutral-200/60 hover:border-red-200 hover:shadow-xl transition-colors duration-200 cursor-pointer "
             >
               <div className="absolute -top-4 -left-3 text-6xl font-bold text-red-50 select-none pointer-events-none">{String(i + 1).padStart(2, '0')}</div>
               <div className="relative">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#D71920] to-[#ff5a4e] flex items-center justify-center shadow-glow-red"><p.i className="h-6 w-6 text-white "  /></div>
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#D71920] to-[#ff5a4e] flex items-center justify-center shadow-glow-red"><p.i className="h-6 w-6 text-white " /></div>
                 <div className="mt-4 text-lg font-bold text-neutral-900">{p.t}</div>
                 <div className="mt-1 text-sm text-neutral-600 leading-relaxed">{p.d}</div>
               </div>
@@ -313,95 +315,23 @@ const REVIEWS_DATA = [
 ]
 
 function ServicesReviewsSection({ reviews }) {
-  const [filter, setFilter] = useState('All')
   const list = (reviews && reviews.length) ? reviews : REVIEWS_DATA
 
-  const categories = ['All', 'Residential', 'Commercial']
-  const filteredList = filter === 'All' 
-    ? list 
-    : list.filter(r => (r.category && r.category.toLowerCase() === filter.toLowerCase()) || (r.role && r.role.toLowerCase().includes(filter.toLowerCase())))
+  const testimonials = list.map(r => ({
+    author: {
+      name: r.name,
+      handle: r.role || "Rooftop Owner",
+      avatar: r.img || ""
+    },
+    text: r.text
+  }))
 
   return (
-    <section className="py-20 bg-gradient-to-b from-[#ffffff] via-red-50/25 to-[#ffffff] relative overflow-hidden border-t border-b border-neutral-200/60">
-      {/* Background radial glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#D71920]/5 rounded-full blur-3xl pointer-events-none" />
-
-      <div className="container mx-auto px-6 relative z-10">
-        <div className="max-w-3xl mx-auto text-center mb-12">
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-neutral-900 tracking-tight leading-tight">
-            What our clients say about <span className="text-gradient-red">our services</span>
-          </h2>
-          <p className="mt-4 text-base md:text-lg text-neutral-600 leading-relaxed">
-            Real feedback from homeowners, commercial site managers, and industrial partners across Tamil Nadu.
-          </p>
-
-          {/* Interactive Filter Pills */}
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-2.5">
-            {categories.map(cat => (
-              <button
-                key={cat}
-                onClick={() => setFilter(cat)}
-                className={`px-5 py-2.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
-                  filter === cat
-                    ? 'bg-gradient-to-r from-[#D71920] to-[#e62027] text-white shadow-md'
-                    : 'bg-white text-neutral-600 hover:text-neutral-900 border border-neutral-200 shadow-sm'
-                }`}
-              >
-                {cat} {cat === 'All' ? `(${list.length})` : ''}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Responsive Review Cards Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
-          {filteredList.map((r, i) => {
-            const initials = r.name.split(' ').map(n => n[0]).join('').slice(0, 2)
-            return (
-              <motion.div
-                key={r.name + i}
-                initial={{ opacity: 0, y: 25 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: i * 0.08 }}
-                whileHover={{ y: -6, transition: { duration: 0.2 } }}
-                className="rounded-3xl bg-white p-7 border border-neutral-200/80 shadow-[0_10px_30px_rgba(0,0,0,0.04)] hover:shadow-[0_20px_40px_rgba(215,25,32,0.1)] hover:border-red-200/80 transition-all flex flex-col justify-between relative group"
-              >
-                {/* Top Row: Rating & Verified Badge */}
-                <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center gap-1">
-                      {[...Array(r.rating || 5)].map((_, s) => (
-                        <Star key={s} className="h-4 w-4 fill-amber-400 text-amber-400" />
-                      ))}
-                    </div>
-                    <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200/60">
-                      <CheckCircle2 className="h-3 w-3 text-emerald-600" /> Verified
-                    </span>
-                  </div>
-
-                  {/* Quote Text */}
-                  <blockquote className="text-neutral-700 text-sm md:text-base font-medium leading-relaxed italic relative z-10">
-                    "{r.text}"
-                  </blockquote>
-                </div>
-
-                {/* Bottom Row: User Avatar & Meta */}
-                <div className="mt-6 pt-5 border-t border-neutral-100 flex items-center gap-3.5">
-                  <div className="w-11 h-11 rounded-full bg-gradient-to-br from-[#D71920] to-[#b3141a] text-white flex items-center justify-center text-sm font-bold shadow-sm flex-shrink-0">
-                    {initials}
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-bold text-neutral-900 group-hover:text-[#D71920] transition-colors">{r.name}</h4>
-                    <p className="text-xs text-neutral-500 font-medium">{r.role}</p>
-                  </div>
-                </div>
-              </motion.div>
-            )
-          })}
-        </div>
-      </div>
-    </section>
+    <TestimonialsSection
+      title="What our clients say about our services"
+      description="Real feedback from homeowners, commercial site managers, and industrial partners across Tamil Nadu."
+      testimonials={testimonials}
+    />
   )
 }
 
@@ -410,8 +340,6 @@ export default function ServicesPage() {
   const [reviews, setReviews] = useState([])
 
   useEffect(() => {
-    window.scrollTo(0, 0)
-
     fetch('/api/content')
       .then(r => r.json())
       .then(j => setContent(j.content))
@@ -424,14 +352,14 @@ export default function ServicesPage() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-[#ffffff] font-sans antialiased text-neutral-900 animate-fade-in">
+    <div className="min-h-screen bg-[#ffffff] font-sans antialiased text-neutral-900">
       <Navbar content={content} />
 
       {/* Pinned Stacked Cards: Complete Turnkey Solar Services Section */}
       <StackingServicesSection />
 
-      {/* Process Section */}
-      <ProcessSection />
+      {/* Premium Horizontal Timeline: Installation Process */}
+      <InstallationTimeline />
 
       {/* New Styled Client Reviews Section */}
       <ServicesReviewsSection reviews={reviews} />
@@ -443,12 +371,12 @@ export default function ServicesPage() {
       <section className="pt-8 pb-16 md:pt-10 md:pb-20 bg-[#ffffff] border-t border-b border-neutral-200/50">
         <div className="container mx-auto px-6">
           <SectionHeader
-            eyebrow="FAQs " 
+            eyebrow="FAQs "
             title={<>Service support <span className="text-gradient-red">questions</span></>}
-            sub="Everything you need to know about timelines, maintenance, and subsidies. " 
+            sub="Everything you need to know about timelines, maintenance, and subsidies. "
           />
           <div className="max-w-3xl mx-auto">
-            <Accordion type="single "  collapsible className="space-y-3">
+            <Accordion type="single " collapsible className="space-y-3">
               {[
                 { q: 'How long does a typical rooftop solar installation take?', a: 'Residential installations are completed in 2 to 4 days. Commercial and industrial projects depend on capacity, typically ranging from 2 to 6 weeks, including DISCOM approvals and testing.' },
                 { q: 'What maintenance is required for my solar power plant?', a: 'Solar power plants require very low maintenance. We recommend cleaning the panels every 10 - 15 days with water to clear off dust and optimize power output. Our team provides detailed maintenance playbooks upon hand-off.' },
@@ -469,8 +397,8 @@ export default function ServicesPage() {
       <section className="py-16 bg-white">
         <div className="container mx-auto px-6">
           <div className="relative rounded-3xl bg-gradient-to-br from-neutral-900 via-[#1a0505] to-neutral-950 text-white p-10 md:p-14 overflow-hidden shadow-2xl border border-neutral-800 text-center max-w-4xl mx-auto">
-            <div className="absolute -top-32 -right-32 w-80 h-80 rounded-full bg-[#D71920]/30 blur-3xl "  />
-            <div className="absolute -bottom-32 -left-32 w-80 h-80 rounded-full bg-orange-500/10 blur-3xl "  />
+            <div className="absolute -top-32 -right-32 w-80 h-80 rounded-full bg-[#D71920]/30 blur-3xl " />
+            <div className="absolute -bottom-32 -left-32 w-80 h-80 rounded-full bg-orange-500/10 blur-3xl " />
             <div className="relative z-10">
               <h3 className="text-3xl md:text-4xl font-bold">Ready to calculate your solar potential?</h3>
               <p className="mt-4 text-neutral-300 leading-relaxed max-w-xl mx-auto">
@@ -478,9 +406,9 @@ export default function ServicesPage() {
               </p>
               <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4">
                 <Button asChild className="bg-[#D71920] hover:bg-[#a5121a] text-white rounded-full px-8 h-12 text-base font-bold shadow-glow-red">
-                  <Link href="/#calculator">Calculate Your Savings <ArrowRight className="ml-2 h-4 w-4 "  /></Link>
+                  <Link href="/#calculator">Calculate Your Savings <ArrowRight className="ml-2 h-4 w-4 " /></Link>
                 </Button>
-                <Button asChild variant="outline "  className="bg-transparent border-white/20 hover:bg-white/10 hover:text-white text-white rounded-full px-8 h-12 text-base font-semibold backdrop-blur">
+                <Button asChild variant="outline " className="bg-transparent border-white/20 hover:bg-white/10 hover:text-white text-white rounded-full px-8 h-12 text-base font-semibold backdrop-blur">
                   <Link href="/#contact">Get Custom Quote</Link>
                 </Button>
               </div>
@@ -526,10 +454,10 @@ function ScrollToTop() {
           exit={{ opacity: 0, y: 40, scale: 0.8 }}
           transition={{ type: 'spring', stiffness: 260, damping: 20 }}
           onClick={scrollToTop}
-          className="fixed bottom-20 right-4 sm:bottom-24 sm:right-6 z-40 flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-[#D71920] hover:bg-[#a5121a] text-white shadow-glow-red transition-all cursor-pointer hover:scale-105 active:scale-95 " 
-          aria-label="Scroll to top " 
+          className="fixed bottom-20 right-4 sm:bottom-24 sm:right-6 z-40 flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-[#D71920] hover:bg-[#a5121a] text-white shadow-glow-red transition-all cursor-pointer hover:scale-105 active:scale-95 "
+          aria-label="Scroll to top "
         >
-          <ArrowUp className="h-5 w-5 sm:h-6 sm:w-6 "  />
+          <ArrowUp className="h-5 w-5 sm:h-6 sm:w-6 " />
         </motion.button>
       )}
     </AnimatePresence>

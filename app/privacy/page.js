@@ -50,7 +50,15 @@ export default function PrivacyPage() {
       <div className="container mx-auto px-6 py-16 md:py-24">
         <div className="max-w-4xl mx-auto bg-white rounded-3xl p-8 md:p-14 border border-neutral-200 shadow-soft space-y-10 text-neutral-700 leading-relaxed text-sm md:text-base">
           {content?.privacyText ? (
-            <div className="leading-relaxed text-neutral-800 font-sans space-y-6" dangerouslySetInnerHTML={{ __html: content.privacyText.includes('<') ? content.privacyText : content.privacyText.replace(/\n/g, '<br/>') }} />
+            <div
+              className="leading-relaxed text-neutral-800 font-sans space-y-6"
+              dangerouslySetInnerHTML={{
+                __html: (() => {
+                  const cleaned = content.privacyText.replace(/\\n/g, '\n')
+                  return cleaned.includes('<') ? cleaned : cleaned.replace(/\n/g, '<br/>')
+                })()
+              }}
+            />
           ) : (
             <>
               {/* Section 1 */}
