@@ -920,53 +920,438 @@ function AboutSectionEditor({ content, save }) {
   )
 }
 
+const SEED_EPC_TIMELINE = [
+  { step: 'Planning', desc: 'Site assessment, load analysis, and project scope definition.', icon: 'Search' },
+  { step: 'Design', desc: 'Engineering drawings, SLD, and structural analysis.', icon: 'PenTool' },
+  { step: 'Procurement', desc: 'Tier-1 component sourcing with quality certifications.', icon: 'Box' },
+  { step: 'Installation', desc: 'Certified team deployment with safety protocols.', icon: 'HardHat' },
+  { step: 'Testing', desc: 'IV curve testing, insulation resistance, and earthing checks.', icon: 'Gauge' },
+  { step: 'Commissioning', desc: 'Grid synchronization and performance benchmarking.', icon: 'Zap' },
+  { step: 'Maintenance', desc: '24/7 monitoring and annual preventive maintenance.', icon: 'Wrench' }
+]
+
+const SEED_APPROVAL_STEPS = [
+  { step: 'Eligibility', desc: 'Verify site and consumer eligibility criteria.', icon: 'CheckCircle2' },
+  { step: 'Application', desc: 'Submit application with required documentation.', icon: 'FileText' },
+  { step: 'Government Approval', desc: 'DISCOM review and technical feasibility clearance.', icon: 'ClipboardCheck' },
+  { step: 'PPA', desc: 'Power Purchase Agreement execution.', icon: 'Handshake' },
+  { step: 'Grid Connection', desc: 'Bi-directional meter installation and grid tie-in.', icon: 'Zap' },
+  { step: 'Commissioning', desc: 'Final inspection, testing, and commissioning certificate.', icon: 'BadgeCheck' }
+]
+
+const SEED_SUPPLY_ITEMS = [
+  { title: 'Solar Panels', icon: 'Sun', desc: 'Mono-PERC / TOPCon / HJT modules from Tier-1 manufacturers.' },
+  { title: 'Inverters', icon: 'Gauge', desc: 'String, central, and micro inverters with MPPT technology.' },
+  { title: 'Transformers', icon: 'Plug', desc: 'Step-up and auxiliary transformers for grid synchronization.' },
+  { title: 'SCADA', icon: 'Monitor', desc: 'Supervisory control with real-time monitoring dashboards.' },
+  { title: 'Junction Boxes', icon: 'Box', desc: 'IP65-rated junction boxes with surge protection.' },
+  { title: 'Lightning Protection', icon: 'Shield', desc: 'LA systems and chemical earthing kits per IEC 62305.' },
+  { title: 'LT Panel', icon: 'CircuitBoard', desc: 'MCCB/MCB panels with metering and protection relays.' },
+  { title: 'HT Panel', icon: 'BatteryCharging', desc: 'Vacuum circuit breakers and relay protection panels.' },
+  { title: 'Cables', icon: 'Cable', desc: 'DC, AC, and control cables with UV-resistant insulation.' },
+  { title: 'Mounting Structure', icon: 'LandPlot', desc: 'Hot-dip galvanized structures certified for wind zone compliance.' }
+]
+
+const SEED_COMPARISON_DATA = [
+  { dim: 'Experience', ivr: '12+ years with 500+ projects', trad: 'Varies, often limited' },
+  { dim: 'Component Quality', ivr: 'Tier-1 only, 25-yr warranty', trad: 'Mixed quality, shorter warranty' },
+  { dim: 'Government Support', ivr: 'Full liaison & subsidy processing', trad: 'Customer responsibility' },
+  { dim: 'Warranty', ivr: 'Comprehensive 5-year workmanship', trad: '1-year standard' },
+  { dim: 'Execution Speed', ivr: '2-4 days residential, 2-6 weeks commercial', trad: 'Unpredictable timelines' },
+  { dim: 'Monitoring', ivr: 'Real-time app with WiFi/GPRS', trad: 'Basic or no monitoring' },
+  { dim: 'Maintenance', ivr: 'SLA-backed annual O&M contracts', trad: 'On-call, no SLA' }
+]
+
+const SEED_WORKFLOW_STEPS = [
+  { title: 'Consultation', desc: 'Free site visit & requirement analysis.', icon: 'PhoneCall' },
+  { title: 'Site Survey', desc: 'Shadow analysis, structural review & metering plan.', icon: 'Search' },
+  { title: 'Design', desc: 'Detailed engineering, SLD & layout drawings.', icon: 'PenTool' },
+  { title: 'Approval', desc: 'DISCOM & subsidy paperwork by our team.', icon: 'ClipboardCheck' },
+  { title: 'Installation', desc: 'Certified installers with premium structures.', icon: 'HardHat' },
+  { title: 'Inspection', desc: 'Quality checks and safety compliance.', icon: 'Gauge' },
+  { title: 'Commissioning', desc: 'Grid sync, testing & performance benchmarking.', icon: 'Zap' },
+  { title: 'After-Sales Support', desc: '24/7 monitoring and annual maintenance.', icon: 'Wrench' }
+]
+
 function ServicesSectionEditor({ content, save }) {
   const seedServices = [
-    { icon: 'PenTool', title: 'Solar Consultancy', desc: 'End-to-end consulting with international partners for feasibility, DPR & funding.' },
-    { icon: 'HardHat', title: 'Solar EPC Services', desc: 'Turnkey Engineering, Procurement •& Construction • — from land to commissioning.' },
-    { icon: 'Home', title: 'Residential Rooftop', desc: 'Slash your EB bill to zero with premium home solar systems.' },
-    { icon: 'Building2', title: 'Commercial Rooftop', desc: 'Cut operating costs for offices, hotels, hospitals & IT parks.' },
-    { icon: 'Factory', title: 'Industrial Solar', desc: 'Captive solar power for textiles, cement, chemical & manufacturing.' },
-    { icon: 'PanelsTopLeft', title: 'Ground Mounted Solar', desc: 'Utility-scale solar farms with grid tie-in and net metering.' },
-    { icon: 'Handshake', title: 'Government Approvals', desc: 'Subsidy applications, TANGEDCO net-metering & policy compliance.' },
-    { icon: 'Wrench', title: 'O&M Services', desc: 'Inverter, transformer & MV switchgear preventive maintenance.' },
-    { icon: 'IndianRupee', title: 'Solar Financing', desc: 'Bank tie-ups, EMI options & PM Surya Ghar subsidy support.' }
+    {
+      icon: 'PenTool',
+      title: 'Solar Consultancy',
+      desc: 'End-to-end consulting with international partners for feasibility, DPR & funding.',
+      features: ['Feasibility Study', 'DPR Preparation', 'ROI Analysis', 'Technical Consulting'],
+      longDesc: 'Our expert solar consultants perform detailed technical feasibility assessments, solar irradiance analysis, DPR preparation, and financial modeling with international engineering standards to maximize your return on investment.'
+    },
+    {
+      icon: 'HardHat',
+      title: 'Solar EPC Services',
+      desc: 'Turnkey Engineering, Procurement & Construction — from land to commissioning.',
+      features: ['Engineering Design', 'Procurement', 'Construction', 'Testing & Commissioning'],
+      longDesc: 'We handle the entire EPC lifecycle — from precision engineering and Tier-1 component procurement to certified structural mounting, electrical cabling, grid integration, and final plant commissioning.'
+    },
+    {
+      icon: 'Home',
+      title: 'Residential Rooftop',
+      desc: 'Slash your EB bill to zero with premium home solar systems.',
+      features: ['Net Metering', 'Subsidy Support', 'Premium Panels', 'App Monitoring'],
+      longDesc: 'Transform your home rooftop into a self-sustaining power generator. Enjoy up to 80% reduction in electricity bills, zero-cost solar power for 25+ years, hassle-free net metering, and PM Surya Ghar subsidy support.'
+    },
+    {
+      icon: 'Building2',
+      title: 'Commercial Rooftop',
+      desc: 'Cut operating costs for offices, hotels, hospitals & IT parks.',
+      features: ['Load Analysis', 'Custom Design', 'OPEX/CAPEX Models', 'Grid Tie-In'],
+      longDesc: 'Optimize corporate operating costs for offices, hospitals, hotels, and IT parks. Our custom commercial solar plants reduce peak tariff charges, provide accelerated depreciation tax benefits, and boost corporate sustainability.'
+    },
+    {
+      icon: 'Factory',
+      title: 'Industrial Solar',
+      desc: 'Captive solar power for textiles, cement, chemical & manufacturing.',
+      features: ['High-Voltage Systems', 'Transformer Integration', 'SCADA Monitoring', 'Power Evacuation'],
+      longDesc: 'Designed for energy-intensive manufacturing plants, textiles, and chemical industries. We engineer high-voltage captive solar power systems equipped with real-time SCADA monitoring, step-up transformers, and robust power evacuation.'
+    },
+    {
+      icon: 'PanelsTopLeft',
+      title: 'Ground Mounted Solar',
+      desc: 'Utility-scale solar farms with grid tie-in and net metering.',
+      features: ['Land Assessment', 'Module Mounting', 'HT Infrastructure', 'Grid Synchronization'],
+      longDesc: 'Utility-scale ground mounted solar farms engineered for maximum generation yield. We handle topography land surveying, civil piling, HT transmission infrastructure, substations, and DISCOM grid synchronization.'
+    },
+    {
+      icon: 'Handshake',
+      title: 'Government Approvals',
+      desc: 'Subsidy applications, TANGEDCO net-metering & policy compliance.',
+      features: ['DISCOM Liaison', 'Net Metering', 'Subsidy Processing', 'Regulatory Compliance'],
+      longDesc: 'Zero-hassle administrative paperwork. Our dedicated liaison team manages TANGEDCO / DISCOM net-metering applications, CEIG safety inspection approvals, grid connectivity agreements, and government subsidy disbursal.'
+    },
+    {
+      icon: 'Wrench',
+      title: 'O&M Services',
+      desc: 'Inverter, transformer & MV switchgear preventive maintenance.',
+      features: ['Preventive Maintenance', 'Performance Monitoring', 'Spare Parts', 'Annual Contracts'],
+      longDesc: 'Keep your solar power plant running at peak efficiency year-round. We offer 24/7 remote IoT generation tracking, thermal drone imaging, panel washing, inverter diagnostics, and SLA-backed preventive maintenance.'
+    },
+    {
+      icon: 'IndianRupee',
+      title: 'Solar Financing',
+      desc: 'Bank tie-ups, EMI options & PM Surya Ghar subsidy support.',
+      features: ['Bank Loans', 'EMI Options', 'Subsidy Guidance', 'ROI Documentation'],
+      longDesc: 'Make your solar transition affordable through our banking network. Benefit from low-interest green energy loans, zero-down-payment OPEX/CAPEX models, flexible EMI tenures, and maximum PM Surya Ghar subsidy assistance.'
+    }
   ]
+
+  const [activeTab, setActiveTab] = useState('cards')
+
   const [f, setF] = useState({
+    servicesHeroBadge: content.servicesHeroBadge || 'Complete Solar Energy Solutions',
+    servicesHeroTitle: content.servicesHeroTitle || 'Complete Solar <span class="text-gradient-red">Energy Solutions</span>',
+    servicesHeroSubtitle: content.servicesHeroSubtitle || 'From Consultation to Commissioning, IVR Energy delivers complete turnkey solar EPC solutions for Residential, Commercial, Industrial and Utility Scale Projects.',
     servicesEyebrow: content.servicesEyebrow || 'What we do',
-    servicesTitle: content.servicesTitle || 'Complete <span class="text-gradient-red" >turnkey solar</span> services',
+    servicesTitle: content.servicesTitle || 'Complete <span class="text-gradient-red">turnkey solar</span> services',
     servicesSubtitle: content.servicesSubtitle || 'From consultancy to commissioning — one accountable partner for every step of your solar journey.',
-    servicesList: content.servicesList || seedServices
+    servicesList: (content.servicesList && content.servicesList.length > 0) ? content.servicesList : seedServices,
+
+    // 1. Solar EPC Timeline
+    epcEyebrow: content.epcEyebrow || 'SOLAR EPC',
+    epcTitle: content.epcTitle || 'Engineering, Procurement & <span class="text-gradient-red">Construction</span>',
+    epcSubtitle: content.epcSubtitle || 'Our turnkey EPC process ensures quality at every step — from initial planning to final commissioning and ongoing maintenance.',
+    epcTimeline: (content.epcTimeline && content.epcTimeline.length > 0) ? content.epcTimeline : SEED_EPC_TIMELINE,
+
+    // 2. Government Approvals
+    approvalEyebrow: content.approvalEyebrow || 'GOVERNMENT APPROVALS',
+    approvalTitle: content.approvalTitle || 'Hassle-free <span class="text-gradient-red">approval process</span>',
+    approvalSubtitle: content.approvalSubtitle || 'Our liaison team handles the complete DISCOM approval, net metering, and subsidy documentation process.',
+    approvalSteps: (content.approvalSteps && content.approvalSteps.length > 0) ? content.approvalSteps : SEED_APPROVAL_STEPS,
+
+    // 3. Scope of Supply
+    supplyEyebrow: content.supplyEyebrow || 'SCOPE OF SUPPLY',
+    supplyTitle: content.supplyTitle || 'Premium <span class="text-gradient-red">Tier-1 components</span>',
+    supplySubtitle: content.supplySubtitle || 'We source exclusively from certified Tier-1 manufacturers to ensure maximum performance, reliability, and warranty coverage.',
+    supplyItems: (content.supplyItems && content.supplyItems.length > 0) ? content.supplyItems : SEED_SUPPLY_ITEMS,
+
+    // 4. Comparison Table / Advantage
+    comparisonEyebrow: content.comparisonEyebrow || 'WHY CHOOSE US',
+    comparisonTitle: content.comparisonTitle || 'The IVR Energy <span class="text-gradient-red">advantage</span>',
+    comparisonSubtitle: content.comparisonSubtitle || 'See how our engineering-first approach delivers superior outcomes compared to traditional solar EPC providers.',
+    comparisonData: (content.comparisonData && content.comparisonData.length > 0) ? content.comparisonData : SEED_COMPARISON_DATA,
+
+    // 5. 8-Step Workflow
+    workflowEyebrow: content.workflowEyebrow || 'OUR PROCESS',
+    workflowTitle: content.workflowTitle || 'Your solar journey in <span class="text-gradient-red">8 seamless steps</span>',
+    workflowSubtitle: content.workflowSubtitle || 'A refined, transparent execution playbook honed across 500+ projects.',
+    workflowSteps: (content.workflowSteps && content.workflowSteps.length > 0) ? content.workflowSteps : SEED_WORKFLOW_STEPS
   })
+
+  const editorTabs = [
+    { id: 'cards', label: '1. Hero & Service Cards' },
+    { id: 'epc', label: '2. Solar EPC Timeline' },
+    { id: 'approvals', label: '3. Government Approvals' },
+    { id: 'supply', label: '4. Scope of Supply' },
+    { id: 'comparison', label: '5. Advantage Comparison Table' },
+    { id: 'workflow', label: '6. 8-Step Workflow' }
+  ]
 
   return (
     <div className="rounded-2xl bg-white p-6 shadow-soft border border-neutral-100 space-y-6">
-      <div className="text-sm font-bold text-neutral-900 border-b pb-2">Services Section Editor</div>
-      <FieldRow label="Eyebrow"><Input value={f.servicesEyebrow} onChange={e => setF({ ...f, servicesEyebrow: e.target.value })} className="h-11 rounded-xl" /></FieldRow>
-      <FieldRow label="Title (HTML supported)"><Textarea value={f.servicesTitle} onChange={e => setF({ ...f, servicesTitle: e.target.value })} rows={2} className="rounded-xl" /></FieldRow>
-      <FieldRow label="Subtitle"><Textarea value={f.servicesSubtitle} onChange={e => setF({ ...f, servicesSubtitle: e.target.value })} rows={2} className="rounded-xl" /></FieldRow>
-
-      <div>
-        <div className="flex justify-between items-center mb-3">
-          <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wider">Services List ({f.servicesList.length} Services)</label>
-          <Button variant="outline" size="sm" onClick={() => setF({ ...f, servicesList: [...f.servicesList, { icon: 'Sun', title: 'New Service', desc: 'Service description here...' }] })} className="rounded-xl"><Plus className="h-4 w-4 mr-1" /> Add Service</Button>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {f.servicesList.map((s, idx) => (
-            <div key={idx} className="bg-neutral-50 p-4 rounded-2xl border border-neutral-200/80 space-y-3">
-              <div className="flex justify-between items-center">
-                <IconSelect value={s.icon} onChange={icon => { const list = [...f.servicesList]; list[idx].icon = icon; setF({ ...f, servicesList: list }) }} />
-                <Button variant="outline" size="sm" onClick={() => setF({ ...f, servicesList: f.servicesList.filter((_, i) => i !== idx) })} className="rounded-xl text-red-600 border-red-200"><Trash2 className="h-4 w-4" /></Button>
-              </div>
-              <Input value={s.title} onChange={e => { const list = [...f.servicesList]; list[idx].title = e.target.value; setF({ ...f, servicesList: list }) }} placeholder="Service Title" className="h-10 rounded-xl" />
-              <Textarea value={s.desc} onChange={e => { const list = [...f.servicesList]; list[idx].desc = e.target.value; setF({ ...f, servicesList: list }) }} placeholder="Description" rows={3} className="rounded-xl" />
-            </div>
-          ))}
-        </div>
+      <div className="text-sm font-bold text-neutral-900 border-b pb-2 flex items-center justify-between">
+        <span>Services Page Complete Content Editor</span>
+        <span className="text-xs text-[#D71920] font-semibold">Live Real-time Sync to /services</span>
       </div>
 
-      <div className="pt-4 flex justify-end">
-        <Button onClick={() => save(f)} className="bg-[#D71920] hover:bg-[#a5121a] rounded-xl"><Save className="h-4 w-4 mr-2" /> Save Services</Button>
+      {/* Sub-tab pills */}
+      <div className="flex flex-wrap gap-2 bg-neutral-100 p-1.5 rounded-2xl">
+        {editorTabs.map(t => (
+          <button
+            key={t.id}
+            onClick={() => setActiveTab(t.id)}
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
+              activeTab === t.id
+                ? 'bg-white text-[#D71920] shadow-sm'
+                : 'text-neutral-600 hover:text-neutral-900'
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {/* TAB 1: CARDS */}
+      {activeTab === 'cards' && (
+        <div className="space-y-6">
+          <div className="bg-neutral-50 p-4 rounded-2xl border border-neutral-200 space-y-4">
+            <div className="text-xs font-bold uppercase tracking-wider text-neutral-600">Services Page Hero Banner</div>
+            <FieldRow label="Hero Badge Text"><Input value={f.servicesHeroBadge} onChange={e => setF({ ...f, servicesHeroBadge: e.target.value })} className="h-11 rounded-xl bg-white" /></FieldRow>
+            <FieldRow label="Hero Title (HTML supported)"><Textarea value={f.servicesHeroTitle} onChange={e => setF({ ...f, servicesHeroTitle: e.target.value })} rows={2} className="rounded-xl bg-white font-mono text-xs" /></FieldRow>
+            <FieldRow label="Hero Subtitle"><Textarea value={f.servicesHeroSubtitle} onChange={e => setF({ ...f, servicesHeroSubtitle: e.target.value })} rows={2} className="rounded-xl bg-white" /></FieldRow>
+          </div>
+
+          <div className="bg-neutral-50 p-4 rounded-2xl border border-neutral-200 space-y-4">
+            <div className="text-xs font-bold uppercase tracking-wider text-neutral-600">Services Grid Header</div>
+            <FieldRow label="Eyebrow"><Input value={f.servicesEyebrow} onChange={e => setF({ ...f, servicesEyebrow: e.target.value })} className="h-11 rounded-xl bg-white" /></FieldRow>
+            <FieldRow label="Section Title (HTML supported)"><Textarea value={f.servicesTitle} onChange={e => setF({ ...f, servicesTitle: e.target.value })} rows={2} className="rounded-xl bg-white font-mono text-xs" /></FieldRow>
+            <FieldRow label="Section Subtitle"><Textarea value={f.servicesSubtitle} onChange={e => setF({ ...f, servicesSubtitle: e.target.value })} rows={2} className="rounded-xl bg-white" /></FieldRow>
+          </div>
+
+          <div>
+            <div className="flex justify-between items-center mb-4">
+              <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wider">Services Cards ({f.servicesList.length} Total)</label>
+              <Button variant="outline" size="sm" onClick={() => setF({ ...f, servicesList: [...f.servicesList, { icon: 'Sun', title: 'New Service', desc: 'Short service summary...', features: ['Feature 1', 'Feature 2'], longDesc: 'Detailed description when expanded...' }] })} className="rounded-xl"><Plus className="h-4 w-4 mr-1" /> Add New Service Card</Button>
+            </div>
+
+            <div className="space-y-4">
+              {f.servicesList.map((s, idx) => (
+                <div key={idx} className="bg-neutral-50 p-5 rounded-2xl border border-neutral-200 space-y-4 relative">
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-[#D71920] bg-red-50 px-2.5 py-1 rounded-full border border-red-100">Service #{idx + 1}</span>
+                      <IconSelect value={typeof s.icon === 'string' ? s.icon : 'Sun'} onChange={icon => { const list = [...f.servicesList]; list[idx].icon = icon; setF({ ...f, servicesList: list }) }} />
+                    </div>
+                    <Button variant="outline" size="sm" onClick={() => setF({ ...f, servicesList: f.servicesList.filter((_, i) => i !== idx) })} className="rounded-xl text-red-600 border-red-200 hover:bg-red-50"><Trash2 className="h-4 w-4 mr-1" /> Delete Service</Button>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FieldRow label="Service Title">
+                      <Input value={s.title || ''} onChange={e => { const list = [...f.servicesList]; list[idx].title = e.target.value; setF({ ...f, servicesList: list }) }} placeholder="Service Title" className="h-11 rounded-xl bg-white font-bold text-neutral-900" />
+                    </FieldRow>
+                    <FieldRow label="Features Bullet Points (comma separated)">
+                      <Input
+                        value={Array.isArray(s.features) ? s.features.join(', ') : (s.features || '')}
+                        onChange={e => {
+                          const list = [...f.servicesList]
+                          list[idx].features = e.target.value.split(',').map(item => item.trim())
+                          setF({ ...f, servicesList: list })
+                        }}
+                        placeholder="e.g. Net Metering, Subsidy Support, App Monitoring"
+                        className="h-11 rounded-xl bg-white"
+                      />
+                    </FieldRow>
+                  </div>
+
+                  <FieldRow label="Short Card Summary">
+                    <Textarea value={s.desc || ''} onChange={e => { const list = [...f.servicesList]; list[idx].desc = e.target.value; setF({ ...f, servicesList: list }) }} placeholder="Short description..." rows={2} className="rounded-xl bg-white text-sm" />
+                  </FieldRow>
+
+                  <FieldRow label="Detailed Description (Expanded View)">
+                    <Textarea value={s.longDesc || ''} onChange={e => { const list = [...f.servicesList]; list[idx].longDesc = e.target.value; setF({ ...f, servicesList: list }) }} placeholder="Detailed full description..." rows={3} className="rounded-xl bg-white text-sm" />
+                  </FieldRow>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 2: SOLAR EPC TIMELINE */}
+      {activeTab === 'epc' && (
+        <div className="space-y-6">
+          <div className="bg-neutral-50 p-4 rounded-2xl border border-neutral-200 space-y-4">
+            <div className="text-xs font-bold uppercase tracking-wider text-neutral-600">Solar EPC Timeline Section Header</div>
+            <FieldRow label="Eyebrow"><Input value={f.epcEyebrow} onChange={e => setF({ ...f, epcEyebrow: e.target.value })} className="h-11 rounded-xl bg-white" /></FieldRow>
+            <FieldRow label="Title (HTML supported)"><Textarea value={f.epcTitle} onChange={e => setF({ ...f, epcTitle: e.target.value })} rows={2} className="rounded-xl bg-white font-mono text-xs" /></FieldRow>
+            <FieldRow label="Subtitle"><Textarea value={f.epcSubtitle} onChange={e => setF({ ...f, epcSubtitle: e.target.value })} rows={2} className="rounded-xl bg-white" /></FieldRow>
+          </div>
+
+          <div>
+            <div className="flex justify-between items-center mb-4">
+              <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wider">EPC Timeline Steps ({f.epcTimeline.length} Steps)</label>
+              <Button variant="outline" size="sm" onClick={() => setF({ ...f, epcTimeline: [...f.epcTimeline, { step: 'New Step', desc: 'Step details...', icon: 'CheckCircle2' }] })} className="rounded-xl"><Plus className="h-4 w-4 mr-1" /> Add EPC Step</Button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {f.epcTimeline.map((item, idx) => (
+                <div key={idx} className="bg-neutral-50 p-4 rounded-2xl border border-neutral-200 space-y-3 relative">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-bold text-[#D71920]">Step #{idx + 1}</span>
+                    <div className="flex items-center gap-2">
+                      <IconSelect value={typeof item.icon === 'string' ? item.icon : 'Search'} onChange={icon => { const list = [...f.epcTimeline]; list[idx].icon = icon; setF({ ...f, epcTimeline: list }) }} />
+                      <Button variant="outline" size="sm" onClick={() => setF({ ...f, epcTimeline: f.epcTimeline.filter((_, i) => i !== idx) })} className="rounded-xl text-red-600 border-red-200"><Trash2 className="h-4 w-4" /></Button>
+                    </div>
+                  </div>
+                  <Input value={item.step || ''} onChange={e => { const list = [...f.epcTimeline]; list[idx].step = e.target.value; setF({ ...f, epcTimeline: list }) }} placeholder="Step Name" className="h-10 rounded-xl bg-white font-bold" />
+                  <Textarea value={item.desc || ''} onChange={e => { const list = [...f.epcTimeline]; list[idx].desc = e.target.value; setF({ ...f, epcTimeline: list }) }} placeholder="Step Description" rows={2} className="rounded-xl bg-white text-sm" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 3: GOVERNMENT APPROVALS */}
+      {activeTab === 'approvals' && (
+        <div className="space-y-6">
+          <div className="bg-neutral-50 p-4 rounded-2xl border border-neutral-200 space-y-4">
+            <div className="text-xs font-bold uppercase tracking-wider text-neutral-600">Government Approvals Header</div>
+            <FieldRow label="Eyebrow"><Input value={f.approvalEyebrow} onChange={e => setF({ ...f, approvalEyebrow: e.target.value })} className="h-11 rounded-xl bg-white" /></FieldRow>
+            <FieldRow label="Title (HTML supported)"><Textarea value={f.approvalTitle} onChange={e => setF({ ...f, approvalTitle: e.target.value })} rows={2} className="rounded-xl bg-white font-mono text-xs" /></FieldRow>
+            <FieldRow label="Subtitle"><Textarea value={f.approvalSubtitle} onChange={e => setF({ ...f, approvalSubtitle: e.target.value })} rows={2} className="rounded-xl bg-white" /></FieldRow>
+          </div>
+
+          <div>
+            <div className="flex justify-between items-center mb-4">
+              <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wider">Approval Steps ({f.approvalSteps.length} Steps)</label>
+              <Button variant="outline" size="sm" onClick={() => setF({ ...f, approvalSteps: [...f.approvalSteps, { step: 'New Approval Step', desc: 'Approval details...', icon: 'ClipboardCheck' }] })} className="rounded-xl"><Plus className="h-4 w-4 mr-1" /> Add Approval Step</Button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {f.approvalSteps.map((step, idx) => (
+                <div key={idx} className="bg-neutral-50 p-4 rounded-2xl border border-neutral-200 space-y-3 relative">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-bold text-[#D71920]">Step #{idx + 1}</span>
+                    <div className="flex items-center gap-2">
+                      <IconSelect value={typeof step.icon === 'string' ? step.icon : 'CheckCircle2'} onChange={icon => { const list = [...f.approvalSteps]; list[idx].icon = icon; setF({ ...f, approvalSteps: list }) }} />
+                      <Button variant="outline" size="sm" onClick={() => setF({ ...f, approvalSteps: f.approvalSteps.filter((_, i) => i !== idx) })} className="rounded-xl text-red-600 border-red-200"><Trash2 className="h-4 w-4" /></Button>
+                    </div>
+                  </div>
+                  <Input value={step.step || ''} onChange={e => { const list = [...f.approvalSteps]; list[idx].step = e.target.value; setF({ ...f, approvalSteps: list }) }} placeholder="Step Name" className="h-10 rounded-xl bg-white font-bold" />
+                  <Textarea value={step.desc || ''} onChange={e => { const list = [...f.approvalSteps]; list[idx].desc = e.target.value; setF({ ...f, approvalSteps: list }) }} placeholder="Description" rows={2} className="rounded-xl bg-white text-sm" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 4: SCOPE OF SUPPLY */}
+      {activeTab === 'supply' && (
+        <div className="space-y-6">
+          <div className="bg-neutral-50 p-4 rounded-2xl border border-neutral-200 space-y-4">
+            <div className="text-xs font-bold uppercase tracking-wider text-neutral-600">Scope of Supply Header</div>
+            <FieldRow label="Eyebrow"><Input value={f.supplyEyebrow} onChange={e => setF({ ...f, supplyEyebrow: e.target.value })} className="h-11 rounded-xl bg-white" /></FieldRow>
+            <FieldRow label="Title (HTML supported)"><Textarea value={f.supplyTitle} onChange={e => setF({ ...f, supplyTitle: e.target.value })} rows={2} className="rounded-xl bg-white font-mono text-xs" /></FieldRow>
+            <FieldRow label="Subtitle"><Textarea value={f.supplySubtitle} onChange={e => setF({ ...f, supplySubtitle: e.target.value })} rows={2} className="rounded-xl bg-white" /></FieldRow>
+          </div>
+
+          <div>
+            <div className="flex justify-between items-center mb-4">
+              <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wider">Supply Components ({f.supplyItems.length} Items)</label>
+              <Button variant="outline" size="sm" onClick={() => setF({ ...f, supplyItems: [...f.supplyItems, { title: 'New Component', desc: 'Component specs...', icon: 'Box' }] })} className="rounded-xl"><Plus className="h-4 w-4 mr-1" /> Add Component</Button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+              {f.supplyItems.map((item, idx) => (
+                <div key={idx} className="bg-neutral-50 p-4 rounded-2xl border border-neutral-200 space-y-3 relative">
+                  <div className="flex justify-between items-center">
+                    <IconSelect value={typeof item.icon === 'string' ? item.icon : 'Sun'} onChange={icon => { const list = [...f.supplyItems]; list[idx].icon = icon; setF({ ...f, supplyItems: list }) }} />
+                    <Button variant="outline" size="sm" onClick={() => setF({ ...f, supplyItems: f.supplyItems.filter((_, i) => i !== idx) })} className="rounded-xl text-red-600 border-red-200"><Trash2 className="h-4 w-4" /></Button>
+                  </div>
+                  <Input value={item.title || ''} onChange={e => { const list = [...f.supplyItems]; list[idx].title = e.target.value; setF({ ...f, supplyItems: list }) }} placeholder="Component Title" className="h-10 rounded-xl bg-white font-bold" />
+                  <Textarea value={item.desc || ''} onChange={e => { const list = [...f.supplyItems]; list[idx].desc = e.target.value; setF({ ...f, supplyItems: list }) }} placeholder="Description" rows={2} className="rounded-xl bg-white text-xs" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 5: ADVANTAGE COMPARISON TABLE */}
+      {activeTab === 'comparison' && (
+        <div className="space-y-6">
+          <div className="bg-neutral-50 p-4 rounded-2xl border border-neutral-200 space-y-4">
+            <div className="text-xs font-bold uppercase tracking-wider text-neutral-600">Advantage Comparison Header</div>
+            <FieldRow label="Eyebrow"><Input value={f.comparisonEyebrow} onChange={e => setF({ ...f, comparisonEyebrow: e.target.value })} className="h-11 rounded-xl bg-white" /></FieldRow>
+            <FieldRow label="Title (HTML supported)"><Textarea value={f.comparisonTitle} onChange={e => setF({ ...f, comparisonTitle: e.target.value })} rows={2} className="rounded-xl bg-white font-mono text-xs" /></FieldRow>
+            <FieldRow label="Subtitle"><Textarea value={f.comparisonSubtitle} onChange={e => setF({ ...f, comparisonSubtitle: e.target.value })} rows={2} className="rounded-xl bg-white" /></FieldRow>
+          </div>
+
+          <div>
+            <div className="flex justify-between items-center mb-4">
+              <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wider">Comparison Table Rows ({f.comparisonData.length} Rows)</label>
+              <Button variant="outline" size="sm" onClick={() => setF({ ...f, comparisonData: [...f.comparisonData, { dim: 'New Feature', ivr: 'IVR energy advantage point', trad: 'Traditional downside' }] })} className="rounded-xl"><Plus className="h-4 w-4 mr-1" /> Add Row</Button>
+            </div>
+
+            <div className="space-y-3">
+              {f.comparisonData.map((row, idx) => (
+                <div key={idx} className="bg-neutral-50 p-4 rounded-2xl border border-neutral-200 grid grid-cols-1 md:grid-cols-4 gap-3 items-center">
+                  <Input value={row.dim || ''} onChange={e => { const list = [...f.comparisonData]; list[idx].dim = e.target.value; setF({ ...f, comparisonData: list }) }} placeholder="Dimension (e.g. Experience)" className="h-10 rounded-xl bg-white font-bold" />
+                  <Input value={row.ivr || ''} onChange={e => { const list = [...f.comparisonData]; list[idx].ivr = e.target.value; setF({ ...f, comparisonData: list }) }} placeholder="IVR Energy Feature" className="h-10 rounded-xl bg-white text-green-700 font-semibold" />
+                  <Input value={row.trad || ''} onChange={e => { const list = [...f.comparisonData]; list[idx].trad = e.target.value; setF({ ...f, comparisonData: list }) }} placeholder="Traditional EPC" className="h-10 rounded-xl bg-white text-neutral-600" />
+                  <div className="flex justify-end">
+                    <Button variant="outline" size="sm" onClick={() => setF({ ...f, comparisonData: f.comparisonData.filter((_, i) => i !== idx) })} className="rounded-xl text-red-600 border-red-200"><Trash2 className="h-4 w-4 mr-1" /> Remove Row</Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 6: 8-STEP WORKFLOW */}
+      {activeTab === 'workflow' && (
+        <div className="space-y-6">
+          <div className="bg-neutral-50 p-4 rounded-2xl border border-neutral-200 space-y-4">
+            <div className="text-xs font-bold uppercase tracking-wider text-neutral-600">8-Step Execution Playbook Header</div>
+            <FieldRow label="Eyebrow"><Input value={f.workflowEyebrow} onChange={e => setF({ ...f, workflowEyebrow: e.target.value })} className="h-11 rounded-xl bg-white" /></FieldRow>
+            <FieldRow label="Title (HTML supported)"><Textarea value={f.workflowTitle} onChange={e => setF({ ...f, workflowTitle: e.target.value })} rows={2} className="rounded-xl bg-white font-mono text-xs" /></FieldRow>
+            <FieldRow label="Subtitle"><Textarea value={f.workflowSubtitle} onChange={e => setF({ ...f, workflowSubtitle: e.target.value })} rows={2} className="rounded-xl bg-white" /></FieldRow>
+          </div>
+
+          <div>
+            <div className="flex justify-between items-center mb-4">
+              <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wider">Workflow Steps ({f.workflowSteps.length} Steps)</label>
+              <Button variant="outline" size="sm" onClick={() => setF({ ...f, workflowSteps: [...f.workflowSteps, { title: 'New Step', desc: 'Step details...', icon: 'PhoneCall' }] })} className="rounded-xl"><Plus className="h-4 w-4 mr-1" /> Add Workflow Step</Button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {f.workflowSteps.map((step, idx) => (
+                <div key={idx} className="bg-neutral-50 p-4 rounded-2xl border border-neutral-200 space-y-3 relative">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-bold text-[#D71920]">Step #{idx + 1}</span>
+                    <div className="flex items-center gap-2">
+                      <IconSelect value={typeof step.icon === 'string' ? step.icon : 'PhoneCall'} onChange={icon => { const list = [...f.workflowSteps]; list[idx].icon = icon; setF({ ...f, workflowSteps: list }) }} />
+                      <Button variant="outline" size="sm" onClick={() => setF({ ...f, workflowSteps: f.workflowSteps.filter((_, i) => i !== idx) })} className="rounded-xl text-red-600 border-red-200"><Trash2 className="h-4 w-4" /></Button>
+                    </div>
+                  </div>
+                  <Input value={step.title || ''} onChange={e => { const list = [...f.workflowSteps]; list[idx].title = e.target.value; setF({ ...f, workflowSteps: list }) }} placeholder="Step Name" className="h-10 rounded-xl bg-white font-bold" />
+                  <Textarea value={step.desc || ''} onChange={e => { const list = [...f.workflowSteps]; list[idx].desc = e.target.value; setF({ ...f, workflowSteps: list }) }} placeholder="Step Description" rows={2} className="rounded-xl bg-white text-sm" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="pt-4 flex justify-end border-t border-neutral-200">
+        <Button onClick={() => save(f)} className="bg-[#D71920] hover:bg-[#a5121a] rounded-xl text-white font-bold h-12 px-8 text-sm"><Save className="h-4 w-4 mr-2" /> Save All Services Page Sections</Button>
       </div>
     </div>
   )
@@ -1123,57 +1508,176 @@ function ProcessSectionEditor({ content, save }) {
   )
 }
 
-function FaqsSectionEditor({ content, save }) {
-  const seedFaqs = [
-    { q: "What is Solar Power or Solar Energy?", a: "Solar power is the conversion of energy from sunlight into electricity, either directly using photovoltaics (PV), indirectly using concentrated solar power, or a combination." },
-    { q: "How do solar photovoltaic panels work?", a: "PV panels allow photons (particles of light) to knock electrons free from atoms, generating a flow of electricity. Panels comprise many smaller photovoltaic cells that convert sunlight into DC electricity." },
-    { q: "What are the financial benefits of solar energy?", a: "A solar system typically lasts 35 years, with Tier-1 modules guaranteed to generate for 25 years. Payback is just 3 - 4 years — the remaining 20+ years of electricity are essentially free." },
-    { q: "Do solar panels produce power when the sun isn't shining?", a: "Panels need sunlight to generate — no, they don't work in darkness. However, with battery storage, homes can continue to consume solar-produced energy at night." },
-    { q: "Off-grid or On-grid — which is better?", a: "Off-grid is used where there is no grid connectivity or as a backup. On-grid connects to the utility grid and dramatically reduces or zeroes your EB bill with net metering." },
-    { q: "How much will maintenance cost?", a: "Solar panels require very little maintenance — mostly periodic cleaning. Annual O&M contracts with IVR Energy keep systems performing at peak efficiency." },
-    { q: "Is my roof suitable for solar panels?", a: "Any shadow-free area receiving sunlight for most of the day is suitable. Our team conducts a free shadow analysis during the site survey." },
-    { q: "What size solar system should I get?", a: "System size depends on your daily unit consumption. Use our savings calculator or share your electricity bill and we'll recommend the optimal capacity." },
-    { q: "How long will my solar system last?", a: "Panels come with 10 years product warranty and 25 years generation warranty. Inverters typically last 10 - 15 years." },
-    { q: "Do I need to inform my power supplier?", a: "Not required for off-grid systems. For on-grid net-metering systems, DISCOM approval is mandatory — IVR Energy handles the paperwork for you." },
-    { q: "How does Solar Net Metering work?", a: "Net metering lets you export excess solar generation to the grid and consume it back later. Your bi-directional meter tracks import & export — you're billed only on the net." },
-    { q: "Is smart monitoring included?", a: "Yes. Modern inverters include free cloud monitoring via app — you just need an internet connection at site." }
-  ]
+const SEED_FAQS = [
+  { q: "How do solar panels work, and what is the difference between On-Grid and Off-Grid systems?", a: "Solar panels convert direct sunlight into direct current (DC) electricity using photovoltaic (PV) cells. A solar inverter then converts this DC power into alternating current (AC) electricity to power your household appliances.\n\nOn-Grid (Grid-Tied) Systems: Connected directly to your local utility power grid. Excess power generated during the day is sent back to the grid for credits, and you draw from the grid when needed.\n\nOff-Grid Systems: Completely independent of the utility grid, using battery storage systems to store daytime energy for nighttime or emergency use." },
+  { q: "Is my home suitable for solar panel installation?", a: "Most homes with an unshaded roof that receives 4–6 hours of direct sunlight daily are suitable for solar. Our engineers perform a free site assessment to confirm feasibility." },
+  { q: "How do I calculate the right solar system for my electricity bill?", a: "The ideal system size is determined by your monthly electricity consumption (kWh), available roof space, and future energy needs." },
+  { q: "Can I install solar panels without changing my existing electrical wiring?", a: "In most cases, yes. Our team evaluates your electrical system and makes only the necessary upgrades to ensure a safe installation." },
+  { q: "What happens if I move to a new house?", a: "Your solar system is a permanent asset attached to your property. If you're relocating, our team can advise you on possible options." },
+  { q: "What happens if one solar panel stops working?", a: "Modern solar systems are designed to continue operating even if one panel underperforms. Our service team can identify and replace faulty components if needed." },
+  { q: "Can solar panels withstand heavy rain and strong winds?", a: "Yes. High-quality solar panels are designed to withstand harsh weather conditions, including heavy rain, strong winds, and high temperatures." },
+  { q: "Will birds or animals damage my solar panels?", a: "Solar panels are durable, but birds may occasionally nest underneath them. Protective mesh and regular inspections help prevent such issues." },
+  { q: "Can I expand my solar system in the future?", a: "Yes. If your electricity demand increases, many solar systems can be upgraded with additional panels, subject to available roof space and inverter capacity." },
+  { q: "What is the best time of year to install solar panels?", a: "Solar panels can be installed throughout the year. Installing earlier allows you to start saving on electricity bills sooner." },
+  { q: "Will solar panels affect my roof warranty?", a: "Professional installation is designed to minimize impact on your roof. We use appropriate mounting methods to protect the roof structure." },
+  { q: "How much weight do solar panels add to my roof?", a: "A typical rooftop solar system adds only a moderate load, which most properly constructed roofs can support after structural assessment." },
+  { q: "Can I monitor my solar system from my mobile phone?", a: "Yes. Many modern solar inverters include mobile apps that allow you to monitor power generation and system performance in real time." },
+  { q: "What maintenance is required after installation?", a: "Routine cleaning, visual inspections, and occasional professional servicing help maintain optimal system efficiency." },
+  { q: "Do solar panels need direct sunlight?", a: "Solar panels perform best in direct sunlight but can still generate electricity under indirect sunlight and cloudy conditions." },
+  { q: "Can I install solar panels on a terrace instead of a roof?", a: "Yes. Solar mounting structures can be installed on terraces, provided there is adequate space and sunlight." },
+  { q: "How much carbon emissions can solar panels reduce?", a: "A residential solar system can significantly reduce carbon emissions over its lifetime by replacing electricity generated from fossil fuels." },
+  { q: "What certifications should I look for when choosing solar panels?", a: "Look for internationally recognized certifications and products that comply with Indian standards for quality, safety, and performance." },
+  { q: "Will installing solar increase my property's value?", a: "Many buyers consider solar-powered homes more attractive because they offer lower electricity costs and improved energy efficiency." },
+  { q: "Can solar panels be installed on commercial buildings?", a: "Yes. Commercial buildings, offices, factories, schools, hospitals, and warehouses can all benefit from solar installations." },
+  { q: "How often should solar panels be cleaned?", a: "Cleaning every 3–6 months is generally recommended, depending on dust levels, pollution, and local weather conditions." },
+  { q: "Is a site survey necessary before installation?", a: "Yes. A site survey helps determine roof strength, available space, shading, electrical infrastructure, and the best system design." },
+  { q: "What should I check before choosing a solar installer?", a: "Consider the company's experience, certifications, customer reviews, warranty support, product quality, and after-sales service." },
+  { q: "How do I know if my inverter is working properly?", a: "Most modern inverters display system status and generation data on a screen or mobile app, making it easy to monitor performance." },
+  { q: "Can solar panels help during rising electricity prices?", a: "Yes. By generating your own electricity, solar reduces dependence on grid power and helps protect against future tariff increases." },
+  { q: "Is solar energy environmentally friendly?", a: "Yes. Solar energy is clean, renewable, and produces electricity without air pollution or greenhouse gas emissions during operation." },
+  { q: "Can I install solar panels if my roof has partial shade?", a: "Yes, but shading can reduce performance. During the site survey, we assess shading and recommend the most efficient system layout." },
+  { q: "Do I need permission before installing rooftop solar?", a: "Depending on your location and system type, approvals and utility permissions may be required. IVR Energy assists with the necessary documentation." },
+  { q: "What happens after I submit an enquiry?", a: "Our team contacts you, schedules a site visit, assesses your energy needs, provides a customized proposal, and guides you through every step until installation." },
+  { q: "How do I maintain maximum solar efficiency?", a: "Keep the panels clean, avoid shading, monitor system performance regularly, and schedule periodic professional inspections." },
+  { q: "Are solar panels worth it?", a: "Yes. Solar panels can significantly reduce electricity bills over time and offer an excellent long-term return on investment. Most systems pay for themselves through energy savings while also increasing property value." },
+  { q: "How much does a solar panel system cost?", a: "The cost depends on the system size, panel brand, inverter, roof type, and installation requirements. Contact IVR Energy for a free customized quotation based on your electricity consumption." },
+  { q: "How many solar panels do I need?", a: "The number of panels depends on your monthly electricity usage and the wattage of the panels. A site assessment helps determine the ideal system size." },
+  { q: "How much electricity can solar panels generate?", a: "A well-designed solar system can generate enough electricity to meet a large portion of your daily energy needs. Actual output depends on sunlight, location, weather, and system capacity." },
+  { q: "How long do solar panels last, and what maintenance do they require?", a: "The industry standard lifespan for solar panels is 25 to 30 years, and they will continue producing energy even beyond that point. They are incredibly low-maintenance, generally only requiring occasional cleaning to remove dust and debris so sunlight can reach the cells. However, secondary components like the solar inverter or battery storage may need to be replaced after 10 to 15 years." },
+  { q: "Do solar panels work at night?", a: "No. Solar panels generate electricity only when sunlight is available. For nighttime power, you can use battery storage or electricity from the grid." },
+  { q: "Do solar panels still generate electricity on cloudy or rainy days?", a: "Yes. Solar panels can use both direct and indirect sunlight to generate energy. While they are most efficient in direct sunlight, they will continue to produce power during overcast weather, typically operating at 10% to 25% of their normal output depending on cloud cover." },
+  { q: "Will my solar panels provide electricity during a neighborhood power outage?", a: "Standard Grid-Tied Systems: No. For safety reasons, grid-tied solar inverters automatically shut down during a utility power outage to prevent sending electricity back into power lines while technicians restore service.\n\nHybrid or Battery-Backed Systems: Yes. If you install a hybrid inverter paired with battery backup, your system will isolate itself from the grid and continue powering your essential home appliances during an outage." },
+  { q: "How much space is required for a rooftop solar system?", a: "As a general rule, a 1-kilowatt (kW) solar power system requires roughly 90 to 100 square feet (around 10 square meters) of shadow-free roof area. A typical 3 kW to 5 kW residential system requires between 300 and 500 square feet of clean area. Your installation partner will calculate the exact space and system size needed." },
+  { q: "Can solar panels reduce my electricity bill to zero?", a: "Depending on your electricity consumption, system size, and net metering policy, your electricity bill can be reduced substantially and, in some cases, nearly eliminated." },
+  { q: "What happens if my solar panels produce more energy than my home uses?", a: "If your system is tied to the local utility grid and your region supports net metering, excess electricity is sent back into the grid. Your utility provider will credit your account for this surplus power, which further reduces your overall electricity bill." },
+  { q: "Is solar energy safe for my home?", a: "Yes. Professionally installed solar systems are designed to meet safety standards and are safe for residential, commercial, and industrial use." },
+  { q: "Are solar panels waterproof?", a: "Yes. Solar panels are built to withstand rain, dust, humidity, and various weather conditions." },
+  { q: "Do I need to replace or reinforce my roof before installing a solar system?", a: "Because solar panels are designed to last for 25 years or more, your roof should be structurally stable enough to support them for that duration. Unless your roof already has damage or is nearing the end of its lifespan, you likely do not need to replace it, but performing any necessary repairs beforehand is highly recommended." },
+  { q: "What is the best direction for solar panels?", a: "In India, solar panels generally perform best when facing south with the appropriate tilt angle for maximum sunlight exposure." },
+  { q: "How long does solar installation take?", a: "Residential installations are typically completed within 1–3 days, depending on system size and site conditions." },
+  { q: "What is Net Metering, and how does it lower my electricity bill?", a: "Net metering is a billing mechanism that credits solar system owners for the excess electricity they add to the grid. When your solar panels produce more electricity than your home consumes during peak daytime hours, the surplus is exported to the local utility grid. Your electricity meter records this export, and your utility company credits your account—significantly reducing your net monthly electricity bill." },
+  { q: "Are there government subsidies, tax credits, or financial incentives available?", a: "Yes. Many national and local government programs offer financial assistance to encourage the adoption of rooftop solar. Residential homeowners can often take advantage of direct capital subsidies (such as PM Surya Ghar Scheme), clean energy tax credits, or low-interest financing programs that significantly reduce the upfront installation cost." },
+  { q: "Which is better: On-Grid or Hybrid Solar?", a: "An on-grid system is ideal for reducing electricity bills, while a hybrid system provides both bill savings and battery backup during power outages." },
+  { q: "What size solar system do I need?", a: "The right system size depends on your monthly electricity consumption, available roof space, and future energy needs." },
+  { q: "Will solar panels run high-power appliances like my air conditioner?", a: "Absolutely. Before installation, a professional will analyze your home's total electrical load to design a system capable of meeting your specific energy demands, including running heavy appliances like air conditioners." },
+  { q: "Will solar panels damage my roof?", a: "No. When installed by experienced professionals, solar panels protect the roof rather than damage it." },
+  { q: "Which solar panel brand is the best?", a: "The best choice depends on your budget, efficiency requirements, warranty, and installation goals. IVR Energy recommends only trusted, high-quality brands." },
+  { q: "Why should I choose IVR Energy?", a: "IVR Energy provides customized solar solutions, premium products, expert installation, competitive pricing, comprehensive warranties, and dependable after-sales support to ensure maximum customer satisfaction." },
+]
 
+function FaqsSectionEditor({ content, save }) {
+  const [filterSearch, setFilterSearch] = useState('')
   const [f, setF] = useState({
     faqsEyebrow: content.faqsEyebrow || 'FAQs',
-    faqsTitle: content.faqsTitle || 'Frequently asked <span class="text-gradient-red" >questions</span>',
-    faqsSubtitle: content.faqsSubtitle || 'Everything you wanted to know about going solar.',
-    faqsList: content.faqsList || seedFaqs
+    faqsTitle: content.faqsTitle || 'Frequently Asked <span class="text-gradient-red">Questions</span>',
+    faqsSubtitle: content.faqsSubtitle || 'Everything you wanted to know about going solar, subsidies, approvals, and O&M.',
+    faqsList: (content.faqsList && content.faqsList.length > 0)
+      ? content.faqsList
+      : ((content.faqs && content.faqs.length > 0) ? content.faqs : SEED_FAQS)
+  })
+
+  const visibleFaqs = f.faqsList.map((faq, originalIndex) => ({ faq, originalIndex })).filter(({ faq }) => {
+    if (!filterSearch) return true
+    const s = filterSearch.toLowerCase()
+    return (faq.q || '').toLowerCase().includes(s) || (faq.a || '').toLowerCase().includes(s)
   })
 
   return (
     <div className="rounded-2xl bg-white p-6 shadow-soft border border-neutral-100 space-y-6">
-      <div className="text-sm font-bold text-neutral-900 border-b pb-2">FAQs Section Editor</div>
-      <FieldRow label="Section Eyebrow"><Input value={f.faqsEyebrow} onChange={e => setF({ ...f, faqsEyebrow: e.target.value })} className="h-11 rounded-xl" /></FieldRow>
-      <FieldRow label="Title (HTML supported)"><Textarea value={f.faqsTitle} onChange={e => setF({ ...f, faqsTitle: e.target.value })} rows={2} className="rounded-xl" /></FieldRow>
-      <FieldRow label="Subtitle"><Textarea value={f.faqsSubtitle} onChange={e => setF({ ...f, faqsSubtitle: e.target.value })} rows={2} className="rounded-xl" /></FieldRow>
+      <div className="text-sm font-bold text-neutral-900 border-b pb-2 flex items-center justify-between">
+        <span>FAQs Page & Homepage Section Editor</span>
+        <span className="text-xs text-[#D71920] font-semibold">Changes update /faqs in real-time</span>
+      </div>
+
+      <div className="bg-neutral-50 p-4 rounded-2xl border border-neutral-200 space-y-4">
+        <FieldRow label="Section Eyebrow"><Input value={f.faqsEyebrow} onChange={e => setF({ ...f, faqsEyebrow: e.target.value })} className="h-11 rounded-xl bg-white" /></FieldRow>
+        <FieldRow label="Title (HTML supported)"><Textarea value={f.faqsTitle} onChange={e => setF({ ...f, faqsTitle: e.target.value })} rows={2} className="rounded-xl bg-white font-mono text-xs" /></FieldRow>
+        <FieldRow label="Subtitle"><Textarea value={f.faqsSubtitle} onChange={e => setF({ ...f, faqsSubtitle: e.target.value })} rows={2} className="rounded-xl bg-white" /></FieldRow>
+      </div>
 
       <div>
-        <div className="flex justify-between items-center mb-3">
-          <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wider">Questions & Answers ({f.faqsList.length} FAQs)</label>
-          <Button variant="outline" size="sm" onClick={() => setF({ ...f, faqsList: [...f.faqsList, { q: 'New Question?', a: 'Answer text here...' }] })} className="rounded-xl"><Plus className="h-4 w-4 mr-1" /> Add FAQ</Button>
-        </div>
-        <div className="space-y-4">
-          {f.faqsList.map((faq, idx) => (
-            <div key={idx} className="bg-neutral-50 p-4 rounded-2xl border border-neutral-200/80 space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-xs font-bold text-[#D71920]">Q#{idx + 1}</span>
-                <Button variant="outline" size="sm" onClick={() => setF({ ...f, faqsList: f.faqsList.filter((_, i) => i !== idx) })} className="rounded-xl text-red-600 border-red-200"><Trash2 className="h-4 w-4" /></Button>
-              </div>
-              <Input value={faq.q} onChange={e => { const list = [...f.faqsList]; list[idx].q = e.target.value; setF({ ...f, faqsList: list }) }} placeholder="Question" className="h-11 rounded-xl font-semibold" />
-              <Textarea value={faq.a} onChange={e => { const list = [...f.faqsList]; list[idx].a = e.target.value; setF({ ...f, faqsList: list }) }} placeholder="Answer" rows={3} className="rounded-xl" />
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+          <div className="flex items-center gap-3 w-full sm:w-auto">
+            <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wider whitespace-nowrap">
+              Questions ({f.faqsList.length} Total)
+            </label>
+            <div className="relative flex-1 sm:w-64">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-neutral-400" />
+              <Input
+                placeholder="Filter FAQs..."
+                value={filterSearch}
+                onChange={e => setFilterSearch(e.target.value)}
+                className="pl-9 h-9 rounded-xl text-xs bg-neutral-50"
+              />
             </div>
-          ))}
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              const newList = [{ q: 'New Question?', a: 'Answer text here...' }, ...f.faqsList]
+              setF({ ...f, faqsList: newList })
+              setFilterSearch('')
+            }}
+            className="rounded-xl bg-[#D71920] text-white hover:bg-[#a5121a] border-0 h-9"
+          >
+            <Plus className="h-4 w-4 mr-1" /> Add New FAQ
+          </Button>
+        </div>
+
+        <div className="space-y-4 max-h-[600px] overflow-y-auto pr-1">
+          {visibleFaqs.length === 0 ? (
+            <div className="text-center py-8 bg-neutral-50 rounded-2xl border border-neutral-200 text-sm text-neutral-500">
+              No FAQs match your search query "{filterSearch}".
+            </div>
+          ) : (
+            visibleFaqs.map(({ faq, originalIndex }) => (
+              <div key={originalIndex} className="bg-neutral-50 p-4 rounded-2xl border border-neutral-200/80 space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-bold text-[#D71920] bg-red-50 px-2.5 py-1 rounded-full border border-red-100">FAQ #{originalIndex + 1}</span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      if (confirm('Delete this question?')) {
+                        const list = f.faqsList.filter((_, i) => i !== originalIndex)
+                        setF({ ...f, faqsList: list })
+                      }
+                    }}
+                    className="rounded-xl text-red-600 border-red-200 hover:bg-red-50 h-8 text-xs"
+                  >
+                    <Trash2 className="h-3.5 w-3.5 mr-1" /> Delete
+                  </Button>
+                </div>
+                <Input
+                  value={faq.q}
+                  onChange={e => {
+                    const list = [...f.faqsList]
+                    list[originalIndex].q = e.target.value
+                    setF({ ...f, faqsList: list })
+                  }}
+                  placeholder="Question"
+                  className="h-11 rounded-xl font-semibold bg-white text-neutral-900"
+                />
+                <Textarea
+                  value={faq.a}
+                  onChange={e => {
+                    const list = [...f.faqsList]
+                    list[originalIndex].a = e.target.value
+                    setF({ ...f, faqsList: list })
+                  }}
+                  placeholder="Answer"
+                  rows={3}
+                  className="rounded-xl bg-white text-neutral-700 text-sm"
+                />
+              </div>
+            ))
+          )}
         </div>
       </div>
 
       <div className="pt-4 flex justify-end">
-        <Button onClick={() => save(f)} className="bg-[#D71920] hover:bg-[#a5121a] rounded-xl"><Save className="h-4 w-4 mr-2" /> Save FAQs</Button>
+        <Button onClick={() => save(f)} className="bg-[#D71920] hover:bg-[#a5121a] rounded-xl text-white font-bold h-12 px-6"><Save className="h-4 w-4 mr-2" /> Save All FAQs</Button>
       </div>
     </div>
   )
@@ -1325,7 +1829,11 @@ function ContactInfoEditor({ content, save }) {
     hours: c.hours || 'Mon - Sat, 9:30 AM - 7:30 PM',
     mapLat: c.mapLat || '13.013944',
     mapLng: c.mapLng || '80.136667',
+    instagram: c.instagram || 'https://www.instagram.com/ivrenergy/',
     linkedin: c.linkedin || 'https://www.linkedin.com/company/ivr-energy',
+    facebook: c.facebook || '',
+    youtube: c.youtube || '',
+    gstNumber: c.gstNumber || '33BTTPR9122F1ZB',
   })
   return (
     <div className="rounded-2xl bg-white p-6 shadow-soft border border-neutral-100 space-y-5">
@@ -1336,7 +1844,11 @@ function ContactInfoEditor({ content, save }) {
         <FieldRow label="Primary Email Address" hint="e.g. ivrengysolutions@gmail.com"><Input value={f.email} onChange={e => setF({ ...f, email: e.target.value })} placeholder="ivrenergysolutions@gmail.com" className="h-11 rounded-xl" /></FieldRow>
         <FieldRow label="Secondary Email Address" hint="e.g. info@ivrenergy.com"><Input value={f.secondaryEmail} onChange={e => setF({ ...f, secondaryEmail: e.target.value })} placeholder="info@ivrenergy.com" className="h-11 rounded-xl" /></FieldRow>
         <FieldRow label="WhatsApp number (raw digits)" hint="For wa.me/ links"><Input value={f.whatsapp} onChange={e => setF({ ...f, whatsapp: e.target.value.replace(/\D/g, '') })} className="h-11 rounded-xl" /></FieldRow>
-        <FieldRow label="LinkedIn Company/Profile URL" hint="For footer and social media icons"><Input value={f.linkedin} onChange={e => setF({ ...f, linkedin: e.target.value })} placeholder="https://www.linkedin.com/company/ivr-energy" className="h-11 rounded-xl" /></FieldRow>
+        <FieldRow label="Instagram Profile URL" hint="Displayed under Connect in Footer"><Input value={f.instagram} onChange={e => setF({ ...f, instagram: e.target.value })} placeholder="https://www.instagram.com/ivrenergy/" className="h-11 rounded-xl" /></FieldRow>
+        <FieldRow label="LinkedIn Company/Profile URL" hint="Displayed under Connect in Footer"><Input value={f.linkedin} onChange={e => setF({ ...f, linkedin: e.target.value })} placeholder="https://www.linkedin.com/company/ivr-energy" className="h-11 rounded-xl" /></FieldRow>
+        <FieldRow label="Facebook Page URL" hint="Optional social icon in Footer"><Input value={f.facebook} onChange={e => setF({ ...f, facebook: e.target.value })} placeholder="https://www.facebook.com/..." className="h-11 rounded-xl" /></FieldRow>
+        <FieldRow label="YouTube Channel URL" hint="Optional social icon in Footer"><Input value={f.youtube} onChange={e => setF({ ...f, youtube: e.target.value })} placeholder="https://www.youtube.com/..." className="h-11 rounded-xl" /></FieldRow>
+        <FieldRow label="GST Registration Number" hint="Displayed under Connect in Footer"><Input value={f.gstNumber} onChange={e => setF({ ...f, gstNumber: e.target.value })} placeholder="33BTTPR9122F1ZB" className="h-11 rounded-xl font-mono text-sm" /></FieldRow>
         <FieldRow label="Business hours"><Input value={f.hours} onChange={e => setF({ ...f, hours: e.target.value })} className="h-11 rounded-xl" /></FieldRow>
         <div className="grid grid-cols-2 gap-3">
           <FieldRow label="Map latitude"><Input value={f.mapLat} onChange={e => setF({ ...f, mapLat: e.target.value })} className="h-11 rounded-xl" /></FieldRow>
@@ -1347,7 +1859,7 @@ function ContactInfoEditor({ content, save }) {
         </div>
       </div>
       <div className="pt-2 flex justify-end">
-        <Button onClick={() => save({ contact: f })} className="bg-[#D71920] hover:bg-[#a5121a] rounded-xl"><Save className="h-4 w-4 mr-2"/> Save Contact Info</Button>
+        <Button onClick={() => save({ contact: f })} className="bg-[#D71920] hover:bg-[#a5121a] rounded-xl"><Save className="h-4 w-4 mr-2"/> Save Contact & Social Links</Button>
       </div>
     </div>
   )

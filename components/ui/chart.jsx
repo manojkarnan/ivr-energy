@@ -135,7 +135,8 @@ const ChartTooltipContent = React.forwardRef((
     return null
   }
 
-  const nestLabel = payload.length === 1 && indicator !== "dot"return (
+  const nestLabel = payload.length === 1 && indicator !== "dot"
+  return (
     <div
       ref={ref}
       className={cn(" grid min-w-[8rem] items-start gap-1.5 rounded-lg border border-border/50 bg-background px-2.5 py-1.5 text-xs shadow-xl",

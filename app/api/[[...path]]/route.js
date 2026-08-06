@@ -15,18 +15,18 @@ async function ensureProjectsSeeded(db) {
 function getProjectCapacityInKw(p) {
   const mwMatch = p.title.match(/(\d+(?:\.\d+)?)\s*MW/i)
   if (mwMatch) return parseFloat(mwMatch[1]) * 1000
-  
+
   const kwMatch = p.title.match(/(\d+(?:\.\d+)?)\s*KW/i)
   if (kwMatch) return parseFloat(kwMatch[1])
-  
+
   if (p.capacity) {
     const parsed = parseFloat(p.capacity)
     if (!isNaN(parsed)) return parsed
   }
-  
+
   const startMatch = p.title.match(/^\s*(\d+(?:\.\d+)?)/)
   if (startMatch) return parseFloat(startMatch[1])
-  
+
   return 0
 }
 
@@ -177,7 +177,7 @@ export async function POST(request, { params }) {
       const form = await request.formData()
       const files = form.getAll('files')
       if (!files.length) return NextResponse.json({ error: 'No files provided' }, { status: 400, headers: cors })
-      
+
       const MAX_FILE_SIZE = 5 * 1024 * 1024 // 5MB
       const ALLOWED_MIMES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif']
       const ALLOWED_EXTS = ['jpg', 'jpeg', 'png', 'webp', 'gif']
@@ -186,12 +186,12 @@ export async function POST(request, { params }) {
       const urls = []
       for (const file of files) {
         if (!file || typeof file === 'string') continue
-        
+
         // Security check: validate max size (5MB)
         if (file.size > MAX_FILE_SIZE) {
           return NextResponse.json({ error: `File "${file.name || 'image'}" exceeds the 5MB size limit.` }, { status: 400, headers: cors })
         }
-        
+
         // Security check: validate mime type
         if (file.type && !ALLOWED_MIMES.includes(file.type.toLowerCase())) {
           return NextResponse.json({ error: `File type "${file.type}" is not allowed. Only images (JPG, PNG, WEBP, GIF) can be uploaded.` }, { status: 400, headers: cors })
@@ -201,7 +201,7 @@ export async function POST(request, { params }) {
         const ext = (file.name || 'img').split('.').pop().toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg'
         const safeExt = ALLOWED_EXTS.includes(ext) ? ext : 'jpg'
         const filename = `${Date.now()}-${uuidv4().slice(0, 8)}.${safeExt}`
-        
+
         if (token) {
           // Upload to Vercel Blob Storage if token is available
           const blob = await put(filename, bytes, { access: 'public', token })

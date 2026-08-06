@@ -397,7 +397,7 @@ export default function ProjectPage({ params }) {
               <div className="text-white font-semibold mb-4">Quick Links</div>
               <ul className="space-y-2.5 text-sm">
                 {NAV.map(n => <li key={n.label}><Link href={n.href} className="hover:text-[#D71920] transition-colors">{n.label}</Link></li>)}
-                <li><a href="/admin "  className="hover:text-[#D71920] transition-colors inline-flex items-center gap-1.5">Admin Panel</a></li>
+                <li><a href="/adminivr" className="hover:text-[#D71920] transition-colors inline-flex items-center gap-1.5">Admin Panel</a></li>
               </ul>
             </div>
             <div>

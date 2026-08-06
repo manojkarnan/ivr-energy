@@ -1,8 +1,9 @@
-import { Inter } from 'next/font/google'
+import { Inter, Manrope } from 'next/font/google'
 import './globals.css'
 import { Toaster } from '@/components/ui/sonner'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
+const manrope = Manrope({ subsets: ['latin'], variable: '--font-manrope', weight: ['400', '500', '600', '700', '800'] })
 
 export const metadata = {
   title: 'IVR Energy — Powering India with Clean, Smart & Sustainable Solar Energy',
@@ -15,9 +16,34 @@ export const metadata = {
   },
 }
 
+const organizationJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'LocalBusiness',
+  name: 'IVR Energy',
+  image: 'https://ivrenergy.com/ivr-logo.webp',
+  '@id': 'https://ivrenergy.com',
+  url: 'https://ivrenergy.com',
+  telephone: '+91 90477 77936',
+  address: {
+    '@type': 'PostalAddress',
+    streetAddress: '3rd floor, Door No - 1, Plot No - A, Manasarovar Nagar, Gerugambakkam',
+    addressLocality: 'Chennai',
+    postalCode: '600122',
+    addressCountry: 'IN',
+  },
+  priceRange: '₹₹',
+  description: 'IVR Energy is a leading Solar EPC company in Chennai delivering turnkey solar solutions for Residential, Commercial and Industrial customers.',
+}
+
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={inter.variable} suppressHydrationWarning>
+    <html lang="en" className={`${inter.variable} ${manrope.variable}`} suppressHydrationWarning>
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+        />
+      </head>
       <body className="font-sans antialiased bg-white text-neutral-900" suppressHydrationWarning>
         {children}
         <Toaster position="top-center" richColors />

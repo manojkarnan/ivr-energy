@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Phone, Mail, MapPin, Linkedin, MessageCircle, ArrowUpRight } from 'lucide-react'
+import { Phone, Mail, MapPin, Linkedin, Instagram, Facebook, Youtube, MessageCircle, ArrowUpRight } from 'lucide-react'
 
 const QUICK_LINKS = [
   { label: 'Home', href: '/' },
@@ -39,7 +39,11 @@ export default function Footer({ content }) {
   const phoneRaw = content?.contact?.phoneRaw || '919047777936'
   const email = content?.contact?.email || 'ivrenergysolutions@gmail.com'
   const secondaryEmail = content?.contact?.secondaryEmail || 'info@ivrenergy.com'
+  const instagram = content?.contact?.instagram || 'https://www.instagram.com/ivrenergy/'
   const linkedin = content?.contact?.linkedin || 'https://www.linkedin.com/company/ivr-energy'
+  const facebook = content?.contact?.facebook || ''
+  const youtube = content?.contact?.youtube || ''
+  const gstNumber = content?.contact?.gstNumber || '33BTTPR9122F1ZB'
   const address =
     content?.contact?.address ||
     '3th floor, Door No - 1, Plot No - A, Manasarovar Nagar, Gerugambakkam, Chennai - 600122.'
@@ -63,7 +67,7 @@ export default function Footer({ content }) {
               <li>
                 <button
                   type="button"
-                  onDoubleClick={() => router.push('/admin')}
+                  onDoubleClick={() => router.push('/adminivr')}
                   className="hover:text-[#D71920] transition-colors text-xs text-neutral-500 cursor-pointer select-none text-left bg-transparent border-0 p-0"
                   title="Double click to open Admin Panel"
                 >
@@ -121,29 +125,71 @@ export default function Footer({ content }) {
           {/* Col 5: Connect */}
           <div>
             <h3 className="text-base font-bold text-white tracking-wide mb-4">Connect</h3>
-            <div className="flex items-center gap-3">
-              <a
-                href={linkedin}
-                target="_blank"
-                rel="noreferrer"
-                className="w-11 h-11 rounded-xl bg-white/10 flex items-center justify-center text-white hover:bg-[#0A66C2] transition-all hover:scale-105"
-                aria-label="LinkedIn"
-              >
-                <Linkedin className="h-5 w-5" />
-              </a>
+            <div className="flex flex-wrap items-center gap-3">
+              {instagram && (
+                <a
+                  href={instagram}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="w-11 h-11 rounded-xl bg-white/10 flex items-center justify-center text-white hover:bg-gradient-to-tr hover:from-amber-500 hover:via-rose-500 hover:to-purple-600 transition-all hover:scale-105"
+                  aria-label="Instagram"
+                  title="Instagram"
+                >
+                  <Instagram className="h-5 w-5" />
+                </a>
+              )}
+              {linkedin && (
+                <a
+                  href={linkedin}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="w-11 h-11 rounded-xl bg-white/10 flex items-center justify-center text-white hover:bg-[#0A66C2] transition-all hover:scale-105"
+                  aria-label="LinkedIn"
+                  title="LinkedIn"
+                >
+                  <Linkedin className="h-5 w-5" />
+                </a>
+              )}
               <a
                 href={`https://wa.me/${phoneRaw}`}
                 target="_blank"
                 rel="noreferrer"
                 className="w-11 h-11 rounded-xl bg-white/10 flex items-center justify-center text-white hover:bg-emerald-600 transition-all hover:scale-105"
                 aria-label="WhatsApp"
+                title="WhatsApp"
               >
                 <MessageCircle className="h-5 w-5" />
               </a>
+              {facebook && (
+                <a
+                  href={facebook}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="w-11 h-11 rounded-xl bg-white/10 flex items-center justify-center text-white hover:bg-[#1877F2] transition-all hover:scale-105"
+                  aria-label="Facebook"
+                  title="Facebook"
+                >
+                  <Facebook className="h-5 w-5" />
+                </a>
+              )}
+              {youtube && (
+                <a
+                  href={youtube}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="w-11 h-11 rounded-xl bg-white/10 flex items-center justify-center text-white hover:bg-[#FF0000] transition-all hover:scale-105"
+                  aria-label="YouTube"
+                  title="YouTube"
+                >
+                  <Youtube className="h-5 w-5" />
+                </a>
+              )}
             </div>
-            <div className="mt-6 text-xs text-neutral-500">
-              GST: 33BTTPR9122F1ZB
-            </div>
+            {gstNumber && (
+              <div className="mt-6 text-xs text-neutral-400">
+                GST: <span className="text-neutral-300 font-mono font-medium">{gstNumber}</span>
+              </div>
+            )}
           </div>
         </div>
 
