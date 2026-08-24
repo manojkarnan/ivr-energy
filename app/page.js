@@ -36,6 +36,8 @@ import Navbar from '@/components/Navbar'
 
 import Footer from '@/components/Footer'
 
+import { Case } from '@/components/ui/cases-with-infinite-scroll'
+
 const ICON_MAP = {
   PenTool, HardHat, Home, Building2, Factory, PanelsTopLeft, Handshake, Wrench,
   IndianRupee, ShieldCheck, Award, Users, TrendingUp, Gauge, BadgeCheck, Cpu,
@@ -59,11 +61,8 @@ const NAV = [
   { label: 'Solutions', href: '/#solutions' },
 
   { label: 'Projects', href: '/projects' },
-
-  { label: 'Calculator', href: '/#calculator' },
-
+  { label: 'Blog', href: '/blog' },
   { label: 'FAQs', href: '/faqs' },
-
   { label: 'Contact', href: '/#contact' },
 
 ]
@@ -820,7 +819,14 @@ function Hero({ onQuote, content }) {
 
       <motion.div style={{ y: isMobile ? 0 : y }} className="absolute inset-0 z-0">
 
-        <img src={content?.heroImage || " https://images.unsplash.com/photo-1613665813446-82a78c468a1d?w=2400&q=85"} alt="Solar panels at sunset" className="w-full h-full object-cover" />
+        <img
+          src={content?.heroImage || "https://images.unsplash.com/photo-1613665813446-82a78c468a1d?w=2400&q=85"}
+          alt="Solar panels at sunset"
+          className="w-full h-full object-cover"
+          fetchPriority="high"
+          loading="eager"
+          decoding="async"
+        />
 
         <div className="absolute inset-0 bg-gradient-to-br from-white/95 via-white/70 to-white/40" />
 
@@ -2165,141 +2171,7 @@ function Calc({ content }) {
 }
 
 function Clients({ content }) {
-
-  const clients = content?.clients || [" /client-pcs.png",
-
-    " /client-jilaba.png",
-
-    " /client-malladi.png",
-
-    " /client-meenakshi.jpg", "/client-maher.png"]
-
-  if (!clients || clients.length === 0) return null
-
-  // Duplicate array for seamless infinite scroll
-
-  const row1 = [...clients, ...clients, ...clients, ...clients]
-
-  const row2 = [...clients, ...clients, ...clients, ...clients].reverse()
-
-  return (
-
-    <Section className="relative z-30 bg-white overflow-hidden pt-12 md:pt-16 pb-12 md:pb-16 mt-0" >
-
-      {/* Subtle background pattern */}
-
-      <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, #D71920 1px, transparent 0)', backgroundSize: '40px 40px' }} />
-
-      <div className="container mx-auto px-6 relative z-10" >
-
-        <SectionHeader
-
-          eyebrow="Trusted Partners"
-
-          title={<>Our esteemed <span className="text-gradient-red" >clients & partners</span></>}
-
-          sub="Powering diverse sectors with high-efficiency turnkey solar installations."
-
-        />
-
-        {/* Marquee Container */}
-
-        <div className="relative max-w-6xl mx-auto" >
-
-          {/* Gradient fade edges */}
-
-          <div className="absolute left-0 top-0 bottom-0 w-20 md:w-32 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none" />
-
-          <div className="absolute right-0 top-0 bottom-0 w-20 md:w-32 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none" />
-
-          {/* Row 1  — scrolls left */}
-
-          <div className="mb-5 md:mb-6 overflow-hidden" >
-
-            <div className="flex gap-5 md:gap-8 animate-marquee-left hover:[animation-play-state:paused]" >
-
-              {row1.map((c, i) => (
-
-                <div
-
-                  key={`r1-${i}`}
-
-                  className="flex-shrink-0 group"
-
-                >
-
-                  <div className="w-36 h-28 sm:w-44 sm:h-32 md:w-52 md:h-36 rounded-2xl bg-[#ffffff] border border-neutral-200/50 flex items-center justify-center p-5 sm:p-6 transition-all duration-300 group-hover:border-red-300/60 group-hover:bg-white group-hover:shadow-[0_8px_30px_rgba(215,25,32,0.10)] group-hover:scale-105" >
-
-                    <img
-
-                      src={c}
-
-                      alt=""
-
-                      className="max-h-full max-w-full object-contain opacity-60 grayscale transition-all duration-300 group-hover:opacity-100 group-hover:grayscale-0"
-
-                      draggable="false"
-
-                    />
-
-                  </div>
-
-                </div>
-
-              ))}
-
-            </div>
-
-          </div>
-
-          {/* Row 2  — scrolls right */}
-
-          <div className="overflow-hidden" >
-
-            <div className="flex gap-5 md:gap-8 animate-marquee-right hover:[animation-play-state:paused]" >
-
-              {row2.map((c, i) => (
-
-                <div
-
-                  key={`r2-${i}`}
-
-                  className="flex-shrink-0 group"
-
-                >
-
-                  <div className="w-36 h-28 sm:w-44 sm:h-32 md:w-52 md:h-36 rounded-2xl bg-[#ffffff] border border-neutral-200/50 flex items-center justify-center p-5 sm:p-6 transition-all duration-300 group-hover:border-red-300/60 group-hover:bg-white group-hover:shadow-[0_8px_30px_rgba(215,25,32,0.10)] group-hover:scale-105" >
-
-                    <img
-
-                      src={c}
-
-                      alt=""
-
-                      className="max-h-full max-w-full object-contain opacity-60 grayscale transition-all duration-300 group-hover:opacity-100 group-hover:grayscale-0"
-
-                      draggable="false"
-
-                    />
-
-                  </div>
-
-                </div>
-
-              ))}
-
-            </div>
-
-          </div>
-
-        </div>
-
-      </div>
-
-    </Section>
-
-  )
-
+  return <Case content={content} />
 }
 
 function FAQ({ content }) {
@@ -2308,8 +2180,25 @@ function FAQ({ content }) {
   const sub = content?.faqsSubtitle || 'Everything you wanted to know about going solar.'
   const list = content?.faqsList || FAQS
 
+  const faqSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: list.map((item) => ({
+      '@type': 'Question',
+      name: item.q,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: item.a,
+      },
+    })),
+  }
+
   return (
     <Section id="faqs" className="bg-[#ffffff]" >
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
       <div className="container mx-auto px-6" >
         <SectionHeader eyebrow={eyebrow} title={<span dangerouslySetInnerHTML={{ __html: titleHtml }} />} sub={sub} />
         <div className="max-w-3xl mx-auto" >
@@ -2460,11 +2349,11 @@ function Contact({ content }) {
 
           {/* Right Column: Request a free quote Form */}
 
-          <form onSubmit={submit} className="lg:col-span-3 rounded-[36px] bg-[#ffffff] p-7 sm:p-9 md:p-11 border border-neutral-200/80 shadow-[0_8px_30px_rgba(0,0,0,0.06)]" >
+          <form onSubmit={submit} className="lg:col-span-3 rounded-[36px] bg-[#ffffff] p-7 sm:p-9 md:p-11 border border-neutral-200/80 shadow-[0_8px_30px_rgba(0,0,0,0.06)] font-geist" >
 
-            <h3 className="text-2xl sm:text-[28px] font-extrabold text-neutral-900 tracking-tight" >Request a free quote</h3>
+            <h3 className="text-2xl sm:text-[30px] font-bold text-neutral-900 tracking-tight font-geist" >Request a free quote</h3>
 
-            <p className="text-neutral-500 text-sm mt-1.5 font-normal leading-relaxed" >Fill in your details  — we'll get back within a business day.</p>
+            <p className="text-neutral-500 text-sm mt-1.5 font-normal leading-relaxed font-geist" >Fill in your details — we'll get back within a business day.</p>
 
             <div className="mt-8 grid sm:grid-cols-2 gap-5" >
 
@@ -2800,7 +2689,7 @@ function CustomInterestSelect({ value, onChange }) {
 
   const ref = useRef(null)
 
-  const options = ['Residential', 'Commercial', 'Industrial']
+  const options = ['Residential', 'Commercial']
 
   useEffect(() => {
 
@@ -2846,15 +2735,15 @@ function CustomInterestSelect({ value, onChange }) {
 
           <motion.div
 
-            initial={{ opacity: 0, y: 6, scale: 0.98 }}
+            initial={{ opacity: 0, y: -6, scale: 0.98 }}
 
-            animate={{ opacity: 1, y: -4, scale: 1 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
 
-            exit={{ opacity: 0, y: 6, scale: 0.98 }}
+            exit={{ opacity: 0, y: -6, scale: 0.98 }}
 
             transition={{ duration: 0.2, ease: 'easeOut' }}
 
-            className="absolute left-0 right-0 bottom-full mb-2 z-50 bg-[#181922] border border-white/20 rounded-2xl p-1.5 shadow-2xl backdrop-blur-2xl space-y-1"
+            className="absolute left-0 right-0 top-full mt-2 z-50 bg-[#1c1d26] border border-white/20 rounded-2xl p-1.5 shadow-2xl backdrop-blur-2xl space-y-1"
 
           >
 
@@ -2880,9 +2769,9 @@ function CustomInterestSelect({ value, onChange }) {
 
                   className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all text-left cursor-pointer ${isSelected
 
-                    ? 'bg-[#D71920]/20 text-white font-bold border border-[#D71920]/40'
+                    ? 'bg-[#D71920] text-white font-bold shadow-sm'
 
-                    : 'text-neutral-300 hover:bg-white/10 hover:text-white'
+                    : 'text-neutral-200 hover:bg-white/10 hover:text-white'
 
                     }`}
 
@@ -2890,7 +2779,7 @@ function CustomInterestSelect({ value, onChange }) {
 
                   <span>{opt}</span>
 
-                  {isSelected && <Check className="h-4 w-4 text-[#D71920]" />}
+                  {isSelected && <Check className="h-4 w-4 text-white" />}
 
                 </button>
 

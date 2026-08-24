@@ -8,24 +8,39 @@ import {
   PhoneCall, Search, FileText, ClipboardCheck, Zap, Sparkles, Phone, Mail, MapPin, ArrowRight,
   ShieldCheck, Award, Cpu, ArrowUp, CheckCircle2, Star, ChevronDown, ChevronRight,
   Sun, Gauge, TrendingUp, Users, BadgeCheck, Cable, Box, Shield, Monitor, Plug,
-  GraduationCap, Hotel, Warehouse, Heart, LandPlot, CircuitBoard, BatteryCharging
+  GraduationCap, Hotel, Warehouse, Heart, LandPlot, CircuitBoard, BatteryCharging,
+  X, Maximize2, Check
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import { TestimonialsSection } from '@/components/ui/testimonials-with-marquee'
+import { FlippingCard } from '@/components/ui/flipping-card'
+import { SupplyCardsMotion } from '@/components/ui/supply-cards-motion'
+import { SOLAR_CAPACITIES_DATA, sortCapacitiesAscending } from '@/data/capacities'
+
+const ICON_MAP = {
+  PenTool, HardHat, Home, Building2, Factory, PanelsTopLeft, Handshake, Wrench,
+  IndianRupee, ShieldCheck, Award, Users, TrendingUp, Gauge, BadgeCheck, Cpu,
+  PhoneCall, Search, FileText, ClipboardCheck, Zap, Sparkles, Star, CheckCircle2,
+  Sun, Cable, Box, Shield, Monitor, Plug, GraduationCap, Hotel, Warehouse, Heart,
+  LandPlot, CircuitBoard, BatteryCharging
+}
 
 /* ──────────────────────────────────────────────
    DATA
    ────────────────────────────────────────────── */
 
 const SERVICE_NAV = [
-  { id: 'services-grid', label: 'Services', icon: PenTool },
+  { id: 'capacities', label: '3kW, 4kW & 5kW Sizing', icon: Zap },
+  { id: 'services-grid', label: 'All Services', icon: PenTool },
   { id: 'epc', label: 'EPC Services', icon: HardHat },
   { id: 'approvals', label: 'Approvals', icon: ClipboardCheck },
   { id: 'supply', label: 'Supply', icon: Box },
 ]
+
+const SOLAR_CAPACITIES = SOLAR_CAPACITIES_DATA
 
 const SERVICES = [
   {
@@ -117,16 +132,16 @@ const APPROVAL_STEPS = [
 
 
 const SUPPLY_ITEMS = [
-  { title: 'Solar Panels', icon: Sun, desc: 'Mono-PERC / TOPCon / HJT modules from Tier-1 manufacturers.' },
-  { title: 'Inverters', icon: Gauge, desc: 'String, central, and micro inverters with MPPT technology.' },
-  { title: 'Transformers', icon: Plug, desc: 'Step-up and auxiliary transformers for grid synchronization.' },
-  { title: 'SCADA', icon: Monitor, desc: 'Supervisory control with real-time monitoring dashboards.' },
-  { title: 'Junction Boxes', icon: Box, desc: 'IP65-rated junction boxes with surge protection.' },
-  { title: 'Lightning Protection', icon: Shield, desc: 'LA systems and chemical earthing kits per IEC 62305.' },
-  { title: 'LT Panel', icon: CircuitBoard, desc: 'MCCB/MCB panels with metering and protection relays.' },
-  { title: 'HT Panel', icon: BatteryCharging, desc: 'Vacuum circuit breakers and relay protection panels.' },
-  { title: 'Cables', icon: Cable, desc: 'DC, AC, and control cables with UV-resistant insulation.' },
-  { title: 'Mounting Structure', icon: LandPlot, desc: 'Hot-dip galvanized structures certified for wind zone compliance.' },
+  { title: 'Solar Panels', icon: Sun, desc: 'Mono-PERC / TOPCon / HJT modules from Tier-1 manufacturers.', spec: 'Tier-1 Certified' },
+  { title: 'Inverters', icon: Gauge, desc: 'String, central, and micro inverters with MPPT technology.', spec: '98.8% Efficiency' },
+  { title: 'Transformers', icon: Plug, desc: 'Step-up and auxiliary transformers for grid synchronization.', spec: 'IS/IEC Standard' },
+  { title: 'SCADA', icon: Monitor, desc: 'Supervisory control with real-time monitoring dashboards.', spec: 'IoT Enabled' },
+  { title: 'Junction Boxes', icon: Box, desc: 'IP65-rated junction boxes with surge protection.', spec: 'IP65 Rated' },
+  { title: 'Lightning Protection', icon: Shield, desc: 'LA systems and chemical earthing kits per IEC 62305.', spec: 'IEC 62305' },
+  { title: 'LT Panel', icon: CircuitBoard, desc: 'MCCB/MCB panels with metering and protection relays.', spec: 'Type Tested' },
+  { title: 'HT Panel', icon: BatteryCharging, desc: 'Vacuum circuit breakers and relay protection panels.', spec: 'VCB Standard' },
+  { title: 'Cables', icon: Cable, desc: 'DC, AC, and control cables with UV-resistant insulation.', spec: 'UV-Resistant' },
+  { title: 'Mounting Structure', icon: LandPlot, desc: 'Hot-dip galvanized structures certified for wind zone compliance.', spec: 'HDG 80+ µm' },
 ]
 
 
@@ -253,7 +268,9 @@ function HeroSection({ content }) {
           src={content?.heroImage || "https://images.unsplash.com/photo-1509391366360-2e959784a276?q=80&w=2072"}
           alt="Solar farm"
           className="w-full h-full object-cover"
+          fetchPriority="high"
           loading="eager"
+          decoding="async"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/80" />
         <div className="absolute inset-0 bg-gradient-to-r from-black/40 to-transparent" />
@@ -294,10 +311,10 @@ function HeroSection({ content }) {
 
           <motion.div variants={fadeUp} custom={3} className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
             <Button asChild className="bg-[#D71920] hover:bg-[#a5121a] text-white rounded-full px-8 h-14 text-base font-bold shadow-glow-red transition-all hover:scale-105 active:scale-95">
-              <Link href="/#contact">Get Free Consultation <ArrowRight className="ml-2 h-4 w-4" /></Link>
+              <Link href="/contact">Get Free Consultation <ArrowRight className="ml-2 h-4 w-4" /></Link>
             </Button>
             <Button asChild variant="outline" className="bg-white/10 border-white/20 hover:bg-white/20 text-white rounded-full px-8 h-14 text-base font-semibold backdrop-blur-md transition-all hover:scale-105">
-              <a href="#services-grid">Explore Our Services <ChevronDown className="ml-2 h-4 w-4" /></a>
+              <a href="#capacities">Explore Solar Systems <ChevronDown className="ml-2 h-4 w-4" /></a>
             </Button>
           </motion.div>
         </motion.div>
@@ -372,85 +389,246 @@ function StickyServiceNav() {
 }
 
 /* ──────────────────────────────────────────────
-   SECTION 3: SERVICES GRID
+   SECTION 3: SERVICES GRID (3D FLIPPING CARDS)
    ────────────────────────────────────────────── */
 
 function ServiceCard({ service, index }) {
-  const [expanded, setExpanded] = useState(false)
+  const [isFlipped, setIsFlipped] = useState(false)
   const Icon = service.icon
 
-  return (
-    <motion.div
-      initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.15 }}
-      variants={fadeUp} custom={index % 3}
-      className="service-card-hover group relative rounded-3xl bg-white p-7 md:p-8 border border-neutral-200/60 cursor-pointer overflow-hidden"
-      onClick={() => setExpanded(!expanded)}
-    >
-      {/* Glow effect */}
-      <div className="absolute inset-0 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-br from-red-50/50 via-transparent to-transparent pointer-events-none" />
-
-      <div className="relative z-10">
-        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#D71920] to-[#ff5a4e] flex items-center justify-center shadow-lg mb-5">
-          <Icon className="h-7 w-7 text-white" />
+  const frontFace = (
+    <div className="flex flex-col justify-between h-full w-full">
+      <div>
+        {/* Red Icon Badge */}
+        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#D71920] to-[#b3141a] flex items-center justify-center text-white shadow-md shadow-red-500/20 mb-4">
+          <Icon className="h-6 w-6 text-white" />
         </div>
 
-        <h3 className="text-xl font-heading font-bold text-neutral-900 group-hover:text-[#D71920] transition-colors">
+        {/* Title */}
+        <h3 className="text-xl font-heading font-bold text-neutral-900 tracking-tight">
           {service.title}
         </h3>
-        <p className="mt-2 text-sm text-neutral-600 leading-relaxed">{service.desc}</p>
 
-        {/* Features */}
-        <div className="mt-4 flex flex-wrap gap-2">
+        {/* Short Description */}
+        <p className="mt-2 text-sm text-neutral-600 leading-relaxed line-clamp-2">
+          {service.desc}
+        </p>
+
+        {/* Pill Tags */}
+        <div className="mt-4 flex flex-wrap gap-1.5">
           {service.features.map((f) => (
-            <span key={f} className="text-xs font-medium px-3 py-1 rounded-full bg-neutral-100 text-neutral-700 group-hover:bg-red-50 group-hover:text-[#D71920] transition-colors">
+            <span
+              key={f}
+              className="text-[11.5px] font-medium px-2.5 py-1 rounded-full bg-neutral-100/90 text-neutral-700 border border-neutral-200/50"
+            >
               {f}
             </span>
           ))}
         </div>
-
-        {/* Expand toggle */}
-        <button className="mt-4 flex items-center gap-1 text-sm font-semibold text-[#D71920] hover:text-[#a5121a] transition-colors">
-          {expanded ? 'Show Less' : 'Learn More'}
-          <ChevronDown className={`h-4 w-4 transition-transform ${expanded ? 'rotate-180' : ''}`} />
-        </button>
-
-        <AnimatePresence>
-          {expanded && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-              className="overflow-hidden"
-            >
-              <div className="pt-4 border-t border-neutral-100 mt-4">
-                <p className="text-sm text-neutral-600 leading-relaxed">
-                  {service.longDesc}
-                </p>
-                <Button asChild size="sm" className="mt-4 bg-[#D71920] hover:bg-[#a5121a] text-white rounded-full text-xs h-9 px-5">
-                  <Link href="/#contact">Get Quote <ArrowRight className="ml-1 h-3 w-3" /></Link>
-                </Button>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </div>
+
+      {/* Footer trigger */}
+      <div className="mt-5 pt-3 border-t border-neutral-100 flex items-center justify-between">
+        <span className="inline-flex items-center gap-1 text-xs font-bold text-[#D71920]">
+          Learn More <ChevronRight className="h-3.5 w-3.5 group-hover/flipping-card:translate-x-1 transition-transform" />
+        </span>
+        <span className="text-[10.5px] text-neutral-400 font-medium">Hover to flip</span>
+      </div>
+    </div>
+  )
+
+  const backFace = (
+    <div className="flex flex-col justify-between h-full w-full">
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-500/20 text-red-400 text-[11px] font-bold tracking-wider border border-red-500/30">
+            <Icon className="h-3.5 w-3.5" />
+            <span>{service.title}</span>
+          </div>
+          <span className="text-[10px] text-neutral-400 uppercase tracking-wider font-semibold">Details</span>
+        </div>
+
+        <p className="text-xs sm:text-[13px] text-neutral-300 leading-relaxed line-clamp-4">
+          {service.longDesc}
+        </p>
+
+        <div className="mt-3 space-y-1.5 border-t border-neutral-800/80 pt-2.5">
+          {service.features.slice(0, 3).map((f) => (
+            <div key={f} className="flex items-center gap-2 text-xs text-neutral-300">
+              <CheckCircle2 className="h-3.5 w-3.5 text-[#D71920] shrink-0" />
+              <span className="truncate">{f}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-4 pt-2">
+        <Button
+          asChild
+          size="sm"
+          className="w-full bg-[#D71920] hover:bg-[#b3141a] text-white rounded-full text-xs font-bold h-9 shadow-lg shadow-red-600/30"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <Link href="/contact">
+            Get Fast Quote <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+          </Link>
+        </Button>
+      </div>
+    </div>
+  )
+
+  return (
+    <motion.div
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, amount: 0.15 }}
+      variants={fadeUp}
+      custom={index % 3}
+      className="h-full"
+    >
+      <FlippingCard
+        height={340}
+        frontContent={frontFace}
+        backContent={backFace}
+        isFlipped={isFlipped}
+        onFlipToggle={() => setIsFlipped(!isFlipped)}
+      />
     </motion.div>
   )
 }
 
 function ServicesGridSection() {
   return (
-    <section id="services-grid" className="py-20 md:py-28 bg-neutral-50/50">
+    <section id="services-grid" className="py-20 md:py-28 bg-white border-t border-neutral-100">
       <div className="container mx-auto px-6">
         <SectionHeader
           eyebrow="Our Services"
           title={<>Complete <span className="text-gradient-red">turnkey solar</span> services</>}
           sub="From consultancy to commissioning — one accountable partner for every step of your solar journey."
         />
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
           {SERVICES.map((s, i) => (
             <ServiceCard key={s.title} service={s} index={i} />
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+/* ──────────────────────────────────────────────
+   SECTION 4: 3KW, 4KW & 5KW SYSTEM SIZING
+   ────────────────────────────────────────────── */
+
+function CapacitySizingSection() {
+  const [capacities, setCapacities] = useState(sortCapacitiesAscending(SOLAR_CAPACITIES_DATA))
+
+  useEffect(() => {
+    fetch('/api/capacities')
+      .then(r => r.json())
+      .then(j => {
+        if (Array.isArray(j.capacities) && j.capacities.length > 0) {
+          setCapacities(sortCapacitiesAscending(j.capacities))
+        }
+      })
+      .catch(() => {})
+  }, [])
+
+  const sortedList = sortCapacitiesAscending(capacities)
+
+  return (
+    <section id="capacities" className="py-20 md:py-28 bg-white scroll-mt-28 border-t border-neutral-100">
+      <div className="container mx-auto px-4 sm:px-6 max-w-7xl">
+        <SectionHeader
+          eyebrow="Rooftop Solar Sizing & Specs"
+          title={<>Explore <span className="text-gradient-red">3 kW, 4 kW, 5 kW & 10 kW</span> Systems</>}
+          sub="Select any capacity below to view its complete technical specifications, appliance compatibility, daily yield estimates, and PM Surya Ghar subsidy details."
+        />
+
+        {/* Capacity Sizing Package Cards in Ascending Order - Centered Grid/Flex */}
+        <div className="flex flex-wrap justify-center gap-5 md:gap-6">
+          {sortedList.map((cap, i) => (
+            <motion.div
+              key={cap.id}
+              initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.15 }}
+              variants={fadeUp} custom={i}
+              className="service-card-hover group relative rounded-3xl bg-neutral-900 text-white p-6 sm:p-7 border border-neutral-800 flex flex-col justify-between overflow-hidden shadow-xl hover:border-[#D71920]/50 transition-all w-full sm:w-[calc(50%-12px)] lg:w-[calc(25%-18px)] min-w-[260px] max-w-[320px]"
+            >
+              {/* Card Ambient Glow */}
+              <div className="absolute -top-16 -right-16 w-32 h-32 bg-[#D71920]/20 rounded-full blur-2xl pointer-events-none group-hover:scale-150 transition-transform duration-500" />
+
+              <div>
+                {/* Big Capacity Title at the top */}
+                <div className="text-3xl sm:text-4xl font-heading font-extrabold text-white tracking-tight mb-2.5 h-[38px] flex items-center">
+                  {cap.kw}
+                </div>
+
+                {/* Tag Pill */}
+                <div className="flex items-center justify-between gap-2 mb-3 min-h-[26px]">
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider px-3 py-1 rounded-full bg-white/10 text-neutral-200 border border-white/10 whitespace-nowrap truncate max-w-full">
+                    {cap.tag}
+                  </span>
+                </div>
+
+                {/* Subsidy Badge */}
+                <div className="text-xs font-bold text-emerald-400 mb-3.5 flex items-center gap-1.5 min-h-[20px]">
+                  <ShieldCheck className="h-4 w-4 shrink-0 text-emerald-400" />
+                  <span className="truncate">{cap.badge}</span>
+                </div>
+
+                {/* Description - Fixed 2-line height */}
+                <p className="text-xs text-neutral-400 leading-relaxed line-clamp-2 h-[36px] mb-5">
+                  {cap.description}
+                </p>
+
+                {/* Quick Specs List - Uniform Row Heights */}
+                <div className="space-y-2.5 py-4 border-t border-b border-white/10 text-xs">
+                  <div className="flex items-center justify-between text-neutral-300 h-[22px]">
+                    <span className="text-neutral-400 flex items-center gap-1.5 shrink-0">
+                      <Zap className="h-3.5 w-3.5 text-[#ff5a4e] shrink-0" /> Daily Output
+                    </span>
+                    <span className="font-bold text-white text-right truncate pl-2">
+                      {cap.dailyUnits ? cap.dailyUnits.split(' / ')[0] : '—'}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between text-neutral-300 min-h-[38px] gap-2">
+                    <span className="text-neutral-400 flex items-center gap-1.5 shrink-0">
+                      <LandPlot className="h-3.5 w-3.5 text-amber-400 shrink-0" /> Roof Area
+                    </span>
+                    <span className="font-bold text-white text-right leading-tight line-clamp-2 pl-2">
+                      {cap.roofArea}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between text-neutral-300 h-[22px]">
+                    <span className="text-neutral-400 flex items-center gap-1.5 shrink-0">
+                      <IndianRupee className="h-3.5 w-3.5 text-emerald-400 shrink-0" /> Monthly Savings
+                    </span>
+                    <span className="font-bold text-emerald-400 text-right truncate pl-2">
+                      {cap.monthlySavings ? cap.monthlySavings.split(' / ')[0] : '—'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Load Hint */}
+                <div className="mt-4 text-[11px] text-neutral-400 flex items-center gap-1.5 h-[20px]">
+                  <Gauge className="h-3.5 w-3.5 text-[#D71920] shrink-0" />
+                  <span className="truncate">{cap.suitableFor}</span>
+                </div>
+              </div>
+
+              {/* Action Button */}
+              <div className="mt-6 pt-2">
+                <Link
+                  href={`/services/${cap.slug}`}
+                  className="w-full inline-flex items-center justify-center gap-2 py-3 px-4 rounded-2xl bg-[#D71920] hover:bg-[#b01319] text-white text-xs font-bold transition-all shadow-md group-hover:shadow-red-500/25 cursor-pointer"
+                >
+                  <span>Explore {cap.kw} Details</span>
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
+              </div>
+            </motion.div>
           ))}
         </div>
       </div>
@@ -476,7 +654,7 @@ function EPCSection({ content }) {
   }))
 
   return (
-    <section id="epc" className="py-20 md:py-28 bg-neutral-50/50 scroll-mt-28">
+    <section id="epc" className="py-20 md:py-28 bg-white scroll-mt-28 border-t border-neutral-100">
       <div className="container mx-auto px-6">
         <SectionHeader
           eyebrow={eyebrow}
@@ -535,7 +713,7 @@ function ApprovalSection({ content }) {
   }))
 
   return (
-    <section id="approvals" className="py-20 md:py-28 bg-white scroll-mt-28">
+    <section id="approvals" className="py-20 md:py-28 bg-white scroll-mt-28 border-t border-neutral-100">
       <div className="container mx-auto px-6">
         <SectionHeader
           eyebrow={eyebrow}
@@ -591,33 +769,16 @@ function SupplySection({ content }) {
   }))
 
   return (
-    <section id="supply" className="py-20 md:py-28 bg-white scroll-mt-28">
-      <div className="container mx-auto px-6">
+    <section id="supply" className="py-20 md:py-28 bg-white scroll-mt-28 border-t border-neutral-100 overflow-hidden">
+      <div className="container mx-auto px-4 sm:px-6">
         <SectionHeader
           eyebrow={eyebrow}
           title={<span dangerouslySetInnerHTML={{ __html: titleHtml }} />}
           sub={sub}
         />
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 max-w-5xl mx-auto">
-          {items.map((item, i) => {
-            const Icon = item.icon
-            return (
-              <motion.div
-                key={item.title || i}
-                initial="hidden" whileInView="visible" viewport={{ once: true }}
-                variants={fadeUp} custom={i % 5}
-                className="service-card-hover group bg-white rounded-2xl p-5 border border-neutral-200/60 text-center hover:border-[#D71920]/30"
-              >
-                <div className="w-12 h-12 rounded-2xl bg-neutral-100 group-hover:bg-[#D71920] flex items-center justify-center mx-auto mb-3 transition-colors">
-                  <Icon className="h-6 w-6 text-neutral-600 group-hover:text-white transition-colors" />
-                </div>
-                <h4 className="font-bold text-sm text-neutral-900 leading-tight">{item.title}</h4>
-                <p className="mt-1 text-xs text-neutral-500 leading-relaxed">{item.desc}</p>
-              </motion.div>
-            )
-          })}
-        </div>
+        {/* 21st.dev Dynamic Interactive Motion Grid */}
+        <SupplyCardsMotion items={items} />
       </div>
     </section>
   )
@@ -630,7 +791,7 @@ function ComparisonSection({ content }) {
   const rows = (content?.comparisonData && content.comparisonData.length > 0) ? content.comparisonData : COMPARISON_DATA
 
   return (
-    <section className="py-20 md:py-28 bg-white">
+    <section className="py-20 md:py-28 bg-white border-t border-neutral-100">
       <div className="container mx-auto px-6">
         <SectionHeader
           eyebrow={eyebrow}
@@ -690,7 +851,7 @@ function WorkflowSection({ content }) {
   }))
 
   return (
-    <section className="py-20 md:py-28 bg-neutral-50/50">
+    <section className="py-20 md:py-28 bg-white border-t border-neutral-100">
       <div className="container mx-auto px-6">
         <SectionHeader
           eyebrow={eyebrow}
@@ -745,7 +906,7 @@ function ServicesReviewsSection({ reviews }) {
     author: {
       name: r.name,
       handle: r.role || "Rooftop Owner",
-      avatar: r.img || ""
+      avatar: r.avatar || r.image || r.img || r.photo || ""
     },
     text: r.text
   }))
@@ -755,6 +916,7 @@ function ServicesReviewsSection({ reviews }) {
       title="What our clients say about our services"
       description="Real feedback from homeowners, commercial site managers, and industrial partners across Tamil Nadu."
       testimonials={testimonials}
+      className="bg-white border-t border-neutral-100"
     />
   )
 }
@@ -770,7 +932,7 @@ function FAQSection() {
   )
 
   return (
-    <section className="py-20 md:py-28 bg-neutral-50/50 border-t border-neutral-200/50">
+    <section className="py-20 md:py-28 bg-white border-t border-neutral-100">
       <div className="container mx-auto px-6">
         <SectionHeader
           eyebrow="FAQs"
@@ -816,7 +978,7 @@ function FAQSection() {
 
 function FinalCTASection() {
   return (
-    <section className="py-20 md:py-28 bg-white">
+    <section className="py-20 md:py-28 bg-white border-t border-neutral-100">
       <div className="container mx-auto px-6">
         <motion.div
           initial="hidden" whileInView="visible" viewport={{ once: true }}
@@ -846,10 +1008,10 @@ function FinalCTASection() {
 
             <div className="mt-10 flex flex-col sm:flex-row justify-center gap-4">
               <Button asChild className="bg-[#D71920] hover:bg-[#a5121a] text-white rounded-full px-8 h-14 text-base font-bold shadow-glow-red transition-all hover:scale-105">
-                <Link href="/#contact">Get Free Quote <ArrowRight className="ml-2 h-4 w-4" /></Link>
+                <Link href="/contact">Get Free Quote <ArrowRight className="ml-2 h-4 w-4" /></Link>
               </Button>
               <Button asChild variant="outline" className="bg-transparent border-white/20 hover:bg-white/10 text-white rounded-full px-8 h-14 text-base font-semibold backdrop-blur transition-all hover:scale-105">
-                <Link href="/#contact">Talk to Expert</Link>
+                <Link href="/contact">Talk to Expert</Link>
               </Button>
               <Button asChild variant="outline" className="bg-transparent border-white/20 hover:bg-white/10 text-white rounded-full px-8 h-14 text-base font-semibold backdrop-blur transition-all hover:scale-105">
                 <a href="tel:919047777936"><Phone className="mr-2 h-4 w-4" /> Call Now</a>
@@ -920,6 +1082,7 @@ export default function ServicesPage() {
 
       <HeroSection content={content} />
       <StickyServiceNav />
+      <CapacitySizingSection />
       <ServicesGridSection content={content} />
       <EPCSection content={content} />
       <ApprovalSection content={content} />

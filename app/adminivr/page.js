@@ -7,10 +7,15 @@ import {
   Sun, LogOut, Users, TrendingUp, Calendar, Zap, LayoutDashboard, MessageSquare,
   FolderKanban, Search, Trash2, Phone, Mail, MapPin, Edit3, Plus, X, Save,
   Eye, EyeOff, ArrowRight, Loader2, Download, CheckCircle2, Clock, Sparkles, Upload, ImageIcon, Star,
+  BookOpen, ExternalLink, Globe, Tag, FileText, Bold, Italic, List, ListOrdered, Heading1, Heading2, Quote, Code, CheckSquare, Table, ArrowLeft, RefreshCw, HelpCircle,
+  Copy, Check
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
+import { BLOG_CATEGORIES } from '@/data/blogs'
+import { DEFAULT_FAQS } from '@/data/faqs'
+import { sortCapacitiesAscending } from '@/data/capacities'
 
 const TOKEN_KEY = 'ivr_admin_token'
 const USER_KEY = 'ivr_admin_user'
@@ -170,6 +175,7 @@ function Leads({ token }) {
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState('all')
   const [adding, setAdding] = useState(false)
+  const [viewingLead, setViewingLead] = useState(null)
 
   async function load() {
     setLoading(true)
@@ -186,16 +192,35 @@ function Leads({ token }) {
     load()
   }
 
+  async function updateLeadData(id, data) {
+    const r = await fetch('/api/admin/leads', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ id, ...data })
+    })
+    const j = await r.json()
+    if (j.success) {
+      toast.success('Lead updated successfully')
+      load()
+      if (viewingLead && viewingLead.id === id) {
+        setViewingLead(prev => ({ ...prev, ...data }))
+      }
+    } else {
+      toast.error(j.error || 'Failed to update lead')
+    }
+  }
+
   async function del(id) {
     if (!confirm('Delete this lead permanently?')) return
     await fetch(`/api/admin/leads?id=${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } })
     toast.success('Deleted')
+    if (viewingLead?.id === id) setViewingLead(null)
     load()
   }
 
   function exportCsv() {
-    const cols = ['id', 'name', 'phone', 'email', 'city', 'address', 'interest', 'status', 'message', 'createdAt']
-    const csv = [cols.join(',')].concat(leads.map(l => cols.map(c => `"${String(l[c] || '').replace(/"/g, '" "')}" `).join(','))).join('\n')
+    const cols = ['id', 'name', 'phone', 'email', 'city', 'address', 'interest', 'status', 'message', 'notes', 'systemSize', 'monthlyBill', 'roofArea', 'createdAt']
+    const csv = [cols.join(',')].concat(leads.map(l => cols.map(c => `"${String(l[c] || '').replace(/"/g, '""')}"`).join(','))).join('\n')
     const blob = new Blob([csv], { type: 'text/csv' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
@@ -207,7 +232,16 @@ function Leads({ token }) {
     if (status !== 'all' && (l.status || 'new') !== status) return false
     if (!search) return true
     const s = search.toLowerCase()
-    return (l.name || '').toLowerCase().includes(s) || (l.phone || '').includes(s) || (l.city || '').toLowerCase().includes(s) || (l.email || '').toLowerCase().includes(s) || (l.address || '').toLowerCase().includes(s)
+    return (
+      (l.name || '').toLowerCase().includes(s) ||
+      (l.phone || '').includes(s) ||
+      (l.city || '').toLowerCase().includes(s) ||
+      (l.email || '').toLowerCase().includes(s) ||
+      (l.address || '').toLowerCase().includes(s) ||
+      (l.message || '').toLowerCase().includes(s) ||
+      (l.notes || '').toLowerCase().includes(s) ||
+      (l.interest || '').toLowerCase().includes(s)
+    )
   })
 
   const statusColors = {
@@ -222,7 +256,7 @@ function Leads({ token }) {
       <div className="flex flex-wrap gap-3 items-center mb-6" >
         <div className="relative flex-1 min-w-[240px]" >
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400"  />
-          <Input placeholder="Search name, phone, email, city, address..."  value={search} onChange={e => setSearch(e.target.value)} className="pl-10 h-11 rounded-xl"  />
+          <Input placeholder="Search name, phone, message, city, notes..."  value={search} onChange={e => setSearch(e.target.value)} className="pl-10 h-11 rounded-xl"  />
         </div>
         <div className="flex gap-1 bg-neutral-100 p-1 rounded-full" >
           {['all', 'new', 'contacted', 'converted', 'lost'].map(s => (
@@ -246,28 +280,89 @@ function Leads({ token }) {
                   <th className="px-4 py-3" >Contact</th>
                   <th className="px-4 py-3" >City / Address</th>
                   <th className="px-4 py-3" >Interest</th>
+                  <th className="px-4 py-3 min-w-[240px]" >Message & Requirements</th>
+                  <th className="px-4 py-3 min-w-[170px]" >Notes & Text</th>
                   <th className="px-4 py-3" >Status</th>
                   <th className="px-4 py-3" >Date</th>
-                  <th className="px-4 py-3" >Actions</th>
+                  <th className="px-4 py-3 text-right" >Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {filtered.length === 0 && <tr><td colSpan={7} className="px-4 py-12 text-center text-neutral-500" >No leads found</td></tr>}
+                {filtered.length === 0 && <tr><td colSpan={9} className="px-4 py-12 text-center text-neutral-500" >No leads found</td></tr>}
                 {filtered.map(l => (
-                  <tr key={l.id} className="border-t border-neutral-100 hover:bg-neutral-50/50" >
+                  <tr key={l.id} className="border-t border-neutral-100 hover:bg-neutral-50/60 transition-colors" >
                     <td className="px-4 py-3" >
-                      <div className="font-semibold text-neutral-900" >{l.name || '"'}</div>
-                      {l.message && <div className="text-xs text-neutral-500 mt-1 max-w-xs truncate"  title={l.message}>{l.message}</div>}
+                      <div className="font-semibold text-neutral-900" >{l.name || '—'}</div>
+                      {l.type && l.type !== 'lead' && (
+                        <span className="text-[10px] uppercase font-bold text-neutral-400 bg-neutral-100 px-1.5 py-0.5 rounded mt-1 inline-block" >
+                          {l.type}
+                        </span>
+                      )}
                     </td>
                     <td className="px-4 py-3" >
-                      <a href={`tel:${l.phone}`} className="flex items-center gap-1 text-neutral-800 hover:text-[#D71920] font-medium" ><Phone className="h-3 w-3"  /> {l.phone}</a>
-                      {l.email && <a href={`mailto:${l.email}`} className="flex items-center gap-1 text-xs text-neutral-500 hover:text-[#D71920] mt-0.5" ><Mail className="h-3 w-3"  /> {l.email}</a>}
+                      <a href={`tel:${l.phone}`} className="flex items-center gap-1 text-neutral-800 hover:text-[#D71920] font-medium text-xs whitespace-nowrap" ><Phone className="h-3 w-3 text-neutral-400"  /> {l.phone}</a>
+                      {l.email && <a href={`mailto:${l.email}`} className="flex items-center gap-1 text-xs text-neutral-500 hover:text-[#D71920] mt-1 truncate max-w-[150px]"  title={l.email}><Mail className="h-3 w-3 text-neutral-400"  /> {l.email}</a>}
                     </td>
-                    <td className="px-4 py-3 text-neutral-700" >
-                      <div>{l.city || '"'}</div>
-                      {l.address && <div className="text-xs text-neutral-500 mt-0.5 max-w-[200px] truncate"  title={l.address}>{l.address}</div>}
+                    <td className="px-4 py-3 text-neutral-700 text-xs" >
+                      <div className="font-medium text-neutral-900" >{l.city || '—'}</div>
+                      {l.address && <div className="text-neutral-500 mt-0.5 max-w-[180px] truncate"  title={l.address}>{l.address}</div>}
                     </td>
-                    <td className="px-4 py-3" ><span className="text-xs rounded-full bg-red-50 text-[#D71920] px-2.5 py-1 font-medium" >{l.interest || '"'}</span></td>
+                    <td className="px-4 py-3" ><span className="text-xs rounded-full bg-red-50 text-[#D71920] px-2.5 py-1 font-semibold whitespace-nowrap" >{l.interest || '—'}</span></td>
+                    
+                    {/* Dedicated Message & Requirements Column */}
+                    <td className="px-4 py-3" >
+                      {l.message ? (
+                        <div
+                          onClick={() => setViewingLead(l)}
+                          className="cursor-pointer group/msg bg-neutral-50 hover:bg-neutral-100/90 p-2.5 rounded-xl border border-neutral-200/80 transition-all max-w-[280px]"
+                          title="Click to view full message"
+                        >
+                          <div className="text-xs text-neutral-800 line-clamp-2 leading-relaxed font-normal whitespace-pre-wrap" >
+                            {l.message}
+                          </div>
+                          {l.message.length > 50 && (
+                            <div className="text-[11px] text-[#D71920] font-semibold mt-1.5 flex items-center gap-1 group-hover/msg:underline" >
+                              <Eye className="h-3 w-3"  /> View full text
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-neutral-400 text-xs italic" >No message provided</span>
+                      )}
+                      {(l.systemSize || l.monthlyBill || l.roofArea) && (
+                        <div className="flex flex-wrap gap-1 mt-1.5" >
+                          {l.systemSize && <span className="text-[10px] font-medium bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded-md border border-emerald-100" >{l.systemSize} kW</span>}
+                          {l.monthlyBill && <span className="text-[10px] font-medium bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded-md border border-blue-100" >₹{l.monthlyBill}/mo</span>}
+                          {l.roofArea && <span className="text-[10px] font-medium bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded-md border border-purple-100" >{l.roofArea} sq.ft</span>}
+                        </div>
+                      )}
+                    </td>
+
+                    {/* Dedicated Notes / Text Content Column */}
+                    <td className="px-4 py-3" >
+                      {l.notes ? (
+                        <div
+                          onClick={() => setViewingLead(l)}
+                          className="cursor-pointer bg-amber-50/80 hover:bg-amber-100/80 border border-amber-200/80 text-amber-900 rounded-xl p-2.5 max-w-[200px] transition-colors"
+                          title="Click to view or edit notes"
+                        >
+                          <div className="text-xs line-clamp-2 whitespace-pre-wrap font-normal" >
+                            {l.notes}
+                          </div>
+                          <div className="text-[10px] text-amber-700 font-semibold mt-1 flex items-center gap-1" >
+                            <Edit3 className="h-2.5 w-2.5"  /> Edit note
+                          </div>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => setViewingLead(l)}
+                          className="text-xs text-neutral-400 hover:text-neutral-700 border border-dashed border-neutral-200 hover:border-neutral-400 rounded-lg px-2.5 py-1.5 transition-colors flex items-center gap-1.5 bg-neutral-50/50"
+                        >
+                          <Plus className="h-3 w-3 text-neutral-400"  /> Add note
+                        </button>
+                      )}
+                    </td>
+
                     <td className="px-4 py-3" >
                       <select value={l.status || 'new'} onChange={e => updateStatus(l.id, e.target.value)} className={`text-xs rounded-full px-2.5 py-1 font-semibold border-0 cursor-pointer ${statusColors[l.status || 'new']}`}>
                         <option value="new" >new</option>
@@ -277,8 +372,9 @@ function Leads({ token }) {
                       </select>
                     </td>
                     <td className="px-4 py-3 text-neutral-500 text-xs whitespace-nowrap" >{new Date(l.createdAt).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' })}</td>
-                    <td className="px-4 py-3" >
-                      <div className="flex gap-1" >
+                    <td className="px-4 py-3 text-right" >
+                      <div className="flex gap-1 justify-end" >
+                        <button onClick={() => setViewingLead(l)} className="w-8 h-8 rounded-lg bg-neutral-100 text-neutral-700 hover:bg-neutral-200 flex items-center justify-center transition-colors"  title="View Details" ><Eye className="h-4 w-4"  /></button>
                         <a href={`https://wa.me/${(l.phone || '').replace(/\D/g, '')}?text=Hi%20${encodeURIComponent(l.name || 'there')}%2C%20thanks%20for%20reaching%20out%20to%20IVR%20Energy%21`} target="_blank"  rel="noreferrer"  className="w-8 h-8 rounded-lg bg-green-100 text-green-700 hover:bg-green-500 hover:text-white flex items-center justify-center transition-colors"  title="WhatsApp" ><MessageSquare className="h-4 w-4"  /></a>
                         <button onClick={() => del(l.id)} className="w-8 h-8 rounded-lg bg-red-100 text-red-700 hover:bg-red-500 hover:text-white flex items-center justify-center transition-colors"  title="Delete" ><Trash2 className="h-4 w-4"  /></button>
                       </div>
@@ -318,7 +414,194 @@ function Leads({ token }) {
           />
         )}
       </AnimatePresence>
+
+      <AnimatePresence>
+        {viewingLead && (
+          <LeadDetailModal
+            lead={viewingLead}
+            onClose={() => setViewingLead(null)}
+            onSave={(updates) => updateLeadData(viewingLead.id, updates)}
+          />
+        )}
+      </AnimatePresence>
     </div>
+  )
+}
+
+function LeadDetailModal({ lead, onClose, onSave }) {
+  const [notes, setNotes] = useState(lead.notes || '')
+  const [status, setStatus] = useState(lead.status || 'new')
+  const [copied, setCopied] = useState(false)
+  const [saving, setSaving] = useState(false)
+
+  const copyMessage = () => {
+    if (!lead.message) return
+    navigator.clipboard.writeText(lead.message)
+    setCopied(true)
+    toast.success('Message copied to clipboard')
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  const handleSave = async () => {
+    setSaving(true)
+    await onSave({ notes, status })
+    setSaving(false)
+  }
+
+  return (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 bg-black/70 backdrop-blur flex items-center justify-center p-4 overflow-y-auto" onClick={onClose}>
+      <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95 }} onClick={e => e.stopPropagation()} className="bg-white rounded-3xl w-full max-w-2xl shadow-2xl my-8 overflow-hidden">
+        <div className="p-6 border-b flex items-center justify-between bg-neutral-50/50">
+          <div>
+            <div className="text-xl font-bold text-neutral-900">{lead.name || 'Lead Details'}</div>
+            <div className="text-xs text-neutral-500 mt-0.5">Submitted on {new Date(lead.createdAt).toLocaleString('en-IN', { dateStyle: 'long', timeStyle: 'short' })}</div>
+          </div>
+          <button type="button" onClick={onClose} className="w-9 h-9 rounded-full hover:bg-neutral-200 flex items-center justify-center transition-colors">
+            <X className="h-5 w-5 text-neutral-600" />
+          </button>
+        </div>
+
+        <div className="p-6 space-y-5 max-h-[75vh] overflow-y-auto text-neutral-900">
+          {/* Quick Contact & Info Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-neutral-50 p-4 rounded-2xl border border-neutral-100">
+            <div>
+              <div className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider">Phone</div>
+              <div className="flex items-center gap-2 mt-1">
+                <a href={`tel:${lead.phone}`} className="font-semibold text-neutral-900 hover:text-[#D71920] flex items-center gap-1.5 text-sm">
+                  <Phone className="h-3.5 w-3.5 text-neutral-400" /> {lead.phone}
+                </a>
+                <a
+                  href={`https://wa.me/${(lead.phone || '').replace(/\D/g, '')}?text=Hi%20${encodeURIComponent(lead.name || 'there')}%2C%20thanks%20for%20reaching%20out%20to%20IVR%20Energy%21`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-xs font-semibold hover:bg-green-200 transition-colors"
+                >
+                  WhatsApp
+                </a>
+              </div>
+            </div>
+
+            <div>
+              <div className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider">Email</div>
+              <div className="mt-1">
+                {lead.email ? (
+                  <a href={`mailto:${lead.email}`} className="font-semibold text-neutral-900 hover:text-[#D71920] flex items-center gap-1.5 text-sm">
+                    <Mail className="h-3.5 w-3.5 text-neutral-400" /> {lead.email}
+                  </a>
+                ) : (
+                  <span className="text-neutral-400 text-xs italic">Not provided</span>
+                )}
+              </div>
+            </div>
+
+            <div>
+              <div className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider">Interest</div>
+              <div className="mt-1">
+                <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-red-50 text-[#D71920] border border-red-100">
+                  {lead.interest || 'General Inquiry'}
+                </span>
+              </div>
+            </div>
+
+            <div>
+              <div className="text-[11px] font-semibold text-neutral-500 uppercase tracking-wider">City & Address</div>
+              <div className="mt-1 text-sm font-medium text-neutral-800">
+                {lead.city && <span className="font-bold">{lead.city}</span>}
+                {lead.address && <div className="text-xs text-neutral-500 mt-0.5">{lead.address}</div>}
+                {!lead.city && !lead.address && <span className="text-neutral-400 text-xs italic">Not specified</span>}
+              </div>
+            </div>
+          </div>
+
+          {/* Calculator Specs if available */}
+          {(lead.systemSize || lead.monthlyBill || lead.roofArea) && (
+            <div className="p-4 bg-emerald-50/70 border border-emerald-100 rounded-2xl">
+              <div className="text-xs font-bold text-emerald-800 uppercase tracking-wider mb-2">Estimated Solar Calculation</div>
+              <div className="grid grid-cols-3 gap-2 text-center">
+                {lead.systemSize && (
+                  <div className="bg-white p-2.5 rounded-xl border border-emerald-100">
+                    <div className="text-lg font-bold text-emerald-700">{lead.systemSize} kW</div>
+                    <div className="text-[11px] text-neutral-500">System Size</div>
+                  </div>
+                )}
+                {lead.monthlyBill && (
+                  <div className="bg-white p-2.5 rounded-xl border border-emerald-100">
+                    <div className="text-lg font-bold text-emerald-700">₹{lead.monthlyBill}</div>
+                    <div className="text-[11px] text-neutral-500">Monthly Bill</div>
+                  </div>
+                )}
+                {lead.roofArea && (
+                  <div className="bg-white p-2.5 rounded-xl border border-emerald-100">
+                    <div className="text-lg font-bold text-emerald-700">{lead.roofArea} sq.ft</div>
+                    <div className="text-[11px] text-neutral-500">Roof Area</div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Message & Text Content Section */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-bold text-neutral-700 uppercase tracking-wider flex items-center gap-1.5">
+                <MessageSquare className="h-4 w-4 text-[#D71920]" /> Customer Message & Requirements
+              </label>
+              {lead.message && (
+                <button
+                  type="button"
+                  onClick={copyMessage}
+                  className="text-xs font-semibold text-neutral-600 hover:text-neutral-900 flex items-center gap-1 bg-neutral-100 hover:bg-neutral-200 px-2.5 py-1 rounded-lg transition-colors"
+                >
+                  {copied ? <Check className="h-3 w-3 text-green-600" /> : <Copy className="h-3 w-3" />}
+                  {copied ? 'Copied' : 'Copy Text'}
+                </button>
+              )}
+            </div>
+            <div className="p-4 bg-neutral-50 rounded-2xl border border-neutral-200/90 text-sm text-neutral-800 whitespace-pre-wrap leading-relaxed min-h-[90px]">
+              {lead.message ? lead.message : <span className="text-neutral-400 italic">No specific message provided by customer.</span>}
+            </div>
+          </div>
+
+          {/* Internal Notes / Follow-up Notes */}
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-neutral-700 uppercase tracking-wider flex items-center gap-1.5">
+              <Edit3 className="h-4 w-4 text-amber-600" /> Internal Notes / Remarks
+            </label>
+            <Textarea
+              value={notes}
+              onChange={e => setNotes(e.target.value)}
+              placeholder="Add follow-up notes, call remarks, quotation status..."
+              rows={3}
+              className="rounded-2xl border-neutral-200 focus:border-[#D71920]"
+            />
+          </div>
+
+          {/* Status Selection */}
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-neutral-700 uppercase tracking-wider">Lead Status</label>
+            <select
+              value={status}
+              onChange={e => setStatus(e.target.value)}
+              className="w-full h-11 rounded-xl border border-neutral-200 px-3 bg-white text-neutral-900 font-medium capitalize"
+            >
+              <option value="new">New</option>
+              <option value="contacted">Contacted</option>
+              <option value="converted">Converted</option>
+              <option value="lost">Lost</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="p-6 border-t flex justify-end gap-3 bg-neutral-50 rounded-b-3xl">
+          <Button type="button" variant="outline" onClick={onClose} className="rounded-xl">
+            Close
+          </Button>
+          <Button type="button" onClick={handleSave} disabled={saving} className="bg-[#D71920] hover:bg-[#a5121a] text-white rounded-xl">
+            {saving ? 'Saving...' : 'Save Notes & Status'}
+          </Button>
+        </div>
+      </motion.div>
+    </motion.div>
   )
 }
 
@@ -434,6 +717,13 @@ function Projects({ token }) {
       </div>
       {loading ? (
         <div className="p-12 flex justify-center" ><Loader2 className="h-8 w-8 animate-spin text-[#D71920]"  /></div>
+      ) : projects.length === 0 ? (
+        <div className="text-center py-16 bg-white rounded-2xl border border-neutral-100 p-8">
+          <p className="text-neutral-500 mb-4">No projects found in database.</p>
+          <Button onClick={() => setEditing({ title: '', client: '', location: '', capacity: '', type: 'Commercial', img: '', gallery: [], order: 999 })} className="bg-[#D71920] hover:bg-[#a5121a] rounded-xl">
+            <Plus className="h-4 w-4 mr-2" /> Add Your First Project
+          </Button>
+        </div>
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4" >
           {projects.map(p => (
@@ -1822,10 +2112,12 @@ function ContactInfoEditor({ content, save }) {
   const [f, setF] = useState({
     phone: c.phone || '+91 90477 77936',
     phoneRaw: c.phoneRaw || '919047777936',
+    secondaryPhone: c.secondaryPhone || '+91 90477 77935',
+    secondaryPhoneRaw: c.secondaryPhoneRaw || '919047777935',
     email: emailParts[0] || 'ivrenergysolutions@gmail.com',
     secondaryEmail: emailParts[1] || c.secondaryEmail || 'info@ivrenergy.com',
     whatsapp: c.whatsapp || '919047777936',
-    address: c.address || '3rd Floor, Door No - 1, Plot No - A, Manasarovar Nagar, Gerugambakkam, Chennai - 600122.',
+    address: c.address || '3rd floor, Door No - 1,\nPlot No - A, Manasarovar Nagar,\nGerugambakkam,\nChennai - 600122.',
     hours: c.hours || 'Mon - Sat, 9:30 AM - 7:30 PM',
     mapLat: c.mapLat || '13.013944',
     mapLng: c.mapLng || '80.136667',
@@ -1834,13 +2126,18 @@ function ContactInfoEditor({ content, save }) {
     facebook: c.facebook || '',
     youtube: c.youtube || '',
     gstNumber: c.gstNumber || '33BTTPR9122F1ZB',
+    secondaryAddressTitle: c.secondaryAddressTitle || '',
+    secondaryAddress: c.secondaryAddress || '',
+    secondaryAddressPhone: c.secondaryAddressPhone || '',
   })
   return (
     <div className="rounded-2xl bg-white p-6 shadow-soft border border-neutral-100 space-y-5">
-      <div className="text-sm text-neutral-600">Update the contact details shown on the site. Displayed in the Contact section, Footer, top nav phone link, floating WhatsApp button, and social links.</div>
+      <div className="text-sm text-neutral-600">Update the contact details shown on the site. Displayed in the Contact section, Dedicated Contact Page (/contact), Footer, top nav phone link, floating WhatsApp button, and social links.</div>
       <div className="grid md:grid-cols-2 gap-4">
-        <FieldRow label="Display phone number" hint="Shown to visitors (formatted)"><Input value={f.phone} onChange={e => setF({ ...f, phone: e.target.value })} className="h-11 rounded-xl" /></FieldRow>
-        <FieldRow label="Phone (raw digits)" hint="For tel: links, e.g. 919047777936"><Input value={f.phoneRaw} onChange={e => setF({ ...f, phoneRaw: e.target.value.replace(/\D/g, '') })} className="h-11 rounded-xl" /></FieldRow>
+        <FieldRow label="Primary Display phone number" hint="Shown to visitors (e.g. +91 90477 77936)"><Input value={f.phone} onChange={e => setF({ ...f, phone: e.target.value, phoneRaw: e.target.value.replace(/\D/g, '') || f.phoneRaw })} className="h-11 rounded-xl" /></FieldRow>
+        <FieldRow label="Primary Phone (raw digits)" hint="For tel: & WhatsApp links, e.g. 919047777936"><Input value={f.phoneRaw} onChange={e => setF({ ...f, phoneRaw: e.target.value.replace(/\D/g, '') })} className="h-11 rounded-xl" /></FieldRow>
+        <FieldRow label="Secondary Display phone number" hint="Second hotline on Contact page (e.g. +91 90477 77935)"><Input value={f.secondaryPhone} onChange={e => setF({ ...f, secondaryPhone: e.target.value, secondaryPhoneRaw: e.target.value.replace(/\D/g, '') || f.secondaryPhoneRaw })} className="h-11 rounded-xl" /></FieldRow>
+        <FieldRow label="Secondary Phone (raw digits)" hint="For tel: link, e.g. 919047777935"><Input value={f.secondaryPhoneRaw} onChange={e => setF({ ...f, secondaryPhoneRaw: e.target.value.replace(/\D/g, '') })} className="h-11 rounded-xl" /></FieldRow>
         <FieldRow label="Primary Email Address" hint="e.g. ivrengysolutions@gmail.com"><Input value={f.email} onChange={e => setF({ ...f, email: e.target.value })} placeholder="ivrenergysolutions@gmail.com" className="h-11 rounded-xl" /></FieldRow>
         <FieldRow label="Secondary Email Address" hint="e.g. info@ivrenergy.com"><Input value={f.secondaryEmail} onChange={e => setF({ ...f, secondaryEmail: e.target.value })} placeholder="info@ivrenergy.com" className="h-11 rounded-xl" /></FieldRow>
         <FieldRow label="WhatsApp number (raw digits)" hint="For wa.me/ links"><Input value={f.whatsapp} onChange={e => setF({ ...f, whatsapp: e.target.value.replace(/\D/g, '') })} className="h-11 rounded-xl" /></FieldRow>
@@ -1855,7 +2152,27 @@ function ContactInfoEditor({ content, save }) {
           <FieldRow label="Map longitude"><Input value={f.mapLng} onChange={e => setF({ ...f, mapLng: e.target.value })} className="h-11 rounded-xl" /></FieldRow>
         </div>
         <div className="md:col-span-2">
-          <FieldRow label="Office address"><Textarea value={f.address} onChange={e => setF({ ...f, address: e.target.value })} rows={2} className="rounded-xl" /></FieldRow>
+          <FieldRow label="Primary Office Address (Chennai)"><Textarea value={f.address} onChange={e => setF({ ...f, address: e.target.value })} rows={2} className="rounded-xl" /></FieldRow>
+        </div>
+
+        {/* Secondary / Branch Office Address (Optional) */}
+        <div className="md:col-span-2 pt-4 border-t border-neutral-100 space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="font-bold text-sm text-neutral-900">Secondary / Branch Office Address (Optional)</div>
+              <div className="text-xs text-neutral-500">Option to configure an additional regional branch office. Leave empty if you only operate from Chennai.</div>
+            </div>
+            {f.secondaryAddress && (
+              <span className="text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full">Configured</span>
+            )}
+          </div>
+          <div className="grid md:grid-cols-2 gap-4">
+            <FieldRow label="Branch Office Title" hint="e.g. Coimbatore Regional Office"><Input value={f.secondaryAddressTitle} onChange={e => setF({ ...f, secondaryAddressTitle: e.target.value })} placeholder="e.g. Coimbatore Regional Office" className="h-11 rounded-xl" /></FieldRow>
+            <FieldRow label="Branch Phone Number" hint="e.g. +91 90477 77935"><Input value={f.secondaryAddressPhone} onChange={e => setF({ ...f, secondaryAddressPhone: e.target.value })} placeholder="e.g. +91 90477 77935" className="h-11 rounded-xl" /></FieldRow>
+            <div className="md:col-span-2">
+              <FieldRow label="Branch Office Full Address" hint="Full street address & pincode"><Textarea value={f.secondaryAddress} onChange={e => setF({ ...f, secondaryAddress: e.target.value })} placeholder="Enter second branch office address (optional)..." rows={2} className="rounded-xl" /></FieldRow>
+            </div>
+          </div>
         </div>
       </div>
       <div className="pt-2 flex justify-end">
@@ -2180,59 +2497,2360 @@ function Reviews({ token }) {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6" >
-        <div className="text-sm text-neutral-600" >Manage customer testimonials shown on the public website. If empty, seed reviews from the code will be used.</div>
-        <Button onClick={() => setEditing({ name: '', role: '', rating: 5, text: '', order: 999 })} className="bg-[#D71920] hover:bg-[#a5121a] rounded-xl" ><Plus className="h-4 w-4 mr-2"  /> Add Review</Button>
+      <div className="flex justify-between items-center mb-6">
+        <div className="text-sm text-neutral-600">Manage customer testimonials shown on the public website. Add client passport-size photos for authentic social proof.</div>
+        <Button onClick={() => setEditing({ name: '', role: '', avatar: '', rating: 5, text: '', order: 999 })} className="bg-[#D71920] hover:bg-[#a5121a] rounded-xl"><Plus className="h-4 w-4 mr-2" /> Add Review</Button>
       </div>
-      {loading ? <div className="p-12 flex justify-center" ><Loader2 className="h-8 w-8 animate-spin text-[#D71920]"  /></div> : (
-        reviews.length === 0 ? <div className="rounded-2xl bg-white p-12 text-center border border-neutral-100" ><div className="text-neutral-500" >No reviews in the database yet.</div><div className="text-xs text-neutral-400 mt-1" >The 6 default reviews from the code will be shown on the site.</div></div> : (
-          <div className="grid md:grid-cols-2 gap-4" >
+      {loading ? <div className="p-12 flex justify-center"><Loader2 className="h-8 w-8 animate-spin text-[#D71920]" /></div> : (
+        reviews.length === 0 ? <div className="rounded-2xl bg-white p-12 text-center border border-neutral-100"><div className="text-neutral-500">No reviews in the database yet.</div><div className="text-xs text-neutral-400 mt-1">The 6 default reviews from the code will be shown on the site.</div></div> : (
+          <div className="grid md:grid-cols-2 gap-4">
             {reviews.map(rv => (
-              <div key={rv.id} className="rounded-2xl bg-white p-5 border border-neutral-100 shadow-soft" >
-                <div className="flex justify-between items-start" >
-                  <div>
-                    <div className="flex gap-0.5" >{Array.from({ length: rv.rating }).map((_, i) => <Star key={i} className="h-4 w-4 fill-[#D71920] text-[#D71920]"  />)}</div>
-                    <div className="mt-3 font-semibold text-neutral-900" >{rv.name}</div>
-                    <div className="text-xs text-neutral-500" >{rv.role}</div>
+              <div key={rv.id} className="rounded-2xl bg-white p-5 border border-neutral-100 shadow-soft">
+                <div className="flex justify-between items-start">
+                  <div className="flex items-center gap-3.5">
+                    <div className="h-12 w-12 rounded-2xl bg-neutral-100 border border-neutral-200 overflow-hidden flex items-center justify-center shrink-0 shadow-sm relative">
+                      {rv.avatar || rv.img ? (
+                        <img src={rv.avatar || rv.img} alt={rv.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="h-full w-full bg-gradient-to-br from-[#D71920] to-[#b3141a] text-white font-bold text-xs flex items-center justify-center">
+                          {rv.name ? rv.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() : '?'}
+                        </div>
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex gap-0.5">{Array.from({ length: rv.rating || 5 }).map((_, i) => <Star key={i} className="h-3.5 w-3.5 fill-[#D71920] text-[#D71920]" />)}</div>
+                      <div className="mt-1 font-semibold text-neutral-900 truncate">{rv.name}</div>
+                      <div className="text-xs text-neutral-500 truncate">{rv.role || 'Verified Client'}</div>
+                    </div>
                   </div>
-                  <div className="flex gap-1" >
-                    <button onClick={() => setEditing(rv)} className="w-8 h-8 rounded-lg bg-neutral-100 hover:bg-neutral-200 flex items-center justify-center" ><Edit3 className="h-4 w-4"  /></button>
-                    <button onClick={() => del(rv.id)} className="w-8 h-8 rounded-lg bg-red-100 text-red-700 hover:bg-red-500 hover:text-white flex items-center justify-center" ><Trash2 className="h-4 w-4"  /></button>
+                  <div className="flex gap-1">
+                    <button onClick={() => setEditing(rv)} className="w-8 h-8 rounded-lg bg-neutral-100 hover:bg-neutral-200 flex items-center justify-center" title="Edit Review"><Edit3 className="h-4 w-4" /></button>
+                    <button onClick={() => del(rv.id)} className="w-8 h-8 rounded-lg bg-red-100 text-red-700 hover:bg-red-500 hover:text-white flex items-center justify-center" title="Delete Review"><Trash2 className="h-4 w-4" /></button>
                   </div>
                 </div>
-                <p className="mt-3 text-sm text-neutral-700 line-clamp-3" >"{rv.text}"</p>
+                <p className="mt-3.5 text-sm text-neutral-700 line-clamp-3 leading-relaxed">"{rv.text}"</p>
+                {rv.avatar && (
+                  <div className="mt-3 pt-2.5 border-t border-neutral-100 flex items-center gap-1.5 text-[11px] text-emerald-600 font-semibold">
+                    <CheckCircle2 className="h-3.5 w-3.5" /> Passport photo attached
+                  </div>
+                )}
               </div>
             ))}
           </div>
         )
       )}
-      <AnimatePresence>{editing && <ReviewEditor review={editing} onSave={save} onClose={() => setEditing(null)} />}</AnimatePresence>
+      <AnimatePresence>{editing && <ReviewEditor review={editing} token={token} onSave={save} onClose={() => setEditing(null)} />}</AnimatePresence>
     </div>
   )
 }
 
-function ReviewEditor({ review, onSave, onClose }) {
-  const [r, setR] = useState(review)
+function ReviewEditor({ review, token, onSave, onClose }) {
+  const [r, setR] = useState({
+    name: '',
+    role: '',
+    avatar: '',
+    rating: 5,
+    text: '',
+    order: 999,
+    ...review
+  })
+  const [uploading, setUploading] = useState(false)
+
+  async function handleAvatarUpload(files) {
+    if (!files || !files.length) return
+    setUploading(true)
+    try {
+      const form = new FormData()
+      for (const f of files) form.append('files', f)
+      const res = await fetch('/api/admin/upload', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: form
+      })
+      const j = await res.json()
+      if (j.success && j.urls?.length) {
+        setR(prev => ({ ...prev, avatar: j.urls[0] }))
+        toast.success('Passport size photo uploaded successfully')
+      } else {
+        toast.error(j.error || 'Upload failed')
+      }
+    } catch (e) {
+      toast.error('Upload error: ' + e.message)
+    }
+    setUploading(false)
+  }
+
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 bg-black/70 backdrop-blur flex items-center justify-center p-4 overflow-y-auto"  onClick={onClose}>
-      <motion.form initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95 }} onClick={e => e.stopPropagation()} onSubmit={e => { e.preventDefault(); if (!r.name || !r.text) { toast.error('Name and text required'); return } onSave({ ...r, rating: Number(r.rating), order: Number(r.order) }) }} className="bg-white rounded-3xl w-full max-w-lg shadow-2xl" >
-        <div className="p-6 border-b flex items-center justify-between" >
-          <div className="text-xl font-bold" >{r.id ? 'Edit Review' : 'Add New Review'}</div>
-          <button type="button"  onClick={onClose} className="w-9 h-9 rounded-full hover:bg-neutral-100 flex items-center justify-center" ><X className="h-5 w-5"  /></button>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 bg-black/70 backdrop-blur flex items-center justify-center p-4 overflow-y-auto" onClick={onClose}>
+      <motion.form initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95 }} onClick={e => e.stopPropagation()} onSubmit={e => { e.preventDefault(); if (!r.name || !r.text) { toast.error('Customer name and review text are required'); return } onSave({ ...r, rating: Number(r.rating) || 5, order: Number(r.order) || 999 }) }} className="bg-white rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden my-8">
+        <div className="p-6 border-b flex items-center justify-between">
+          <div>
+            <div className="text-xl font-bold text-neutral-900">{r.id ? 'Edit Review & Client Photo' : 'Add New Review & Client Photo'}</div>
+            <div className="text-xs text-neutral-500 mt-0.5">Manage customer testimonial details and passport photo</div>
+          </div>
+          <button type="button" onClick={onClose} className="w-9 h-9 rounded-full hover:bg-neutral-100 flex items-center justify-center"><X className="h-5 w-5" /></button>
         </div>
-        <div className="p-6 space-y-4" >
-          <FieldRow label="Customer name" ><Input value={r.name} onChange={e => setR({ ...r, name: e.target.value })} className="h-11 rounded-xl"  /></FieldRow>
-          <FieldRow label="Role / location" ><Input value={r.role} onChange={e => setR({ ...r, role: e.target.value })} placeholder="Homeowner · 5 kW"  className="h-11 rounded-xl"  /></FieldRow>
-          <FieldRow label="Rating (1 - 5)" ><Input value={r.rating} onChange={e => setR({ ...r, rating: e.target.value.replace(/[^1-5]/g, '') })} placeholder="5"  className="h-11 rounded-xl max-w-[100px]"  /></FieldRow>
-          <FieldRow label="Review text" ><Textarea value={r.text} onChange={e => setR({ ...r, text: e.target.value })} rows={5} className="rounded-xl"  /></FieldRow>
-          <FieldRow label="Display order" ><Input value={r.order} onChange={e => setR({ ...r, order: e.target.value.replace(/[^0-9]/g, '') })} placeholder="1 = first"  className="h-11 rounded-xl max-w-[150px]"  /></FieldRow>
+
+        <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+          {/* Client Passport Photo Uploader */}
+          <FieldRow label="Client Passport-Size Photo">
+            <div className="space-y-3">
+              <div className="flex items-center gap-4">
+                <div className="h-20 w-20 rounded-2xl bg-neutral-100 border-2 border-dashed border-neutral-300 overflow-hidden flex items-center justify-center shrink-0 shadow-sm relative group">
+                  {r.avatar ? (
+                    <>
+                      <img src={r.avatar} alt="Client Preview" className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => setR({ ...r, avatar: '' })}
+                        title="Remove photo"
+                        className="absolute inset-0 bg-black/60 text-white opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-xs font-semibold"
+                      >
+                        <Trash2 className="h-5 w-5" />
+                      </button>
+                    </>
+                  ) : (
+                    <div className="text-center p-1">
+                      <ImageIcon className="h-6 w-6 text-neutral-400 mx-auto" />
+                      <span className="text-[10px] text-neutral-400 font-medium block mt-1">No photo</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex-1 space-y-2">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <label className="cursor-pointer inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-neutral-900 hover:bg-neutral-800 text-white text-xs font-bold transition-all shadow-xs">
+                      {uploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5 text-[#D71920]" />}
+                      <span>{uploading ? 'Uploading Photo...' : 'Upload Passport Photo'}</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        disabled={uploading}
+                        onChange={e => handleAvatarUpload(e.target.files)}
+                      />
+                    </label>
+                    {r.avatar && (
+                      <button
+                        type="button"
+                        onClick={() => setR({ ...r, avatar: '' })}
+                        className="text-xs text-red-600 hover:underline font-semibold px-2 py-1"
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-neutral-500 leading-tight">
+                    Upload client face photo (Square 1:1 or 3:4 passport aspect ratio recommended).
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <Input
+                  value={r.avatar || ''}
+                  onChange={e => setR({ ...r, avatar: e.target.value })}
+                  placeholder="Or enter image URL (e.g. /projects/... or https://...)"
+                  className="h-10 rounded-xl text-xs"
+                />
+              </div>
+            </div>
+          </FieldRow>
+
+          <FieldRow label="Customer Name *">
+            <Input value={r.name} onChange={e => setR({ ...r, name: e.target.value })} placeholder="e.g. Cap. Shankar A" className="h-11 rounded-xl" />
+          </FieldRow>
+          <FieldRow label="Role / Location">
+            <Input value={r.role} onChange={e => setR({ ...r, role: e.target.value })} placeholder="e.g. Homeowner · 5 kW or Commercial Site Manager" className="h-11 rounded-xl" />
+          </FieldRow>
+          <FieldRow label="Rating (1 - 5)">
+            <Input value={r.rating} onChange={e => setR({ ...r, rating: e.target.value.replace(/[^1-5]/g, '') })} placeholder="5" className="h-11 rounded-xl max-w-[100px]" />
+          </FieldRow>
+          <FieldRow label="Review Text *">
+            <Textarea value={r.text} onChange={e => setR({ ...r, text: e.target.value })} rows={4} placeholder="What did the customer say about IVR Energy solar installation..." className="rounded-xl" />
+          </FieldRow>
+          <FieldRow label="Display Order">
+            <Input value={r.order} onChange={e => setR({ ...r, order: e.target.value.replace(/[^0-9]/g, '') })} placeholder="1 = first" className="h-11 rounded-xl max-w-[150px]" />
+          </FieldRow>
         </div>
-        <div className="p-6 border-t flex justify-end gap-3 bg-neutral-50 rounded-b-3xl" >
-          <Button type="button"  variant="outline"  onClick={onClose} className="rounded-xl" >Cancel</Button>
-          <Button type="submit"  className="bg-[#D71920] hover:bg-[#a5121a] rounded-xl" ><Save className="h-4 w-4 mr-2"  /> Save Review</Button>
+
+        <div className="p-6 border-t flex justify-end gap-3 bg-neutral-50 rounded-b-3xl">
+          <Button type="button" variant="outline" onClick={onClose} className="rounded-xl">Cancel</Button>
+          <Button type="submit" disabled={uploading} className="bg-[#D71920] hover:bg-[#a5121a] rounded-xl"><Save className="h-4 w-4 mr-2" /> Save Review</Button>
         </div>
       </motion.form>
     </motion.div>
+  )
+}
+
+// -------- Solar kW Capacity Packages Manager --------
+function CapacityEditorModal({ cap: initialCap, onClose, onSave }) {
+  const [c, setC] = useState({
+    ...initialCap,
+    appliances: Array.isArray(initialCap.appliances) ? initialCap.appliances : [],
+    inclusions: Array.isArray(initialCap.inclusions) ? initialCap.inclusions : [],
+    faqs: Array.isArray(initialCap.faqs) ? initialCap.faqs : [],
+  })
+  const [activeTab, setActiveTab] = useState('overview')
+  const [saving, setSaving] = useState(false)
+
+  // Appliance state
+  const [newAppliance, setNewAppliance] = useState({ name: '', desc: '' })
+  // Inclusion state
+  const [newInclusion, setNewInclusion] = useState('')
+  // FAQ state
+  const [newFaq, setNewFaq] = useState({ q: '', a: '' })
+
+  function handleAddAppliance() {
+    if (!newAppliance.name.trim()) return
+    setC({
+      ...c,
+      appliances: [...c.appliances, { name: newAppliance.name.trim(), desc: newAppliance.desc.trim() }]
+    })
+    setNewAppliance({ name: '', desc: '' })
+  }
+
+  function handleRemoveAppliance(index) {
+    setC({
+      ...c,
+      appliances: c.appliances.filter((_, i) => i !== index)
+    })
+  }
+
+  function handleAddInclusion() {
+    if (!newInclusion.trim()) return
+    setC({
+      ...c,
+      inclusions: [...c.inclusions, newInclusion.trim()]
+    })
+    setNewInclusion('')
+  }
+
+  function handleRemoveInclusion(index) {
+    setC({
+      ...c,
+      inclusions: c.inclusions.filter((_, i) => i !== index)
+    })
+  }
+
+  function handleAddFaq() {
+    if (!newFaq.q.trim()) return
+    setC({
+      ...c,
+      faqs: [...c.faqs, { q: newFaq.q.trim(), a: newFaq.a.trim() }]
+    })
+    setNewFaq({ q: '', a: '' })
+  }
+
+  function handleRemoveFaq(index) {
+    setC({
+      ...c,
+      faqs: c.faqs.filter((_, i) => i !== index)
+    })
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault()
+    setSaving(true)
+    const payload = {
+      ...c,
+      heroHighlights: [
+        { label: 'Daily Generation', value: c.dailyUnits ? String(c.dailyUnits).replace(/\s*\/\s*Day/i, '') : '12 – 15 Units' },
+        { label: 'Roof Area Required', value: c.roofArea ? String(c.roofArea).replace(/\s*\(.*?\)/g, '').trim() : '270 – 300 Sq. Ft.' },
+        { label: 'Monthly Bill Savings', value: c.monthlySavings ? String(c.monthlySavings).replace(/\s*\/\s*Month/i, '').trim() : '₹2,500 – ₹3,500' },
+        { label: 'Govt Subsidy Credit', value: c.subsidy ? (String(c.subsidy).includes('₹') ? String(c.subsidy).split(' under ')[0].split(' Direct ')[0] + ' Direct DBT' : String(c.subsidy)) : (c.badge || '₹78,000 Direct DBT') },
+      ]
+    }
+    await onSave(payload)
+    setSaving(false)
+  }
+
+  const tabs = [
+    { id: 'overview', label: '1. Overview & Headers' },
+    { id: 'yield', label: '2. Generation & Savings' },
+    { id: 'hardware', label: '3. Hardware Specs' },
+    { id: 'features', label: '4. Appliances & Inclusions' },
+    { id: 'faqs', label: '5. Capacity FAQs' },
+  ]
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-5 overflow-y-auto"
+      onClick={onClose}
+    >
+      <motion.form
+        initial={{ scale: 0.95, y: 10 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 10 }}
+        onClick={e => e.stopPropagation()}
+        onSubmit={handleSubmit}
+        className="bg-white rounded-3xl w-full max-w-4xl border border-neutral-200 shadow-2xl overflow-hidden flex flex-col my-auto max-h-[90vh]"
+      >
+        {/* Header */}
+        <div className="p-5 sm:p-6 border-b flex items-center justify-between bg-neutral-50/80">
+          <div className="flex items-center gap-3">
+            <span className="w-10 h-10 rounded-2xl bg-[#D71920] text-white flex items-center justify-center font-extrabold text-sm">
+              {c.kw || 'kW'}
+            </span>
+            <div>
+              <h3 className="font-extrabold text-neutral-900 text-base sm:text-lg">
+                Edit {c.kw || 'Solar System'} Specifications & Page
+              </h3>
+              <p className="text-xs text-neutral-500">Live URL: <code className="text-[#D71920] font-mono">/services/{c.slug}</code></p>
+            </div>
+          </div>
+          <button type="button" onClick={onClose} className="w-9 h-9 rounded-full hover:bg-neutral-200/70 flex items-center justify-center text-neutral-600 cursor-pointer">
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        {/* Tab Switcher */}
+        <div className="px-6 border-b bg-white flex gap-2 overflow-x-auto no-scrollbar">
+          {tabs.map(t => (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => setActiveTab(t.id)}
+              className={`py-3 px-3.5 text-xs font-bold border-b-2 whitespace-nowrap transition-colors cursor-pointer ${
+                activeTab === t.id
+                  ? 'border-[#D71920] text-[#D71920]'
+                  : 'border-transparent text-neutral-500 hover:text-neutral-900'
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Form Body */}
+        <div className="p-6 space-y-5 overflow-y-auto custom-scrollbar flex-1 max-h-[60vh]">
+          {/* TAB 1: OVERVIEW */}
+          {activeTab === 'overview' && (
+            <div className="space-y-4">
+              <div className="grid sm:grid-cols-3 gap-4">
+                <FieldRow label="Capacity Label *">
+                  <Input value={c.kw} onChange={e => setC({ ...c, kw: e.target.value })} placeholder="e.g. 3 kW or 10 kW+" className="h-11 rounded-xl font-bold" />
+                </FieldRow>
+                <FieldRow label="URL Slug *">
+                  <Input value={c.slug} onChange={e => setC({ ...c, slug: e.target.value })} placeholder="e.g. 3kw-solar-system" className="h-11 rounded-xl font-mono text-xs" />
+                </FieldRow>
+                <FieldRow label="Display Order">
+                  <Input value={c.order ?? 1} onChange={e => setC({ ...c, order: Number(e.target.value) || 1 })} placeholder="1" className="h-11 rounded-xl" />
+                </FieldRow>
+              </div>
+
+              <div className="grid sm:grid-cols-2 gap-4">
+                <FieldRow label="Marketing Tagline Pill">
+                  <Input value={c.tag} onChange={e => setC({ ...c, tag: e.target.value })} placeholder="e.g. Most Popular for Homes" className="h-11 rounded-xl" />
+                </FieldRow>
+                <FieldRow label="Subsidy / Tax Badge">
+                  <Input value={c.badge} onChange={e => setC({ ...c, badge: e.target.value })} placeholder="e.g. ₹78,000 Direct Subsidy (Max CFA)" className="h-11 rounded-xl text-emerald-700 font-semibold" />
+                </FieldRow>
+              </div>
+
+              <FieldRow label="Main Page Title *">
+                <Input value={c.title} onChange={e => setC({ ...c, title: e.target.value })} placeholder="e.g. 3 kW Residential Rooftop Solar System" className="h-11 rounded-xl font-bold" />
+              </FieldRow>
+
+              <FieldRow label="Hero Subtitle">
+                <Input value={c.subtitle} onChange={e => setC({ ...c, subtitle: e.target.value })} placeholder="Brief 1-sentence value proposition..." className="h-11 rounded-xl" />
+              </FieldRow>
+
+              <FieldRow label="Full Description">
+                <Textarea value={c.description} onChange={e => setC({ ...c, description: e.target.value })} rows={4} placeholder="Comprehensive description of the system..." className="rounded-xl text-xs leading-relaxed" />
+              </FieldRow>
+
+              <FieldRow label="Ideal Household / Property Size">
+                <Input value={c.suitableFor} onChange={e => setC({ ...c, suitableFor: e.target.value })} placeholder="e.g. 2–3 BHK Independent Homes & Villas" className="h-11 rounded-xl" />
+              </FieldRow>
+            </div>
+          )}
+
+          {/* TAB 2: YIELD & FINANCIALS */}
+          {activeTab === 'yield' && (
+            <div className="space-y-4">
+              <div className="grid sm:grid-cols-3 gap-4">
+                <FieldRow label="Daily Output *">
+                  <Input value={c.dailyUnits} onChange={e => setC({ ...c, dailyUnits: e.target.value })} placeholder="e.g. 12 – 15 Units / Day" className="h-11 rounded-xl font-bold" />
+                </FieldRow>
+                <FieldRow label="Monthly Output">
+                  <Input value={c.monthlyUnits} onChange={e => setC({ ...c, monthlyUnits: e.target.value })} placeholder="e.g. 360 – 450 Units / Month" className="h-11 rounded-xl" />
+                </FieldRow>
+                <FieldRow label="Yearly Output">
+                  <Input value={c.yearlyUnits} onChange={e => setC({ ...c, yearlyUnits: e.target.value })} placeholder="e.g. 4,500 – 5,400 Units / Year" className="h-11 rounded-xl" />
+                </FieldRow>
+              </div>
+
+              <div className="grid sm:grid-cols-3 gap-4">
+                <FieldRow label="Roof Space Area *">
+                  <Input value={c.roofArea} onChange={e => setC({ ...c, roofArea: e.target.value })} placeholder="e.g. 270 – 300 Sq. Ft." className="h-11 rounded-xl font-bold" />
+                </FieldRow>
+                <FieldRow label="Monthly Bill Savings *">
+                  <Input value={c.monthlySavings} onChange={e => setC({ ...c, monthlySavings: e.target.value })} placeholder="e.g. ₹2,500 – ₹3,500 / Month" className="h-11 rounded-xl text-emerald-700 font-bold" />
+                </FieldRow>
+                <FieldRow label="Yearly Bill Savings">
+                  <Input value={c.yearlySavings} onChange={e => setC({ ...c, yearlySavings: e.target.value })} placeholder="e.g. ₹35,000 – ₹42,000 / Year" className="h-11 rounded-xl" />
+                </FieldRow>
+              </div>
+
+              <div className="grid sm:grid-cols-2 gap-4">
+                <FieldRow label="Govt Subsidy / Financial Support">
+                  <Input value={c.subsidy} onChange={e => setC({ ...c, subsidy: e.target.value })} placeholder="e.g. ₹78,000 Direct Bank Credit under PM Surya Ghar" className="h-11 rounded-xl font-semibold" />
+                </FieldRow>
+                <FieldRow label="ROI Payback Period">
+                  <Input value={c.payback} onChange={e => setC({ ...c, payback: e.target.value })} placeholder="e.g. ~3.2 Years Payback Period" className="h-11 rounded-xl" />
+                </FieldRow>
+              </div>
+
+              <FieldRow label="Warranty Terms">
+                <Input value={c.warranty} onChange={e => setC({ ...c, warranty: e.target.value })} placeholder="e.g. 25 Years Panel Performance Warranty | 5–10 Years Inverter Warranty" className="h-11 rounded-xl" />
+              </FieldRow>
+            </div>
+          )}
+
+          {/* TAB 3: HARDWARE SPECS */}
+          {activeTab === 'hardware' && (
+            <div className="space-y-4">
+              <FieldRow label="Solar PV Modules (Panel Count & Tech)">
+                <Input value={c.panelsCount} onChange={e => setC({ ...c, panelsCount: e.target.value })} placeholder="e.g. 6 Nos (550Wp / 580Wp TOPCon Bifacial Modules)" className="h-11 rounded-xl" />
+              </FieldRow>
+
+              <FieldRow label="Smart Solar Inverter Specs">
+                <Input value={c.inverterSpec} onChange={e => setC({ ...c, inverterSpec: e.target.value })} placeholder="e.g. 3 kW High-Efficiency Grid-Tie Inverter (Single Phase / 3-Phase with WiFi)" className="h-11 rounded-xl" />
+              </FieldRow>
+
+              <FieldRow label="Mounting Structure & Wind Rating">
+                <Input value={c.structureSpec} onChange={e => setC({ ...c, structureSpec: e.target.value })} placeholder="e.g. Hot-Dip Galvanized (HDG) GI Structure (150 km/h wind tested)" className="h-11 rounded-xl" />
+              </FieldRow>
+            </div>
+          )}
+
+          {/* TAB 4: APPLIANCES & INCLUSIONS */}
+          {activeTab === 'features' && (
+            <div className="space-y-6">
+              {/* Appliances */}
+              <div className="p-4 rounded-2xl bg-neutral-50 border border-neutral-200 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold uppercase tracking-wider text-neutral-800">
+                    Supported Appliance Load ({c.appliances?.length || 0})
+                  </span>
+                </div>
+
+                <div className="space-y-2">
+                  {(c.appliances || []).map((app, idx) => (
+                    <div key={idx} className="flex items-center justify-between gap-3 p-3 rounded-xl bg-white border border-neutral-200 text-xs">
+                      <div className="min-w-0">
+                        <div className="font-bold text-neutral-900">{typeof app === 'string' ? app : app.name}</div>
+                        {typeof app === 'object' && app.desc && (
+                          <div className="text-[11px] text-neutral-500">{app.desc}</div>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveAppliance(idx)}
+                        className="text-neutral-400 hover:text-red-600 p-1 cursor-pointer"
+                        title="Remove"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="pt-2 flex flex-col sm:flex-row gap-2">
+                  <Input
+                    placeholder="Appliance name (e.g. 1–2 Inverter ACs)"
+                    value={newAppliance.name}
+                    onChange={e => setNewAppliance({ ...newAppliance, name: e.target.value })}
+                    className="h-10 rounded-xl text-xs bg-white"
+                  />
+                  <Input
+                    placeholder="Load runtime description..."
+                    value={newAppliance.desc}
+                    onChange={e => setNewAppliance({ ...newAppliance, desc: e.target.value })}
+                    className="h-10 rounded-xl text-xs bg-white"
+                  />
+                  <Button type="button" onClick={handleAddAppliance} variant="outline" className="rounded-xl h-10 px-4 text-xs font-bold shrink-0">
+                    <Plus className="h-3.5 w-3.5 mr-1" /> Add
+                  </Button>
+                </div>
+              </div>
+
+              {/* Turnkey Scope Inclusions */}
+              <div className="p-4 rounded-2xl bg-neutral-50 border border-neutral-200 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold uppercase tracking-wider text-neutral-800">
+                    Turnkey Engineering Inclusions ({c.inclusions?.length || 0})
+                  </span>
+                </div>
+
+                <div className="space-y-2">
+                  {(c.inclusions || []).map((inc, idx) => (
+                    <div key={idx} className="flex items-center justify-between gap-3 p-3 rounded-xl bg-white border border-neutral-200 text-xs">
+                      <span className="text-neutral-800">{inc}</span>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveInclusion(idx)}
+                        className="text-neutral-400 hover:text-red-600 p-1 cursor-pointer"
+                        title="Remove"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="pt-2 flex gap-2">
+                  <Input
+                    placeholder="Enter inclusion item (e.g. TANGEDCO Net Metering Liaison)..."
+                    value={newInclusion}
+                    onChange={e => setNewInclusion(e.target.value)}
+                    className="h-10 rounded-xl text-xs bg-white"
+                  />
+                  <Button type="button" onClick={handleAddInclusion} variant="outline" className="rounded-xl h-10 px-4 text-xs font-bold shrink-0">
+                    <Plus className="h-3.5 w-3.5 mr-1" /> Add
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 5: FAQS */}
+          {activeTab === 'faqs' && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold uppercase tracking-wider text-neutral-800">
+                  Capacity-Specific FAQs ({c.faqs?.length || 0})
+                </span>
+              </div>
+
+              <div className="space-y-3">
+                {(c.faqs || []).map((f, idx) => (
+                  <div key={idx} className="p-3.5 rounded-2xl bg-neutral-50 border border-neutral-200 text-xs space-y-1.5 relative group">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="font-bold text-neutral-900">Q: {f.q}</div>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveFaq(idx)}
+                        className="text-neutral-400 hover:text-red-600 p-1 cursor-pointer"
+                        title="Remove FAQ"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                    <div className="text-neutral-600 leading-relaxed">A: {f.a}</div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="p-4 rounded-2xl bg-neutral-50 border border-neutral-200 space-y-2.5">
+                <span className="text-xs font-bold text-neutral-700 block">Add New FAQ</span>
+                <Input
+                  placeholder="Question (e.g. How many units will this generate?)"
+                  value={newFaq.q}
+                  onChange={e => setNewFaq({ ...newFaq, q: e.target.value })}
+                  className="h-10 rounded-xl text-xs bg-white"
+                />
+                <Textarea
+                  placeholder="Detailed answer..."
+                  value={newFaq.a}
+                  onChange={e => setNewFaq({ ...newFaq, a: e.target.value })}
+                  rows={2}
+                  className="rounded-xl text-xs bg-white"
+                />
+                <Button type="button" onClick={handleAddFaq} variant="outline" className="rounded-xl h-10 px-4 text-xs font-bold">
+                  <Plus className="h-3.5 w-3.5 mr-1" /> Add FAQ
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="p-5 sm:p-6 border-t flex items-center justify-between bg-neutral-50 rounded-b-3xl">
+          <div className="text-xs text-neutral-500 hidden sm:block">
+            Changes will automatically update the public <code className="text-neutral-800 font-semibold">/services/{c.slug}</code> page.
+          </div>
+          <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+            <Button type="button" variant="outline" onClick={onClose} className="rounded-xl text-xs font-semibold">
+              Cancel
+            </Button>
+            <Button type="submit" disabled={saving} className="bg-[#D71920] hover:bg-[#a5121a] text-white rounded-xl text-xs font-bold px-6 shadow-md cursor-pointer">
+              {saving ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : <Save className="h-4 w-4 mr-1.5" />}
+              Save Package Specifications
+            </Button>
+          </div>
+        </div>
+      </motion.form>
+    </motion.div>
+  )
+}
+
+function CapacitiesManager({ token }) {
+  const [capacities, setCapacities] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [editing, setEditing] = useState(null)
+  const [search, setSearch] = useState('')
+
+  async function load() {
+    setLoading(true)
+    try {
+      const r = await fetch('/api/admin/capacities', { headers: { Authorization: `Bearer ${token}` } })
+      const j = await r.json()
+      setCapacities(sortCapacitiesAscending(j.capacities || []))
+    } catch {
+      toast.error('Failed to load capacity packages')
+    }
+    setLoading(false)
+  }
+
+  useEffect(() => { load() /* eslint-disable-next-line */ }, [])
+
+  async function save(cap) {
+    const isNew = !capacities.some(c => c.id === cap.id)
+    const r = await fetch('/api/admin/capacities', {
+      method: isNew ? 'POST' : 'PATCH',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify(cap)
+    })
+    const j = await r.json()
+    if (j.success) {
+      toast.success(isNew ? 'Solar capacity package added' : 'Capacity specifications updated')
+      setEditing(null)
+      load()
+    } else {
+      toast.error(j.error || 'Save failed')
+    }
+  }
+
+  async function del(id) {
+    if (!confirm('Are you sure you want to delete this solar capacity package?')) return
+    const r = await fetch(`/api/admin/capacities?id=${id}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` }
+    })
+    const j = await r.json()
+    if (j.success) {
+      toast.success('Capacity package deleted')
+      load()
+    } else {
+      toast.error('Failed to delete')
+    }
+  }
+
+  const sortedList = sortCapacitiesAscending(capacities)
+  const filtered = sortedList.filter(c =>
+    (c.kw || '').toLowerCase().includes(search.toLowerCase()) ||
+    (c.title || '').toLowerCase().includes(search.toLowerCase()) ||
+    (c.tag || '').toLowerCase().includes(search.toLowerCase())
+  )
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-xl font-bold text-neutral-900">Solar kW Capacity Packages</h2>
+          <p className="text-xs sm:text-sm text-neutral-500 mt-0.5">
+            Edit technical specifications, daily generation yields, roof requirements, subsidies, and appliance checklists for 3 kW, 4 kW, 5 kW, 10 kW+ systems.
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <Button
+            onClick={() => setEditing({
+              kw: '6 kW',
+              slug: '6kw-solar-system',
+              tag: 'High Energy Yield',
+              badge: '₹78,000 Direct Subsidy Support',
+              title: '6 kW Residential Rooftop Solar System',
+              subtitle: 'Tailored for large villas and residential duplexes.',
+              description: 'Generates abundant solar energy to zero out high bi-monthly electricity bills.',
+              dailyUnits: '24 – 30 Units / Day',
+              monthlyUnits: '720 – 900 Units / Month',
+              yearlyUnits: '9,000 – 10,800 Units / Year',
+              roofArea: '540 – 600 Sq. Ft.',
+              monthlySavings: '₹6,000 – ₹8,500 / Month',
+              yearlySavings: '₹72,000 – ₹1,00,000 / Year',
+              subsidy: '₹78,000 Direct Bank Credit under PM Surya Ghar',
+              payback: '~3.1 Years Payback Period',
+              warranty: '25 Years Panel Performance Warranty | 5–10 Years Inverter Warranty',
+              suitableFor: '4+ BHK Luxury Homes & Duplexes',
+              panelsCount: '11–12 Nos (550Wp / 580Wp TOPCon Modules)',
+              inverterSpec: '6 kW Grid-Tie Smart Solar Inverter with WiFi',
+              structureSpec: 'Hot-Dip Galvanized GI Framing (150 km/h wind tested)',
+              appliances: [
+                { name: '3–4 Inverter ACs (1.5 Ton)', desc: 'Run multiple ACs all day' },
+                { name: 'Domestic Water Pump + Kitchen Loads', desc: 'Continuous morning & evening usage' }
+              ],
+              inclusions: [
+                'Tier-1 TOPCon Solar Modules',
+                'Smart Solar Inverter with Cloud Monitoring',
+                'HDG Mounting Structure & Dual Chemical Earthing',
+                'TANGEDCO Net Metering Liaison'
+              ],
+              faqs: [
+                { q: 'How many units will this generate?', a: 'Generates 24 to 30 units daily on average in Tamil Nadu.' }
+              ],
+              order: capacities.length + 1
+            })}
+            className="bg-[#D71920] hover:bg-[#a5121a] rounded-xl text-xs sm:text-sm font-bold shadow-sm cursor-pointer"
+          >
+            <Plus className="h-4 w-4 mr-1.5" /> Add kW Package
+          </Button>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-3 bg-white p-3 rounded-2xl border border-neutral-100 shadow-soft">
+        <Search className="h-4 w-4 text-neutral-400 ml-2" />
+        <Input
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          placeholder="Search capacity packages (e.g. 3 kW, 4 kW, Homes, Subsidy)..."
+          className="border-0 focus-visible:ring-0 text-xs sm:text-sm shadow-none"
+        />
+        {search && (
+          <button onClick={() => setSearch('')} className="text-xs text-neutral-400 hover:text-neutral-600 mr-2">
+            Clear
+          </button>
+        )}
+      </div>
+
+      {loading ? (
+        <div className="p-16 flex justify-center"><Loader2 className="h-8 w-8 animate-spin text-[#D71920]" /></div>
+      ) : filtered.length === 0 ? (
+        <div className="rounded-2xl bg-white p-12 text-center border border-neutral-100">
+          <Zap className="h-10 w-10 text-neutral-300 mx-auto mb-2" />
+          <div className="text-neutral-600 font-semibold">No solar packages found</div>
+          <div className="text-xs text-neutral-400 mt-1">Try resetting your search query or add a new capacity package.</div>
+        </div>
+      ) : (
+        <div className="grid md:grid-cols-2 gap-5">
+          {filtered.map(cap => (
+            <div key={cap.id || cap.slug} className="rounded-2xl bg-white border border-neutral-200/80 p-6 shadow-soft hover:shadow-md transition-all flex flex-col justify-between">
+              <div className="space-y-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-xl font-extrabold text-white bg-[#D71920] px-3.5 py-1 rounded-xl shadow-xs">
+                      {cap.kw}
+                    </span>
+                    <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-neutral-100 text-neutral-700 border border-neutral-200">
+                      {cap.tag || 'Standard System'}
+                    </span>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-xs font-extrabold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full inline-block">
+                      {cap.badge || 'Govt Subsidy Support'}
+                    </span>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="font-extrabold text-neutral-900 text-base mt-1">{cap.title}</h3>
+                  <p className="text-xs text-neutral-500 mt-0.5 line-clamp-2">{cap.description}</p>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2 p-3 rounded-xl bg-neutral-50 border border-neutral-100 text-xs">
+                  <div>
+                    <div className="text-[10px] text-neutral-400 font-bold uppercase">Daily Units</div>
+                    <div className="font-extrabold text-neutral-900 mt-0.5">{cap.dailyUnits || '—'}</div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] text-neutral-400 font-bold uppercase">Roof Area</div>
+                    <div className="font-extrabold text-neutral-900 mt-0.5">{cap.roofArea || '—'}</div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] text-neutral-400 font-bold uppercase">Monthly Save</div>
+                    <div className="font-extrabold text-emerald-600 mt-0.5">{cap.monthlySavings || '—'}</div>
+                  </div>
+                </div>
+
+                <div className="text-[11px] text-neutral-500 flex items-center justify-between pt-1">
+                  <span>URL: <code className="text-[#D71920] font-mono">/services/{cap.slug}</code></span>
+                  <span>Order: <strong className="text-neutral-700">{cap.order ?? 1}</strong></span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between gap-2 pt-5 mt-4 border-t border-neutral-100">
+                <a
+                  href={`/services/${cap.slug}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1.5 text-xs text-neutral-600 hover:text-neutral-900 font-semibold transition-colors"
+                >
+                  <ExternalLink className="h-3.5 w-3.5 text-[#D71920]" /> View Live Page
+                </a>
+
+                <div className="flex items-center gap-2">
+                  <Button
+                    onClick={() => del(cap.id || cap.slug)}
+                    variant="ghost"
+                    size="sm"
+                    className="text-neutral-400 hover:text-red-600 rounded-xl h-9 px-2.5 cursor-pointer"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    onClick={() => setEditing({ ...cap })}
+                    className="bg-neutral-900 hover:bg-neutral-800 text-white rounded-xl text-xs h-9 px-4 font-bold shadow-xs cursor-pointer"
+                  >
+                    <Edit3 className="h-3.5 w-3.5 mr-1.5 text-[#D71920]" /> Edit Specifications
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Capacity Package Editor Drawer / Modal */}
+      <AnimatePresence>
+        {editing && (
+          <CapacityEditorModal
+            cap={editing}
+            onClose={() => setEditing(null)}
+            onSave={save}
+          />
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
+
+// -------- Blogs Manager --------
+function BlogsManager({ token }) {
+  const [blogs, setBlogs] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState('')
+  const [categoryFilter, setCategoryFilter] = useState('All')
+  const [statusFilter, setStatusFilter] = useState('All')
+  const [editing, setEditing] = useState(null)
+  const [isNew, setIsNew] = useState(false)
+
+  async function load() {
+    setLoading(true)
+    try {
+      const r = await fetch('/api/admin/blogs', { headers: { Authorization: `Bearer ${token}` } })
+      const j = await r.json()
+      setBlogs(j.blogs || [])
+    } catch {
+      toast.error('Failed to load blog posts')
+    }
+    setLoading(false)
+  }
+
+  useEffect(() => {
+    load()
+  }, [])
+
+  async function saveBlog(doc) {
+    try {
+      const method = isNew ? 'POST' : 'PATCH'
+      const r = await fetch('/api/admin/blogs', {
+        method,
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify(doc)
+      })
+      const j = await r.json()
+      if (j.success) {
+        toast.success(isNew ? 'Blog post created & published successfully' : 'Blog post updated successfully')
+        setEditing(null)
+        load()
+      } else {
+        toast.error(j.error || 'Failed to save blog post')
+      }
+    } catch (e) {
+      toast.error('Network error: ' + e.message)
+    }
+  }
+
+  async function deleteBlog(id) {
+    if (!confirm('Are you sure you want to permanently delete this blog post?')) return
+    try {
+      const r = await fetch(`/api/admin/blogs?id=${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      const j = await r.json()
+      if (j.success) {
+        toast.success('Blog post deleted')
+        load()
+      } else {
+        toast.error(j.error || 'Delete failed')
+      }
+    } catch {
+      toast.error('Network error')
+    }
+  }
+
+  async function toggleStatus(blog) {
+    const nextStatus = blog.status === 'draft' ? 'published' : 'draft'
+    try {
+      const r = await fetch('/api/admin/blogs', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ id: blog.id, status: nextStatus })
+      })
+      const j = await r.json()
+      if (j.success) {
+        toast.success(`Post is now ${nextStatus}`)
+        load()
+      }
+    } catch {
+      toast.error('Failed to update status')
+    }
+  }
+
+  const filtered = blogs.filter((b) => {
+    const q = search.toLowerCase().trim()
+    const matchSearch =
+      !q ||
+      (b.title || '').toLowerCase().includes(q) ||
+      (b.excerpt || '').toLowerCase().includes(q) ||
+      (b.category || '').toLowerCase().includes(q) ||
+      (b.author?.name || '').toLowerCase().includes(q)
+
+    const matchCategory = categoryFilter === 'All' || b.category === categoryFilter
+    const matchStatus =
+      statusFilter === 'All' ||
+      (statusFilter === 'Published' && b.status !== 'draft') ||
+      (statusFilter === 'Draft' && b.status === 'draft')
+
+    return matchSearch && matchCategory && matchStatus
+  })
+
+  const publishedCount = blogs.filter((b) => b.status !== 'draft').length
+  const draftCount = blogs.filter((b) => b.status === 'draft').length
+
+  function openCreate() {
+    setIsNew(true)
+    setEditing({
+      id: '',
+      title: '',
+      slug: '',
+      category: 'Residential',
+      readTime: '5 min read',
+      coverImage: '/projects/svs-1mw/1.jpg',
+      excerpt: '',
+      content: '',
+      sections: [],
+      author: {
+        name: '',
+        role: '',
+        avatar: ''
+      },
+      featured: false,
+      status: 'published',
+      tags: [],
+      keyTakeaways: []
+    })
+  }
+
+  function openEdit(b) {
+    setIsNew(false)
+    setEditing({
+      ...b,
+      author: b.author ? {
+        name: b.author.name || '',
+        role: b.author.role || '',
+        avatar: b.author.avatar || ''
+      } : {
+        name: '',
+        role: '',
+        avatar: ''
+      },
+      tags: Array.isArray(b.tags) ? b.tags : [],
+      keyTakeaways: Array.isArray(b.keyTakeaways) ? b.keyTakeaways : []
+    })
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Header & Stats Banner */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-neutral-200 shadow-soft">
+        <div>
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-red-50 text-[#D71920] flex items-center justify-center font-bold">
+              <BookOpen className="h-5 w-5" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-neutral-900">Blog & Technical Knowledge Hub</h2>
+              <p className="text-xs text-neutral-500 mt-0.5">
+                Author, format, optimize SEO, and publish solar guides with real-time live site updates.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <Button
+          onClick={openCreate}
+          className="rounded-xl h-11 px-5 font-bold text-xs bg-[#D71920] hover:bg-[#b5141a] text-white shadow-md hover:shadow-lg transition-all"
+        >
+          <Plus className="h-4 w-4 mr-1.5" /> New Blog Article
+        </Button>
+      </div>
+
+      {/* Filter & Search Bar */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-neutral-200 shadow-soft">
+        <div className="relative w-full sm:w-80">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400 pointer-events-none" />
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search articles by title, author, keyword..."
+            className="pl-10 h-10 rounded-xl bg-neutral-50 border-neutral-200 text-xs"
+          />
+          {search && (
+            <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-neutral-600">
+              <X className="h-3.5 w-3.5" />
+            </button>
+          )}
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+          {/* Category Dropdown */}
+          <select
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            className="h-10 px-3 rounded-xl border border-neutral-200 bg-neutral-50 text-xs font-semibold text-neutral-700 focus:outline-none focus:ring-2 focus:ring-[#D71920]/20"
+          >
+            <option value="All">All Categories</option>
+            {BLOG_CATEGORIES.filter((c) => c !== 'All').map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
+
+          {/* Status Tabs */}
+          <div className="flex items-center p-1 rounded-xl bg-neutral-100 border border-neutral-200">
+            {['All', 'Published', 'Draft'].map((st) => (
+              <button
+                key={st}
+                onClick={() => setStatusFilter(st)}
+                className={`px-3 py-1 text-xs font-semibold rounded-lg transition-all ${
+                  statusFilter === st ? 'bg-white text-neutral-900 shadow-sm' : 'text-neutral-500 hover:text-neutral-800'
+                }`}
+              >
+                {st}
+              </button>
+            ))}
+          </div>
+
+          <Button onClick={load} variant="ghost" size="sm" className="h-10 w-10 p-0 rounded-xl" title="Refresh list">
+            <RefreshCw className={`h-4 w-4 text-neutral-500 ${loading ? 'animate-spin' : ''}`} />
+          </Button>
+        </div>
+      </div>
+
+      {/* Articles List / Table */}
+      {loading ? (
+        <div className="p-16 flex justify-center bg-white rounded-2xl border border-neutral-200">
+          <Loader2 className="h-8 w-8 animate-spin text-[#D71920]" />
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="rounded-2xl bg-white p-16 text-center border border-neutral-200 shadow-soft space-y-3">
+          <BookOpen className="h-12 w-12 text-neutral-300 mx-auto" />
+          <h3 className="text-base font-bold text-neutral-800">No blog articles match your filters</h3>
+          <p className="text-xs text-neutral-400 max-w-sm mx-auto">
+            Try adjusting your search terms or create your first blog article using the button above.
+          </p>
+          <Button onClick={openCreate} className="bg-[#D71920] hover:bg-[#a5121a] text-white rounded-xl text-xs font-bold mt-2">
+            <Plus className="h-4 w-4 mr-1.5" /> Create Article Now
+          </Button>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {filtered.map((b) => {
+            const isDraft = b.status === 'draft'
+            return (
+              <div
+                key={b.id || b.slug}
+                className="bg-white rounded-2xl border border-neutral-200 p-5 shadow-soft hover:shadow-md transition-all flex flex-col md:flex-row items-start md:items-center justify-between gap-5"
+              >
+                <div className="flex items-start gap-4 flex-1">
+                  {/* Thumbnail */}
+                  <div className="h-20 w-28 rounded-xl bg-neutral-900 overflow-hidden shrink-0 relative border border-neutral-100 shadow-sm">
+                    <img
+                      src={b.coverImage || '/projects/svs-1mw/1.jpg'}
+                      alt={b.title}
+                      className="w-full h-full object-cover"
+                    />
+                    {b.featured && (
+                      <span className="absolute bottom-1 left-1 px-1.5 py-0.5 rounded bg-[#D71920] text-white text-[9px] font-extrabold uppercase">
+                        ★ Featured
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Details */}
+                  <div className="space-y-1.5 flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="px-2.5 py-0.5 rounded-full bg-red-50 text-[#D71920] text-[11px] font-bold border border-red-100">
+                        {b.category || 'General'}
+                      </span>
+                      <button
+                        onClick={() => toggleStatus(b)}
+                        className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold border transition-all ${
+                          isDraft
+                            ? 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100'
+                            : 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
+                        }`}
+                        title="Click to toggle status"
+                      >
+                        <span className={`h-1.5 w-1.5 rounded-full ${isDraft ? 'bg-amber-500' : 'bg-emerald-500'}`} />
+                        {isDraft ? 'Draft' : 'Published'}
+                      </button>
+                      <span className="text-[11px] text-neutral-400">•</span>
+                      <span className="text-[11px] text-neutral-500 font-medium">{b.readTime || '5 min read'}</span>
+                      <span className="text-[11px] text-neutral-400">•</span>
+                      <span className="text-[11px] text-neutral-400">{b.publishedAt || b.formattedDate}</span>
+                    </div>
+
+                    <h3 className="text-base font-bold text-neutral-900 truncate">
+                      {b.title}
+                    </h3>
+
+                    <p className="text-xs text-neutral-500 line-clamp-1">
+                      {b.excerpt || 'No summary excerpt provided.'}
+                    </p>
+
+                    <div className="text-[11px] text-neutral-400 flex items-center gap-1.5">
+                      <span>Author: <strong className="text-neutral-700">{b.author?.name ? b.author.name : 'None (No Author)'}</strong></span>
+                      <span>•</span>
+                      <span>Slug: <code className="bg-neutral-100 px-1 py-0.5 rounded text-neutral-600">/blog/{b.slug}</code></span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="flex items-center gap-2 self-end md:self-center shrink-0">
+                  <Button
+                    asChild
+                    variant="outline"
+                    size="sm"
+                    className="rounded-xl h-9 text-xs font-semibold text-neutral-700 hover:text-neutral-900 border-neutral-200"
+                  >
+                    <a href={`/blog/${b.slug}`} target="_blank" rel="noopener noreferrer">
+                      <ExternalLink className="h-3.5 w-3.5 mr-1 text-[#D71920]" /> View Live
+                    </a>
+                  </Button>
+
+                  <Button
+                    onClick={() => openEdit(b)}
+                    size="sm"
+                    className="bg-neutral-900 hover:bg-black text-white rounded-xl h-9 text-xs font-semibold"
+                  >
+                    <Edit3 className="h-3.5 w-3.5 mr-1" /> Edit
+                  </Button>
+
+                  <button
+                    onClick={() => deleteBlog(b.id)}
+                    className="h-9 w-9 rounded-xl bg-red-50 hover:bg-red-500 hover:text-white text-red-600 flex items-center justify-center transition-colors border border-red-100"
+                    title="Delete post"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {/* Editor Modal */}
+      <AnimatePresence>
+        {editing && (
+          <BlogEditorModal
+            blog={editing}
+            isNew={isNew}
+            onSave={saveBlog}
+            onClose={() => setEditing(null)}
+            token={token}
+          />
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
+
+// -------- Blog Visual Editor & SEO Modal --------
+function BlogEditorModal({ blog, isNew, onSave, onClose, token }) {
+  const [b, setB] = useState(blog)
+  const [tab, setTab] = useState('editor') // 'editor', 'seo', 'takeaways', 'faqs', 'preview'
+  const [uploadingCover, setUploadingCover] = useState(false)
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
+  const [coverDragOver, setCoverDragOver] = useState(false)
+  const [avatarDragOver, setAvatarDragOver] = useState(false)
+  const [rawTags, setRawTags] = useState(Array.isArray(blog.tags) ? blog.tags.join(', ') : '')
+  const [rawTakeaways, setRawTakeaways] = useState(Array.isArray(blog.keyTakeaways) ? blog.keyTakeaways.join('\n') : '')
+
+  const [faqs, setFaqs] = useState(() => {
+    if (Array.isArray(blog.faqs) && blog.faqs.length > 0) {
+      return blog.faqs.map((f) => ({
+        q: f.q || f.question || '',
+        a: f.a || f.answer || ''
+      }))
+    }
+    return []
+  })
+
+  function addFaq() {
+    setFaqs((prev) => [...prev, { q: '', a: '' }])
+  }
+
+  function updateFaq(idx, key, val) {
+    setFaqs((prev) => {
+      const list = [...prev]
+      list[idx] = { ...list[idx], [key]: val }
+      return list
+    })
+  }
+
+  function removeFaq(idx) {
+    setFaqs((prev) => prev.filter((_, i) => i !== idx))
+  }
+
+  // Content string: merge sections if content is empty
+  const [markdownContent, setMarkdownContent] = useState(() => {
+    if (blog.content) return blog.content
+    if (Array.isArray(blog.sections) && blog.sections.length > 0) {
+      return blog.sections
+        .map((s) => {
+          let str = `## ${s.heading}\n\n${s.content || ''}`
+          if (s.table && s.table.headers && s.table.rows) {
+            const headerRow = `| ${s.table.headers.join(' | ')} |`
+            const dividerRow = `| ${s.table.headers.map(() => '---').join(' | ')} |`
+            const dataRows = s.table.rows.map((r) => `| ${r.join(' | ')} |`).join('\n')
+            str += `\n\n${headerRow}\n${dividerRow}\n${dataRows}`
+          }
+          return str
+        })
+        .join('\n\n')
+    }
+    return ''
+  })
+
+  // Auto-slug generator when typing title (if creating or if slug is clean)
+  function handleTitleChange(val) {
+    const updated = { ...b, title: val }
+    if (isNew || !b.slug) {
+      updated.slug = val.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+    }
+    // Auto read time estimate
+    const wordCount = (val + ' ' + markdownContent).split(/\s+/).filter(Boolean).length
+    const minutes = Math.max(3, Math.ceil(wordCount / 180))
+    updated.readTime = `${minutes} min read`
+    setB(updated)
+  }
+
+  // Cover image upload
+  async function handleCoverUpload(files) {
+    if (!files || !files.length) return
+    setUploadingCover(true)
+    try {
+      const form = new FormData()
+      for (const f of files) form.append('files', f)
+      const r = await fetch('/api/admin/upload', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: form
+      })
+      const j = await r.json()
+      if (j.success && j.urls?.length) {
+        setB((prev) => ({ ...prev, coverImage: j.urls[0] }))
+        toast.success('Cover image uploaded successfully')
+      } else {
+        toast.error(j.error || 'Upload failed')
+      }
+    } catch (e) {
+      toast.error('Upload error: ' + e.message)
+    }
+    setUploadingCover(false)
+  }
+
+  // Author avatar upload
+  async function handleAvatarUpload(files) {
+    if (!files || !files.length) return
+    setUploadingAvatar(true)
+    try {
+      const form = new FormData()
+      for (const f of files) form.append('files', f)
+      const r = await fetch('/api/admin/upload', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: form
+      })
+      const j = await r.json()
+      if (j.success && j.urls?.length) {
+        setB((prev) => ({
+          ...prev,
+          author: { ...prev.author, avatar: j.urls[0] }
+        }))
+        toast.success('Author photo uploaded successfully')
+      } else {
+        toast.error(j.error || 'Upload failed')
+      }
+    } catch (e) {
+      toast.error('Upload error: ' + e.message)
+    }
+    setUploadingAvatar(false)
+  }
+
+  // Visual Editor Toolbar Action Inserts
+  function insertFormat(snippet, defaultText = '') {
+    const textarea = document.getElementById('blog-markdown-textarea')
+    if (!textarea) return
+    const start = textarea.selectionStart
+    const end = textarea.selectionEnd
+    const selected = textarea.value.substring(start, end) || defaultText
+
+    let replacement = ''
+    if (snippet === 'bold') replacement = `**${selected || 'bold text'}**`
+    else if (snippet === 'italic') replacement = `*${selected || 'italic text'}*`
+    else if (snippet === 'h2') replacement = `\n\n## ${selected || 'Section Heading'}\n\n`
+    else if (snippet === 'h3') replacement = `\n\n### ${selected || 'Subheading'}\n\n`
+    else if (snippet === 'bullet') replacement = `\n- ${selected || 'Key point 1'}\n- Key point 2\n- Key point 3\n`
+    else if (snippet === 'number') replacement = `\n1. ${selected || 'Step 1'}\n2. Step 2\n3. Step 3\n`
+    else if (snippet === 'quote') replacement = `\n> **Key Engineering Note:** ${selected || 'Important technical insight or guideline.'}\n\n`
+    else if (snippet === 'table') {
+      replacement = `\n\n| Specification | Details | Estimated Impact |\n| --- | --- | --- |\n| Module Type | Tier-1 N-Type TOPCon | 22.8% Efficiency |\n| Inverter | Grid-Tied Three Phase | 98.6% Conversion |\n| Net Metering | TANGEDCO Bi-Directional | Zero Bill Offset |\n\n`
+    } else if (snippet === 'link') {
+      replacement = `[${selected || 'Link title'}](https://ivrenergy.com)`
+    }
+
+    const newContent =
+      markdownContent.substring(0, start) + replacement + markdownContent.substring(end)
+    setMarkdownContent(newContent)
+
+    // Re-estimate reading time
+    const wordCount = (b.title + ' ' + newContent).split(/\s+/).filter(Boolean).length
+    const minutes = Math.max(3, Math.ceil(wordCount / 180))
+    setB((prev) => ({ ...prev, readTime: `${minutes} min read` }))
+  }
+
+  function handleSave(statusOverride) {
+    if (!b.title || !b.title.trim()) {
+      toast.error('Article title is required')
+      return
+    }
+    const finalSlug = (b.slug || b.title).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+    if (!finalSlug) {
+      toast.error('Valid URL slug is required')
+      return
+    }
+
+    const tagsArr = rawTags.split(',').map((t) => t.trim()).filter(Boolean)
+    const takeawaysArr = rawTakeaways.split('\n').map((t) => t.trim()).filter(Boolean)
+    const cleanFaqs = faqs
+      .map((f) => ({ q: (f.q || '').trim(), a: (f.a || '').trim() }))
+      .filter((f) => f.q && f.a)
+
+    const payload = {
+      ...b,
+      slug: finalSlug,
+      content: markdownContent,
+      sections: [],
+      tags: tagsArr,
+      keyTakeaways: takeawaysArr,
+      faqs: cleanFaqs,
+      status: statusOverride || b.status || 'published',
+      publishedAt: b.publishedAt || new Date().toISOString().split('T')[0],
+      formattedDate: b.formattedDate || new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    }
+
+    onSave(payload)
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 bg-black/75 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 overflow-y-auto"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ scale: 0.96, y: 15 }}
+        animate={{ scale: 1, y: 0 }}
+        exit={{ scale: 0.96 }}
+        onClick={(e) => e.stopPropagation()}
+        className="bg-white rounded-3xl w-full max-w-5xl shadow-2xl flex flex-col max-h-[92vh] overflow-hidden border border-neutral-200"
+      >
+        {/* Modal Header */}
+        <div className="px-6 py-4 border-b border-neutral-200 flex items-center justify-between bg-neutral-50/80">
+          <div>
+            <div className="text-xs uppercase tracking-wider font-bold text-neutral-500">
+              {isNew ? 'New Blog Publication' : 'Edit Article'}
+            </div>
+            <h2 className="text-lg font-bold text-neutral-900 mt-0.5 truncate max-w-lg">
+              {b.title || 'Untitled Article'}
+            </h2>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="h-9 w-9 rounded-full hover:bg-neutral-200 text-neutral-600 flex items-center justify-center transition-colors"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+
+        {/* Tab Navigation in Editor */}
+        <div className="px-6 border-b border-neutral-200 bg-white flex items-center justify-between overflow-x-auto">
+          <div className="flex gap-2">
+            {[
+              { id: 'editor', label: 'Article & Content', icon: FileText },
+              { id: 'seo', label: 'SEO & Metadata', icon: Globe },
+              { id: 'takeaways', label: 'Key Highlights', icon: CheckSquare },
+              { id: 'faqs', label: `Article FAQs (${faqs.length})`, icon: HelpCircle },
+              { id: 'preview', label: 'Live Preview', icon: Eye }
+            ].map((t) => (
+              <button
+                key={t.id}
+                onClick={() => setTab(t.id)}
+                className={`py-3 px-3.5 text-xs font-bold flex items-center gap-2 border-b-2 transition-all cursor-pointer ${
+                  tab === t.id
+                    ? 'border-[#D71920] text-[#D71920]'
+                    : 'border-transparent text-neutral-500 hover:text-neutral-900'
+                }`}
+              >
+                <t.icon className="h-3.5 w-3.5" />
+                {t.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="hidden sm:flex items-center gap-2 text-xs text-neutral-400">
+            <span>Read Time: <strong className="text-neutral-700">{b.readTime || '5 min read'}</strong></span>
+          </div>
+        </div>
+
+        {/* Modal Body */}
+        <div className="p-6 overflow-y-auto flex-1 space-y-5">
+          {tab === 'editor' && (
+            <div className="space-y-4">
+              {/* Title & Slug */}
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+                <div className="md:col-span-8">
+                  <label className="text-xs font-bold text-neutral-700 uppercase tracking-wider">
+                    Article Title *
+                  </label>
+                  <Input
+                    value={b.title}
+                    onChange={(e) => handleTitleChange(e.target.value)}
+                    placeholder="e.g. PM Surya Ghar Muft Bijli Yojana: Subsidy Guide 2026"
+                    className="mt-1.5 h-11 rounded-xl font-bold text-sm"
+                  />
+                </div>
+
+                <div className="md:col-span-4">
+                  <label className="text-xs font-bold text-neutral-700 uppercase tracking-wider">
+                    Category *
+                  </label>
+                  <select
+                    value={b.category}
+                    onChange={(e) => setB({ ...b, category: e.target.value })}
+                    className="mt-1.5 w-full h-11 px-3 rounded-xl border border-neutral-200 bg-neutral-50 text-xs font-semibold text-neutral-800 focus:outline-none focus:ring-2 focus:ring-[#D71920]/20"
+                  >
+                    {BLOG_CATEGORIES.filter((c) => c !== 'All').map((c) => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Slug & Read Time */}
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+                <div className="md:col-span-6">
+                  <label className="text-xs font-bold text-neutral-700 uppercase tracking-wider">
+                    URL Slug (Canonical Path) *
+                  </label>
+                  <div className="mt-1.5 flex items-center rounded-xl border border-neutral-200 bg-neutral-50 px-3 h-11">
+                    <span className="text-xs text-neutral-400 mr-1 select-none">/blog/</span>
+                    <input
+                      value={b.slug}
+                      onChange={(e) =>
+                        setB({
+                          ...b,
+                          slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]+/g, '-')
+                        })
+                      }
+                      placeholder="pm-surya-ghar-subsidy-guide"
+                      className="w-full bg-transparent text-xs text-neutral-800 font-mono focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="md:col-span-3">
+                  <label className="text-xs font-bold text-neutral-700 uppercase tracking-wider">
+                    Publish Date
+                  </label>
+                  <Input
+                    type="date"
+                    value={b.publishedAt}
+                    onChange={(e) => setB({ ...b, publishedAt: e.target.value })}
+                    className="mt-1.5 h-11 rounded-xl text-xs font-medium"
+                  />
+                </div>
+
+                <div className="md:col-span-3">
+                  <label className="text-xs font-bold text-neutral-700 uppercase tracking-wider">
+                    Reading Time
+                  </label>
+                  <Input
+                    value={b.readTime}
+                    onChange={(e) => setB({ ...b, readTime: e.target.value })}
+                    placeholder="6 min read"
+                    className="mt-1.5 h-11 rounded-xl text-xs font-medium"
+                  />
+                </div>
+              </div>
+
+              {/* Excerpt / Summary */}
+              <div>
+                <label className="text-xs font-bold text-neutral-700 uppercase tracking-wider">
+                  Summary Excerpt (Meta Description & Card Teaser) *
+                </label>
+                <Textarea
+                  value={b.excerpt}
+                  onChange={(e) => setB({ ...b, excerpt: e.target.value })}
+                  placeholder="A clear 2-3 line overview of this guide for search engines and social cards..."
+                  rows={2}
+                  className="mt-1.5 rounded-xl text-xs leading-relaxed"
+                />
+              </div>
+
+              {/* Cover Image Upload Area & Drag-and-Drop */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-neutral-700 uppercase tracking-wider">
+                    Cover Photograph / Featured Graphic *
+                  </label>
+                  <label className="cursor-pointer text-xs font-bold text-[#D71920] hover:underline flex items-center gap-1">
+                    <Upload className="h-3.5 w-3.5" />
+                    {uploadingCover ? 'Uploading...' : 'Browse Computer'}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      disabled={uploadingCover}
+                      onChange={(e) => {
+                        handleCoverUpload(e.target.files)
+                        e.target.value = ''
+                      }}
+                    />
+                  </label>
+                </div>
+
+                <div
+                  onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); setCoverDragOver(true) }}
+                  onDragLeave={(e) => { e.preventDefault(); e.stopPropagation(); setCoverDragOver(false) }}
+                  onDrop={(e) => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    setCoverDragOver(false)
+                    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                      handleCoverUpload(e.dataTransfer.files)
+                    }
+                  }}
+                  className={`border-2 border-dashed rounded-2xl p-4 transition-all flex flex-col sm:flex-row items-center gap-4 ${
+                    coverDragOver
+                      ? 'border-[#D71920] bg-red-50/60 ring-2 ring-[#D71920]/20'
+                      : 'border-neutral-200 bg-neutral-50/70 hover:bg-neutral-50'
+                  }`}
+                >
+                  <div className="h-20 w-32 rounded-xl overflow-hidden bg-neutral-900 border border-neutral-200 shrink-0 relative">
+                    <img src={b.coverImage || '/projects/svs-1mw/1.jpg'} alt="Cover Preview" className="w-full h-full object-cover" />
+                    {uploadingCover && (
+                      <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                        <Loader2 className="h-6 w-6 text-white animate-spin" />
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex-1 text-center sm:text-left space-y-1 w-full">
+                    <div className="text-xs font-semibold text-neutral-800">
+                      {coverDragOver ? (
+                        <span className="text-[#D71920] font-bold">Drop your image file here!</span>
+                      ) : (
+                        <span>Drag & drop cover graphic here, or click <strong>Browse Computer</strong></span>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-neutral-400">Supports PNG, JPG, WEBP (Recommended 16:9 banner)</p>
+                    <div className="pt-1">
+                      <Input
+                        value={b.coverImage}
+                        onChange={(e) => setB({ ...b, coverImage: e.target.value })}
+                        placeholder="Or enter image URL: /projects/svs-1mw/1.jpg"
+                        className="h-8 rounded-lg text-xs bg-white"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Visual Formatting Toolbar */}
+              <div>
+                <div className="flex flex-wrap items-center justify-between gap-2 p-2 rounded-t-xl bg-neutral-100 border border-neutral-200 border-b-0">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-neutral-600 px-1">
+                    Formatting Tools:
+                  </span>
+                  <div className="flex flex-wrap items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => insertFormat('h2')}
+                      className="px-2 py-1 rounded bg-white hover:bg-neutral-200 text-xs font-bold text-neutral-800 shadow-sm transition-colors"
+                      title="Insert H2 Heading"
+                    >
+                      H2
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => insertFormat('h3')}
+                      className="px-2 py-1 rounded bg-white hover:bg-neutral-200 text-xs font-bold text-neutral-800 shadow-sm transition-colors"
+                      title="Insert H3 Subheading"
+                    >
+                      H3
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => insertFormat('bold')}
+                      className="px-2 py-1 rounded bg-white hover:bg-neutral-200 text-xs font-bold text-neutral-800 shadow-sm transition-colors"
+                      title="Bold Text"
+                    >
+                      <b>B</b>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => insertFormat('italic')}
+                      className="px-2 py-1 rounded bg-white hover:bg-neutral-200 text-xs font-bold text-neutral-800 shadow-sm transition-colors"
+                      title="Italic Text"
+                    >
+                      <i>I</i>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => insertFormat('bullet')}
+                      className="px-2 py-1 rounded bg-white hover:bg-neutral-200 text-xs font-bold text-neutral-800 shadow-sm transition-colors flex items-center gap-1"
+                      title="Bullet List"
+                    >
+                      <List className="h-3.5 w-3.5" /> Bullet
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => insertFormat('number')}
+                      className="px-2 py-1 rounded bg-white hover:bg-neutral-200 text-xs font-bold text-neutral-800 shadow-sm transition-colors flex items-center gap-1"
+                      title="Numbered Steps"
+                    >
+                      <ListOrdered className="h-3.5 w-3.5" /> 1. 2. 3.
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => insertFormat('quote')}
+                      className="px-2 py-1 rounded bg-white hover:bg-neutral-200 text-xs font-bold text-neutral-800 shadow-sm transition-colors flex items-center gap-1"
+                      title="Callout Box"
+                    >
+                      <Quote className="h-3.5 w-3.5" /> Callout
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => insertFormat('table')}
+                      className="px-2 py-1 rounded bg-white hover:bg-neutral-200 text-xs font-bold text-neutral-800 shadow-sm transition-colors flex items-center gap-1"
+                      title="Data Table Template"
+                    >
+                      <Table className="h-3.5 w-3.5" /> Table
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => insertFormat('link')}
+                      className="px-2 py-1 rounded bg-white hover:bg-neutral-200 text-xs font-bold text-neutral-800 shadow-sm transition-colors"
+                      title="Insert Link"
+                    >
+                      Link
+                    </button>
+                  </div>
+                </div>
+
+                <Textarea
+                  id="blog-markdown-textarea"
+                  value={markdownContent}
+                  onChange={(e) => setMarkdownContent(e.target.value)}
+                  placeholder="Write your article in formatted Markdown here... Use ## for section headings, bullet points (-), bold (**text**), and tables."
+                  rows={14}
+                  className="rounded-t-none rounded-b-xl font-mono text-xs leading-relaxed border-t-0"
+                />
+              </div>
+            </div>
+          )}
+
+          {tab === 'seo' && (
+            <div className="space-y-5">
+              <div className="p-4 rounded-2xl bg-red-50/50 border border-red-100 flex items-start gap-3">
+                <Globe className="h-5 w-5 text-[#D71920] shrink-0 mt-0.5" />
+                <div className="text-xs text-neutral-700 leading-relaxed">
+                  <strong>Search Engine Optimization (SEO):</strong> Custom slugs and keywords allow your articles to rank on Google for terms like <em>"PM Surya Ghar subsidy Tamil Nadu"</em> and <em>"TANGEDCO solar net-metering"</em>.
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-neutral-700 uppercase tracking-wider">
+                  Target Search Keywords / Tags (Comma-Separated)
+                </label>
+                <Input
+                  value={rawTags}
+                  onChange={(e) => setRawTags(e.target.value)}
+                  placeholder="PM Surya Ghar, TANGEDCO, Rooftop Solar, Solar Subsidy, Tamil Nadu"
+                  className="mt-1.5 h-11 rounded-xl text-xs"
+                />
+              </div>
+
+              {/* Author Attribution */}
+              <div className="pt-4 border-t border-neutral-100 space-y-4">
+                <h4 className="text-xs font-bold text-neutral-900 uppercase tracking-wider">
+                  Author & Engineering Attribution
+                </h4>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs text-neutral-600 font-semibold">Author Name</label>
+                    <Input
+                      value={b.author?.name || ''}
+                      onChange={(e) =>
+                        setB({ ...b, author: { ...b.author, name: e.target.value } })
+                      }
+                      placeholder="Er. K. Manoj Kumar"
+                      className="mt-1 h-10 rounded-xl text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-neutral-600 font-semibold">Author Role</label>
+                    <Input
+                      value={b.author?.role || ''}
+                      onChange={(e) =>
+                        setB({ ...b, author: { ...b.author, role: e.target.value } })
+                      }
+                      placeholder="Chief Solar EPC Engineer"
+                      className="mt-1 h-10 rounded-xl text-xs"
+                    />
+                  </div>
+                </div>
+
+                {/* Author Photo Upload & Drag-and-Drop */}
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-xs text-neutral-700 font-bold uppercase tracking-wider">
+                      Author Photo / Avatar
+                    </label>
+                    <label className="cursor-pointer text-xs font-bold text-[#D71920] hover:underline flex items-center gap-1">
+                      <Upload className="h-3.5 w-3.5" />
+                      {uploadingAvatar ? 'Uploading...' : 'Browse Photo'}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        disabled={uploadingAvatar}
+                        onChange={(e) => {
+                          handleAvatarUpload(e.target.files)
+                          e.target.value = ''
+                        }}
+                      />
+                    </label>
+                  </div>
+
+                  <div
+                    onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); setAvatarDragOver(true) }}
+                    onDragLeave={(e) => { e.preventDefault(); e.stopPropagation(); setAvatarDragOver(false) }}
+                    onDrop={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      setAvatarDragOver(false)
+                      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                        handleAvatarUpload(e.dataTransfer.files)
+                      }
+                    }}
+                    className={`border-2 border-dashed rounded-2xl p-4 transition-all flex flex-col sm:flex-row items-center gap-4 ${
+                      avatarDragOver
+                        ? 'border-[#D71920] bg-red-50/60 ring-2 ring-[#D71920]/20'
+                        : 'border-neutral-200 bg-neutral-50/70 hover:bg-neutral-50'
+                    }`}
+                  >
+                    <div className="h-16 w-16 rounded-full overflow-hidden border-2 border-white shadow-md bg-neutral-900 shrink-0 relative">
+                      <img
+                        src={b.author?.avatar || '/projects/svs-1mw/1.jpg'}
+                        alt="Author Preview"
+                        className="w-full h-full object-cover"
+                      />
+                      {uploadingAvatar && (
+                        <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                          <Loader2 className="h-5 w-5 text-white animate-spin" />
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex-1 text-center sm:text-left space-y-1 w-full">
+                      <div className="text-xs font-semibold text-neutral-800">
+                        {avatarDragOver ? (
+                          <span className="text-[#D71920] font-bold">Drop photo file here!</span>
+                        ) : (
+                          <span>Drag & drop author photo here, or click <strong>Browse Photo</strong></span>
+                        )}
+                      </div>
+                      <p className="text-[11px] text-neutral-400">Supports PNG, JPG, or WEBP (Max 5MB)</p>
+                      <div className="pt-1">
+                        <Input
+                          value={b.author?.avatar || ''}
+                          onChange={(e) =>
+                            setB({ ...b, author: { ...b.author, avatar: e.target.value } })
+                          }
+                          placeholder="Or enter image URL: /projects/svs-1mw/1.jpg"
+                          className="h-8 rounded-lg text-xs bg-white"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Status and Featured Toggle */}
+              <div className="pt-3 border-t border-neutral-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <label className="text-xs font-bold text-neutral-700 uppercase tracking-wider block mb-1">
+                    Publication Status
+                  </label>
+                  <select
+                    value={b.status || 'published'}
+                    onChange={(e) => setB({ ...b, status: e.target.value })}
+                    className="h-10 px-3 rounded-xl border border-neutral-200 bg-neutral-50 text-xs font-semibold text-neutral-800"
+                  >
+                    <option value="published">Published (Live on Website)</option>
+                    <option value="draft">Draft (Private in Admin)</option>
+                  </select>
+                </div>
+
+                <label className="flex items-center gap-2.5 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={Boolean(b.featured)}
+                    onChange={(e) => setB({ ...b, featured: e.target.checked })}
+                    className="h-4 w-4 rounded text-[#D71920] focus:ring-[#D71920]"
+                  />
+                  <span className="text-xs font-bold text-neutral-800">
+                    ★ Feature this article at top of Blog Hub
+                  </span>
+                </label>
+              </div>
+            </div>
+          )}
+
+          {tab === 'takeaways' && (
+            <div className="space-y-4">
+              <div className="p-4 rounded-2xl bg-amber-50/50 border border-amber-200/60 flex items-start gap-3">
+                <CheckSquare className="h-5 w-5 text-amber-600 shrink-0 mt-0.5" />
+                <div className="text-xs text-neutral-700 leading-relaxed">
+                  <strong>Key Takeaways Callout Box:</strong> Highlight the 3–5 most critical engineering and policy points. These appear in an amber highlight box right above the main article body.
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-neutral-700 uppercase tracking-wider">
+                  Bullet Points (One Point Per Line)
+                </label>
+                <Textarea
+                  value={rawTakeaways}
+                  onChange={(e) => setRawTakeaways(e.target.value)}
+                  placeholder={`Central government subsidy covers up to ₹78,000.\nApplications must be processed through PM Surya Ghar portal.\nNet-metering integration with TANGEDCO is required.`}
+                  rows={8}
+                  className="mt-1.5 rounded-xl text-xs leading-relaxed font-mono"
+                />
+              </div>
+            </div>
+          )}
+
+          {/* TAB 4: ARTICLE FAQS */}
+          {tab === 'faqs' && (
+            <div className="space-y-5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-red-50/60 border border-red-100">
+                <div className="flex items-start gap-3">
+                  <HelpCircle className="h-5 w-5 text-[#D71920] shrink-0 mt-0.5" />
+                  <div className="text-xs text-neutral-700 leading-relaxed">
+                    <strong>Article Frequently Asked Questions:</strong> Add targeted Q&As for this article. These appear in an accordion/card section below your article body, boosting on-page SEO and reader trust.
+                  </div>
+                </div>
+                <Button
+                  type="button"
+                  onClick={addFaq}
+                  className="rounded-xl h-9 px-4 text-xs font-bold bg-[#D71920] hover:bg-[#b5141a] text-white shrink-0"
+                >
+                  <Plus className="h-3.5 w-3.5 mr-1" /> Add FAQ Item
+                </Button>
+              </div>
+
+              {faqs.length === 0 ? (
+                <div className="p-12 text-center bg-neutral-50 rounded-2xl border border-neutral-200">
+                  <HelpCircle className="h-10 w-10 text-neutral-300 mx-auto mb-2" />
+                  <h4 className="text-sm font-bold text-neutral-800">No FAQs added to this article yet</h4>
+                  <p className="text-xs text-neutral-500 mt-1 max-w-sm mx-auto">
+                    Click the button below to add common questions, eligibility queries, and technical answers.
+                  </p>
+                  <Button
+                    type="button"
+                    onClick={addFaq}
+                    className="mt-4 rounded-xl h-9 text-xs font-bold bg-[#D71920] hover:bg-[#b5141a] text-white"
+                  >
+                    <Plus className="h-3.5 w-3.5 mr-1.5" /> Add First Question
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {faqs.map((item, idx) => (
+                    <div
+                      key={idx}
+                      className="bg-neutral-50 p-4 sm:p-5 rounded-2xl border border-neutral-200/90 space-y-3 relative group"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-[#D71920] flex items-center gap-1.5">
+                          <span className="h-5 w-5 rounded-full bg-red-100 flex items-center justify-center text-[11px] font-extrabold text-[#D71920]">
+                            {idx + 1}
+                          </span>
+                          Question #{idx + 1}
+                        </span>
+
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeFaq(idx)}
+                          className="h-8 px-2.5 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg"
+                        >
+                          <Trash2 className="h-3.5 w-3.5 mr-1" /> Remove
+                        </Button>
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-bold text-neutral-700 uppercase tracking-wider block mb-1">
+                          Question *
+                        </label>
+                        <Input
+                          value={item.q}
+                          onChange={(e) => updateFaq(idx, 'q', e.target.value)}
+                          placeholder="e.g. Can I apply for PM Surya Ghar if I live in an apartment?"
+                          className="h-10 rounded-xl bg-white text-xs font-semibold"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-bold text-neutral-700 uppercase tracking-wider block mb-1">
+                          Answer * (Markdown bold & links supported)
+                        </label>
+                        <Textarea
+                          value={item.a}
+                          onChange={(e) => updateFaq(idx, 'a', e.target.value)}
+                          placeholder="e.g. Yes, Group Housing Societies (GHS) and Resident Welfare Associations (RWAs) can install rooftop solar..."
+                          rows={3}
+                          className="rounded-xl bg-white text-xs leading-relaxed"
+                        />
+                      </div>
+                    </div>
+                  ))}
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={addFaq}
+                    className="w-full rounded-2xl h-11 text-xs font-bold border-dashed border-2 border-neutral-300 hover:border-[#D71920] text-neutral-600 hover:text-[#D71920]"
+                  >
+                    <Plus className="h-4 w-4 mr-1.5" /> Add Another Question
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {tab === 'preview' && (
+            <div className="space-y-6 bg-neutral-50 p-6 rounded-2xl border border-neutral-200">
+              {/* Preview Hero */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-xs font-semibold text-neutral-500">
+                  <span className="px-3 py-1 rounded-full bg-[#D71920] text-white text-xs font-bold uppercase">
+                    {b.category}
+                  </span>
+                  <span>•</span>
+                  <span>{b.readTime || '5 min read'}</span>
+                  <span>•</span>
+                  <span>{b.publishedAt || 'Today'}</span>
+                </div>
+
+                <h1 className="text-2xl sm:text-3xl font-extrabold text-neutral-900 leading-tight">
+                  {b.title || 'Untitled Article Preview'}
+                </h1>
+
+                <p className="text-sm text-neutral-600 leading-relaxed">
+                  {b.excerpt}
+                </p>
+              </div>
+
+              {/* Preview Takeaways */}
+              {rawTakeaways.trim() && (
+                <div className="p-5 rounded-2xl bg-amber-50/70 border border-amber-200/80 space-y-2">
+                  <div className="text-xs font-bold text-amber-900 uppercase tracking-wider flex items-center gap-1.5">
+                    <CheckSquare className="h-4 w-4 text-amber-600" /> Key Engineering Takeaways
+                  </div>
+                  <ul className="space-y-1.5 text-xs text-neutral-700">
+                    {rawTakeaways.split('\n').filter(Boolean).map((t, idx) => (
+                      <li key={idx} className="flex items-start gap-2">
+                        <span className="text-[#D71920] font-bold">•</span>
+                        <span>{t}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {/* Preview Content */}
+              <div className="prose prose-neutral max-w-none text-xs sm:text-sm leading-relaxed space-y-4 pt-4 border-t border-neutral-200">
+                <div className="whitespace-pre-wrap font-sans text-neutral-800">
+                  {markdownContent || 'No article content written yet.'}
+                </div>
+              </div>
+
+              {/* Preview FAQs */}
+              {faqs.filter(f => f.q && f.a).length > 0 && (
+                <div className="space-y-4 pt-4 border-t border-neutral-200">
+                  <div className="flex items-center gap-2">
+                    <HelpCircle className="h-5 w-5 text-[#D71920]" />
+                    <h3 className="text-sm font-bold text-neutral-900">Frequently Asked Questions Preview</h3>
+                  </div>
+                  <div className="space-y-3">
+                    {faqs.filter(f => f.q && f.a).map((faq, fIdx) => (
+                      <div key={fIdx} className="p-4 rounded-xl bg-white border border-neutral-200 shadow-sm space-y-1.5">
+                        <h4 className="font-bold text-neutral-900 text-xs sm:text-sm">{faq.q}</h4>
+                        <p className="text-neutral-600 text-xs leading-relaxed whitespace-pre-line">{faq.a}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Modal Footer */}
+        <div className="px-6 py-4 border-t border-neutral-200 flex flex-col sm:flex-row items-center justify-between gap-3 bg-neutral-50 rounded-b-3xl">
+          <div className="flex items-center gap-2">
+            <span className={`h-2.5 w-2.5 rounded-full ${b.status === 'draft' ? 'bg-amber-500' : 'bg-emerald-500'}`} />
+            <span className="text-xs font-semibold text-neutral-600">
+              Status: <strong className="text-neutral-900 capitalize">{b.status || 'published'}</strong>
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              className="rounded-xl text-xs h-10 px-4"
+            >
+              Cancel
+            </Button>
+
+            <Button
+              type="button"
+              onClick={() => handleSave('draft')}
+              variant="secondary"
+              className="rounded-xl text-xs h-10 px-4 font-semibold"
+            >
+              Save as Draft
+            </Button>
+
+            <Button
+              type="button"
+              onClick={() => handleSave('published')}
+              className="bg-[#D71920] hover:bg-[#a5121a] text-white rounded-xl text-xs h-10 px-5 font-bold shadow-md"
+            >
+              <Save className="h-4 w-4 mr-1.5" />
+              {isNew ? 'Publish Now' : 'Save Changes'}
+            </Button>
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
+  )
+}
+
+// -------- Website FAQs Manager --------
+function WebsiteFaqsManager({ token }) {
+  const [faqs, setFaqs] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [search, setSearch] = useState('')
+  const [editing, setEditing] = useState(null) // { index, q, a }
+
+  async function load() {
+    setLoading(true)
+    try {
+      const r = await fetch('/api/content')
+      const j = await r.json()
+      if (j.content?.faqsList && Array.isArray(j.content.faqsList) && j.content.faqsList.length > 0) {
+        setFaqs(j.content.faqsList)
+      } else {
+        setFaqs(DEFAULT_FAQS)
+      }
+    } catch (e) {
+      setFaqs(DEFAULT_FAQS)
+    }
+    setLoading(false)
+  }
+
+  useEffect(() => {
+    load()
+  }, [])
+
+  async function saveFaqsList(updatedList) {
+    setSaving(true)
+    try {
+      const r = await fetch('/api/admin/content', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ faqsList: updatedList })
+      })
+      const j = await r.json()
+      if (j.success) {
+        setFaqs(updatedList)
+        toast.success('FAQs updated successfully & synced to live website')
+        setEditing(null)
+      } else {
+        toast.error(j.error || 'Failed to save FAQs')
+      }
+    } catch (e) {
+      toast.error('Save failed: ' + e.message)
+    }
+    setSaving(false)
+  }
+
+  function handleSaveModal(item) {
+    if (!item.q.trim() || !item.a.trim()) {
+      toast.error('Both question and answer are required')
+      return
+    }
+    let updated = [...faqs]
+    if (item.index !== undefined && item.index >= 0) {
+      updated[item.index] = { q: item.q.trim(), a: item.a.trim() }
+    } else {
+      updated.unshift({ q: item.q.trim(), a: item.a.trim() })
+    }
+    saveFaqsList(updated)
+  }
+
+  function deleteFaq(idx) {
+    if (!confirm('Are you sure you want to delete this FAQ item?')) return
+    const updated = faqs.filter((_, i) => i !== idx)
+    saveFaqsList(updated)
+  }
+
+  function resetToDefaults() {
+    if (!confirm('Reset all website FAQs back to the 30+ default questions? Any custom changes will be overwritten.')) return
+    saveFaqsList(DEFAULT_FAQS)
+  }
+
+  const filtered = faqs.filter(f => {
+    if (!search) return true
+    const s = search.toLowerCase()
+    return (f.q || '').toLowerCase().includes(s) || (f.a || '').toLowerCase().includes(s)
+  })
+
+  return (
+    <div className="space-y-6">
+      {/* Header Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-neutral-200 shadow-soft">
+        <div>
+          <h2 className="text-lg font-bold text-neutral-900 flex items-center gap-2">
+            <HelpCircle className="h-5 w-5 text-[#D71920]" />
+            Website Frequently Asked Questions (FAQs)
+          </h2>
+          <p className="text-xs text-neutral-500 mt-1">
+            Manage the FAQ accordion items displayed publicly on <a href="/faqs" target="_blank" className="text-[#D71920] underline font-medium">/faqs</a>. Edits sync instantly.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={resetToDefaults}
+            disabled={saving}
+            className="rounded-xl text-xs text-neutral-600 hover:text-neutral-900"
+          >
+            <RefreshCw className="h-3.5 w-3.5 mr-1" /> Reset Defaults
+          </Button>
+
+          <Button
+            onClick={() => setEditing({ index: -1, q: '', a: '' })}
+            className="bg-[#D71920] hover:bg-[#a5121a] text-white rounded-xl text-xs font-bold"
+          >
+            <Plus className="h-4 w-4 mr-1.5" /> Add New FAQ
+          </Button>
+        </div>
+      </div>
+
+      {/* Search & Stats Filter */}
+      <div className="flex flex-wrap gap-3 items-center">
+        <div className="relative flex-1 min-w-[260px]">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
+          <Input
+            placeholder="Search questions or answers..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-10 h-11 rounded-xl bg-white text-xs"
+          />
+        </div>
+
+        <div className="px-3.5 py-2.5 rounded-xl bg-neutral-100 text-xs font-bold text-neutral-600">
+          Showing {filtered.length} of {faqs.length} FAQs
+        </div>
+      </div>
+
+      {/* Content List */}
+      {loading ? (
+        <div className="p-16 flex justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-[#D71920]" />
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="rounded-2xl bg-white p-12 text-center border border-neutral-200">
+          <HelpCircle className="h-10 w-10 text-neutral-300 mx-auto mb-2" />
+          <h3 className="text-sm font-bold text-neutral-800">No FAQs match your search</h3>
+          <p className="text-xs text-neutral-500 mt-1">Try searching with a different keyword or add a new question.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 gap-3.5">
+          {filtered.map((faq, idx) => {
+            const originalIndex = faqs.findIndex(f => f.q === faq.q && f.a === faq.a)
+            return (
+              <div
+                key={idx}
+                className="rounded-2xl bg-white p-5 border border-neutral-200/90 shadow-soft hover:shadow-md transition-all flex flex-col sm:flex-row items-start justify-between gap-4"
+              >
+                <div className="space-y-2 flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="h-6 w-6 rounded-full bg-red-50 text-[#D71920] border border-red-100 text-xs font-extrabold flex items-center justify-center shrink-0">
+                      {originalIndex >= 0 ? originalIndex + 1 : idx + 1}
+                    </span>
+                    <h3 className="font-bold text-neutral-900 text-sm leading-snug">
+                      {faq.q}
+                    </h3>
+                  </div>
+                  <p className="text-xs text-neutral-600 leading-relaxed pl-8 whitespace-pre-line">
+                    {faq.a}
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-center">
+                  <button
+                    onClick={() => setEditing({ index: originalIndex >= 0 ? originalIndex : idx, q: faq.q, a: faq.a })}
+                    className="h-8 px-3 rounded-lg bg-neutral-100 hover:bg-neutral-200 text-neutral-700 text-xs font-semibold flex items-center gap-1 transition-colors"
+                  >
+                    <Edit3 className="h-3.5 w-3.5" /> Edit
+                  </button>
+                  <button
+                    onClick={() => deleteFaq(originalIndex >= 0 ? originalIndex : idx)}
+                    className="h-8 w-8 rounded-lg bg-red-50 text-red-600 hover:bg-red-600 hover:text-white flex items-center justify-center transition-colors"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {/* Edit/Create FAQ Modal */}
+      <AnimatePresence>
+        {editing && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto"
+            onClick={() => setEditing(null)}
+          >
+            <motion.form
+              initial={{ scale: 0.95, y: 15 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95 }}
+              onClick={(e) => e.stopPropagation()}
+              onSubmit={(e) => {
+                e.preventDefault()
+                handleSaveModal(editing)
+              }}
+              className="bg-white rounded-3xl w-full max-w-xl shadow-2xl border border-neutral-200 overflow-hidden"
+            >
+              <div className="px-6 py-4 border-b border-neutral-200 flex items-center justify-between bg-neutral-50">
+                <div className="flex items-center gap-2">
+                  <HelpCircle className="h-5 w-5 text-[#D71920]" />
+                  <h3 className="font-bold text-neutral-900 text-sm sm:text-base">
+                    {editing.index >= 0 ? 'Edit FAQ Item' : 'Add New FAQ Item'}
+                  </h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setEditing(null)}
+                  className="h-8 w-8 rounded-full hover:bg-neutral-200 text-neutral-500 flex items-center justify-center"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              <div className="p-6 space-y-4">
+                <div>
+                  <label className="text-xs font-bold text-neutral-700 uppercase tracking-wider block mb-1.5">
+                    Question *
+                  </label>
+                  <Input
+                    value={editing.q}
+                    onChange={(e) => setEditing({ ...editing, q: e.target.value })}
+                    placeholder="e.g. How much space is required for a rooftop solar system?"
+                    className="h-11 rounded-xl text-xs font-semibold"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-neutral-700 uppercase tracking-wider block mb-1.5">
+                    Answer * (Line breaks & detailed paragraphs supported)
+                  </label>
+                  <Textarea
+                    value={editing.a}
+                    onChange={(e) => setEditing({ ...editing, a: e.target.value })}
+                    placeholder="Enter comprehensive answer explaining the system capacity, requirements, or government guidelines..."
+                    rows={6}
+                    className="rounded-xl text-xs leading-relaxed"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="px-6 py-4 border-t border-neutral-200 bg-neutral-50 flex items-center justify-end gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setEditing(null)}
+                  className="rounded-xl text-xs h-10 px-4"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={saving}
+                  className="bg-[#D71920] hover:bg-[#a5121a] text-white rounded-xl text-xs h-10 px-5 font-bold"
+                >
+                  {saving ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : <Save className="h-4 w-4 mr-1.5" />}
+                  Save FAQ
+                </Button>
+              </div>
+            </motion.form>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   )
 }
 
@@ -2242,39 +4860,55 @@ function AdminShell({ user, token, onLogout }) {
   const tabs = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'leads', label: 'Leads', icon: Users },
+    { id: 'capacities', label: 'Solar kW Packages', icon: Zap },
     { id: 'projects', label: 'Projects', icon: FolderKanban },
+    { id: 'blogs', label: 'Blog Posts', icon: BookOpen },
+    { id: 'faqs', label: 'Frequently Asked Questions', icon: HelpCircle },
     { id: 'content', label: 'Site Content', icon: ImageIcon },
     { id: 'reviews', label: 'Reviews', icon: MessageSquare },
   ]
   return (
-    <div className="min-h-screen bg-neutral-50" >
+    <div className="min-h-screen bg-neutral-50">
       {/* Top nav */}
-      <header className="bg-white border-b border-neutral-200 sticky top-0 z-40" >
-        <div className="container mx-auto px-4 md:px-6 flex items-center justify-between h-16" >
-          <a href="/"  className="flex items-center gap-3" >
-            <img src="/ivr-logo.webp"  alt="IVR Energy"  className="h-12 md:h-14 w-auto object-contain"  />
-            <div className="text-[10px] uppercase tracking-widest text-neutral-500 border-l border-neutral-200 pl-3" >Admin</div>
+      <header className="bg-white border-b border-neutral-200 sticky top-0 z-40">
+        <div className="container mx-auto px-4 md:px-6 flex items-center justify-between h-16">
+          <a href="/" className="flex items-center gap-3">
+            <img src="/ivr-logo.webp" alt="IVR Energy" className="h-12 md:h-14 w-auto object-contain" />
+            <div className="text-[10px] uppercase tracking-widest text-neutral-500 border-l border-neutral-200 pl-3">Admin</div>
           </a>
-          <div className="flex items-center gap-3" >
-            <div className="hidden md:flex items-center gap-2 text-sm text-neutral-600 px-3 py-1.5 rounded-full bg-neutral-100" ><Sparkles className="h-3.5 w-3.5 text-[#D71920]"  /> {user.username}</div>
-            <Button onClick={onLogout} variant="outline"  size="sm"  className="rounded-full" ><LogOut className="h-4 w-4 mr-1.5"  /> Logout</Button>
+          <div className="flex items-center gap-3">
+            <div className="hidden md:flex items-center gap-2 text-sm text-neutral-600 px-3 py-1.5 rounded-full bg-neutral-100">
+              <Sparkles className="h-3.5 w-3.5 text-[#D71920]" /> {user.username}
+            </div>
+            <Button onClick={onLogout} variant="outline" size="sm" className="rounded-full">
+              <LogOut className="h-4 w-4 mr-1.5" /> Logout
+            </Button>
           </div>
         </div>
-        <div className="container mx-auto px-4 md:px-6" >
-          <div className="flex gap-1 -mb-px" >
+        <div className="container mx-auto px-4 md:px-6">
+          <div className="flex gap-1 -mb-px overflow-x-auto">
             {tabs.map(t => (
-              <button key={t.id} onClick={() => setTab(t.id)} className={`px-4 py-3 text-sm font-semibold flex items-center gap-2 border-b-2 transition-colors ${tab === t.id ? 'border-[#D71920] text-[#D71920]' : 'border-transparent text-neutral-600 hover:text-neutral-900'}`}>
-                <t.icon className="h-4 w-4"  /> {t.label}
+              <button
+                key={t.id}
+                onClick={() => setTab(t.id)}
+                className={`px-4 py-3 text-sm font-semibold flex items-center gap-2 border-b-2 transition-colors whitespace-nowrap ${
+                  tab === t.id ? 'border-[#D71920] text-[#D71920]' : 'border-transparent text-neutral-600 hover:text-neutral-900'
+                }`}
+              >
+                <t.icon className="h-4 w-4" /> {t.label}
               </button>
             ))}
           </div>
         </div>
       </header>
 
-      <main className="container mx-auto px-4 md:px-6 py-8" >
+      <main className="container mx-auto px-4 md:px-6 py-8">
         {tab === 'dashboard' && <Dashboard token={token} />}
         {tab === 'leads' && <Leads token={token} />}
+        {tab === 'capacities' && <CapacitiesManager token={token} />}
         {tab === 'projects' && <Projects token={token} />}
+        {tab === 'blogs' && <BlogsManager token={token} />}
+        {tab === 'faqs' && <WebsiteFaqsManager token={token} />}
         {tab === 'content' && <Content token={token} />}
         {tab === 'reviews' && <Reviews token={token} />}
       </main>

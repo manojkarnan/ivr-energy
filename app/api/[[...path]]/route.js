@@ -5,10 +5,60 @@ import { writeFile, mkdir } from 'fs/promises'
 import path from 'path'
 import { put } from '@vercel/blob'
 import { readDb, writeDb, verifyAdmin } from '@/lib/jsonDb'
+import { checkRateLimit } from '@/lib/rateLimit'
+import { sendLeadNotification } from '@/lib/notifications'
+import { BLOG_POSTS } from '@/data/blogs'
+import { SEED_PROJECTS } from '@/data/projects'
+import { DEFAULT_REVIEWS } from '@/data/reviews'
+import { SOLAR_CAPACITIES_DATA, sortCapacitiesAscending } from '@/data/capacities'
+
+async function ensureCapacitiesSeeded(db) {
+  if (!Array.isArray(db.capacities) || db.capacities.length === 0) {
+    db.capacities = SOLAR_CAPACITIES_DATA.map((c, idx) => ({
+      ...c,
+      order: c.order !== undefined ? c.order : idx,
+      createdAt: c.createdAt || new Date().toISOString(),
+      updatedAt: c.updatedAt || new Date().toISOString()
+    }))
+    await writeDb(db)
+  }
+}
 
 async function ensureProjectsSeeded(db) {
-  if (!db.projects) {
-    db.projects = []
+  if (!Array.isArray(db.projects) || db.projects.length === 0) {
+    db.projects = SEED_PROJECTS.map((p, idx) => ({
+      ...p,
+      order: p.order !== undefined ? p.order : idx,
+      createdAt: p.createdAt || new Date().toISOString(),
+      updatedAt: p.updatedAt || new Date().toISOString()
+    }))
+    await writeDb(db)
+  }
+}
+
+async function ensureReviewsSeeded(db) {
+  if (!Array.isArray(db.reviews) || db.reviews.length === 0) {
+    db.reviews = DEFAULT_REVIEWS.map((r, idx) => ({
+      ...r,
+      order: r.order !== undefined ? r.order : idx + 1,
+      createdAt: r.createdAt || new Date().toISOString(),
+      updatedAt: r.updatedAt || new Date().toISOString()
+    }))
+    await writeDb(db)
+  }
+}
+
+async function ensureBlogsSeeded(db) {
+  if (!Array.isArray(db.blogs) || db.blogs.length === 0) {
+    db.blogs = BLOG_POSTS.map((p, idx) => ({
+      ...p,
+      status: p.status || 'published',
+      order: p.order !== undefined ? p.order : idx,
+      content: p.content || (p.sections ? p.sections.map(s => `## ${s.heading}\n\n${s.content || ''}`).join('\n\n') : ''),
+      createdAt: p.publishedAt ? new Date(p.publishedAt).toISOString() : new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }))
+    await writeDb(db)
   }
 }
 
@@ -109,13 +159,29 @@ export async function GET(request, { params }) {
       return NextResponse.json({ content: db.content || {} }, { headers: cors })
     }
     if (route === 'reviews') {
+      await ensureReviewsSeeded(db)
       return NextResponse.json({ reviews: sortByOrder(db.reviews) }, { headers: cors })
+    }
+    if (route === 'capacities') {
+      await ensureCapacitiesSeeded(db)
+      return NextResponse.json({ capacities: sortCapacitiesAscending(db.capacities) }, { headers: cors })
+    }
+    if (route === 'blogs') {
+      await ensureBlogsSeeded(db)
+      const published = (db.blogs || []).filter(b => b.status !== 'draft')
+      return NextResponse.json({ blogs: published }, { headers: cors })
     }
     // ---- Admin ----
     if (route === 'admin/verify') {
       const user = authFromRequest(request)
       if (!user) return unauthorized()
       return NextResponse.json({ user }, { headers: cors })
+    }
+    if (route === 'admin/capacities') {
+      const user = authFromRequest(request)
+      if (!user) return unauthorized()
+      await ensureCapacitiesSeeded(db)
+      return NextResponse.json({ capacities: sortCapacitiesAscending(db.capacities) }, { headers: cors })
     }
     if (route === 'admin/leads') {
       const user = authFromRequest(request)
@@ -128,6 +194,12 @@ export async function GET(request, { params }) {
       await ensureProjectsSeeded(db)
       return NextResponse.json({ projects: sortByOrderThenCreated(db.projects) }, { headers: cors })
     }
+    if (route === 'admin/blogs') {
+      const user = authFromRequest(request)
+      if (!user) return unauthorized()
+      await ensureBlogsSeeded(db)
+      return NextResponse.json({ blogs: db.blogs || [] }, { headers: cors })
+    }
     if (route === 'admin/content') {
       const user = authFromRequest(request)
       if (!user) return unauthorized()
@@ -136,6 +208,7 @@ export async function GET(request, { params }) {
     if (route === 'admin/reviews') {
       const user = authFromRequest(request)
       if (!user) return unauthorized()
+      await ensureReviewsSeeded(db)
       return NextResponse.json({ reviews: sortByOrder(db.reviews) }, { headers: cors })
     }
     if (route === 'admin/stats') {
@@ -221,6 +294,13 @@ export async function POST(request, { params }) {
     const db = await readDb()
 
     if (route === 'admin/login') {
+      const limitRes = checkRateLimit(request, { limit: 10, windowMs: 60 * 1000, keyPrefix: 'admin_login' })
+      if (!limitRes.allowed) {
+        return NextResponse.json(
+          { error: `Too many login attempts. Please try again in ${limitRes.retryAfterSec} seconds.` },
+          { status: 429, headers: { ...cors, 'Retry-After': String(limitRes.retryAfterSec) } }
+        )
+      }
       const { username, password } = body
       if (!username || !password || typeof username !== 'string' || typeof password !== 'string') {
         return NextResponse.json({ error: 'Username and password are required' }, { status: 400, headers: cors })
@@ -260,6 +340,7 @@ export async function POST(request, { params }) {
         id: uuidv4(),
         name: String(body.name || 'Anonymous').replace(/</g, '&lt;').replace(/>/g, '&gt;'),
         role: String(body.role || '').replace(/</g, '&lt;').replace(/>/g, '&gt;'),
+        avatar: String(body.avatar || body.img || body.image || ''),
         rating: Math.min(5, Math.max(1, Number(body.rating) || 5)),
         text: String(body.text || '').replace(/</g, '&lt;').replace(/>/g, '&gt;'),
         order: Number(body.order) || 999,
@@ -270,7 +351,106 @@ export async function POST(request, { params }) {
       return NextResponse.json({ success: true, review: doc }, { headers: cors })
     }
 
+    if (route === 'admin/blogs') {
+      const user = authFromRequest(request)
+      if (!user) return unauthorized()
+      await ensureBlogsSeeded(db)
+      const now = new Date().toISOString()
+      const title = String(body.title || 'Untitled Blog Post').trim()
+      const rawSlug = body.slug ? String(body.slug) : title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+      const slug = rawSlug || `blog-${Date.now()}`
+      
+      const doc = {
+        id: uuidv4(),
+        slug,
+        title,
+        excerpt: String(body.excerpt || ''),
+        category: String(body.category || 'Rooftop Solar'),
+        readTime: String(body.readTime || '5 min read'),
+        publishedAt: body.publishedAt || now.split('T')[0],
+        formattedDate: body.formattedDate || new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+        author: {
+          name: String(body.author?.name || 'IVR Energy Editorial Team'),
+          role: String(body.author?.role || 'Solar Engineering Specialist'),
+          avatar: String(body.author?.avatar || '/projects/svs-1mw/1.jpg')
+        },
+        coverImage: String(body.coverImage || '/projects/svs-1mw/1.jpg'),
+        featured: Boolean(body.featured),
+        status: body.status === 'draft' ? 'draft' : 'published',
+        tags: Array.isArray(body.tags) ? body.tags : (body.tags ? String(body.tags).split(',').map(t => t.trim()).filter(Boolean) : []),
+        keyTakeaways: Array.isArray(body.keyTakeaways) ? body.keyTakeaways : (body.keyTakeaways ? String(body.keyTakeaways).split('\n').map(t => t.trim()).filter(Boolean) : []),
+        sections: Array.isArray(body.sections) ? body.sections : [],
+        content: String(body.content || ''),
+        createdAt: now,
+        updatedAt: now,
+      }
+      db.blogs = [doc, ...(db.blogs || [])]
+      await writeDb(db)
+      return NextResponse.json({ success: true, blog: doc }, { headers: cors })
+    }
+
+    if (route === 'admin/capacities') {
+      const user = authFromRequest(request)
+      if (!user) return unauthorized()
+      await ensureCapacitiesSeeded(db)
+      const now = new Date().toISOString()
+      const kw = String(body.kw || '3 kW').trim()
+      const cleanId = String(body.id || kw.toLowerCase().replace(/[^a-z0-9]/g, '') || `cap-${Date.now()}`)
+      const cleanSlug = body.slug ? String(body.slug) : (kw ? kw.toLowerCase().replace(/[^a-z0-9]/g, '') : cleanId)
+      const dailyUnits = String(body.dailyUnits || '')
+      const roofArea = String(body.roofArea || '')
+      const monthlySavings = String(body.monthlySavings || '')
+      const subsidy = String(body.subsidy || '')
+      const doc = {
+        id: cleanId,
+        slug: cleanSlug,
+        aliases: Array.isArray(body.aliases) ? body.aliases : [cleanId, cleanSlug],
+        kw: kw,
+        tag: String(body.tag || ''),
+        badge: String(body.badge || ''),
+        title: String(body.title || `${kw} Rooftop Solar System`),
+        subtitle: String(body.subtitle || ''),
+        description: String(body.description || ''),
+        heroHighlights: [
+          { label: 'Daily Generation', value: dailyUnits ? dailyUnits.replace(/\s*\/\s*Day/i, '') : '12 – 15 Units' },
+          { label: 'Roof Area Required', value: roofArea ? roofArea.replace(/\s*\(.*?\)/g, '') : '270 – 300 Sq. Ft.' },
+          { label: 'Monthly Bill Savings', value: monthlySavings ? monthlySavings.replace(/\s*\/\s*Month/i, '') : '₹2,500 – ₹3,500' },
+          { label: 'Govt Subsidy Credit', value: subsidy ? (subsidy.includes('₹') ? subsidy.split(' under ')[0].split(' Direct ')[0] + ' Direct DBT' : subsidy) : (body.badge || '₹78,000 Direct DBT') },
+        ],
+        dailyUnits,
+        monthlyUnits: String(body.monthlyUnits || ''),
+        yearlyUnits: String(body.yearlyUnits || ''),
+        roofArea,
+        monthlySavings,
+        yearlySavings: String(body.yearlySavings || ''),
+        twentyFiveYearSavings: String(body.twentyFiveYearSavings || ''),
+        subsidy,
+        payback: String(body.payback || ''),
+        warranty: String(body.warranty || '25 Years Panel Performance Warranty | 5–10 Years Inverter Warranty'),
+        suitableFor: String(body.suitableFor || ''),
+        panelsCount: String(body.panelsCount || ''),
+        inverterSpec: String(body.inverterSpec || ''),
+        structureSpec: String(body.structureSpec || ''),
+        appliances: Array.isArray(body.appliances) ? body.appliances : [],
+        inclusions: Array.isArray(body.inclusions) ? body.inclusions : [],
+        faqs: Array.isArray(body.faqs) ? body.faqs : [],
+        order: body.order !== undefined ? Number(body.order) : (db.capacities || []).length,
+        createdAt: now,
+        updatedAt: now,
+      }
+      db.capacities = [...(db.capacities || []), doc]
+      await writeDb(db)
+      return NextResponse.json({ success: true, capacity: doc }, { headers: cors })
+    }
+
     if (route === 'leads' || route === 'contact' || route === 'quote') {
+      const limitRes = checkRateLimit(request, { limit: 6, windowMs: 60 * 1000, keyPrefix: 'leads_submit' })
+      if (!limitRes.allowed) {
+        return NextResponse.json(
+          { error: `Too many submissions. Please wait ${limitRes.retryAfterSec} seconds before submitting again.` },
+          { status: 429, headers: { ...cors, 'Retry-After': String(limitRes.retryAfterSec) } }
+        )
+      }
       const cleanString = (val) => typeof val === 'string' ? val.replace(/</g, '&lt;').replace(/>/g, '&gt;').trim() : ''
       const lead = {
         id: uuidv4(),
@@ -290,6 +470,10 @@ export async function POST(request, { params }) {
       }
       db.leads.push(lead)
       await writeDb(db)
+
+      // Asynchronously trigger real-time notification (Webhook / Email)
+      sendLeadNotification(lead).catch(() => {})
+
       return NextResponse.json({ success: true, lead }, { headers: cors })
     }
     if (route === 'calculator') {
@@ -336,12 +520,19 @@ export async function PATCH(request, { params }) {
     if (route === 'admin/leads') {
       const user = authFromRequest(request)
       if (!user) return unauthorized()
-      const { id, status, notes } = body
+      const { id, status, notes, message, name, phone, email, city, address, interest } = body
       if (!id) return NextResponse.json({ error: 'id required' }, { status: 400, headers: cors })
       const idx = db.leads.findIndex(l => l.id === id)
       if (idx === -1) return NextResponse.json({ error: 'Not found' }, { status: 404, headers: cors })
       if (status !== undefined) db.leads[idx].status = status
       if (notes !== undefined) db.leads[idx].notes = notes
+      if (message !== undefined) db.leads[idx].message = message
+      if (name !== undefined) db.leads[idx].name = name
+      if (phone !== undefined) db.leads[idx].phone = phone
+      if (email !== undefined) db.leads[idx].email = email
+      if (city !== undefined) db.leads[idx].city = city
+      if (address !== undefined) db.leads[idx].address = address
+      if (interest !== undefined) db.leads[idx].interest = interest
       db.leads[idx].updatedAt = new Date().toISOString()
       await writeDb(db)
       return NextResponse.json({ success: true }, { headers: cors })
@@ -375,6 +566,45 @@ export async function PATCH(request, { params }) {
       await writeDb(db)
       return NextResponse.json({ success: true, review: db.reviews[idx] }, { headers: cors })
     }
+    if (route === 'admin/blogs') {
+      const user = authFromRequest(request)
+      if (!user) return unauthorized()
+      const { id, ...rest } = body
+      if (!id) return NextResponse.json({ error: 'id required' }, { status: 400, headers: cors })
+      await ensureBlogsSeeded(db)
+      const idx = db.blogs.findIndex(b => b.id === id)
+      if (idx === -1) return NextResponse.json({ error: 'Not found' }, { status: 404, headers: cors })
+      
+      const update = { ...rest }
+      if (update.title && !update.slug && !db.blogs[idx].slug) {
+        update.slug = update.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+      }
+      db.blogs[idx] = { ...db.blogs[idx], ...update, updatedAt: new Date().toISOString() }
+      await writeDb(db)
+      return NextResponse.json({ success: true, blog: db.blogs[idx] }, { headers: cors })
+    }
+    if (route === 'admin/capacities') {
+      const user = authFromRequest(request)
+      if (!user) return unauthorized()
+      await ensureCapacitiesSeeded(db)
+      const { id, ...rest } = body
+      if (!id) return NextResponse.json({ error: 'id required' }, { status: 400, headers: cors })
+      const idx = db.capacities.findIndex(c => c.id === id || c.slug === id)
+      if (idx === -1) return NextResponse.json({ error: 'Not found' }, { status: 404, headers: cors })
+      const update = { ...rest }
+      if (update.order !== undefined) update.order = Number(update.order)
+      const merged = { ...db.capacities[idx], ...update }
+      merged.heroHighlights = [
+        { label: 'Daily Generation', value: merged.dailyUnits ? String(merged.dailyUnits).replace(/\s*\/\s*Day/i, '') : '12 – 15 Units' },
+        { label: 'Roof Area Required', value: merged.roofArea ? String(merged.roofArea).replace(/\s*\(.*?\)/g, '').trim() : '270 – 300 Sq. Ft.' },
+        { label: 'Monthly Bill Savings', value: merged.monthlySavings ? String(merged.monthlySavings).replace(/\s*\/\s*Month/i, '').trim() : '₹2,500 – ₹3,500' },
+        { label: 'Govt Subsidy Credit', value: merged.subsidy ? (String(merged.subsidy).includes('₹') ? String(merged.subsidy).split(' under ')[0].split(' Direct ')[0] + ' Direct DBT' : String(merged.subsidy)) : (merged.badge || '₹78,000 Direct DBT') },
+      ]
+      merged.updatedAt = new Date().toISOString()
+      db.capacities[idx] = merged
+      await writeDb(db)
+      return NextResponse.json({ success: true, capacity: db.capacities[idx] }, { headers: cors })
+    }
     return NextResponse.json({ error: 'Not found' }, { status: 404, headers: cors })
   } catch (e) {
     return NextResponse.json({ error: e.message }, { status: 500, headers: cors })
@@ -388,6 +618,16 @@ export async function DELETE(request, { params }) {
     const db = await readDb()
     const url = new URL(request.url)
     const id = url.searchParams.get('id')
+
+    if (route === 'admin/capacities') {
+      const user = authFromRequest(request)
+      if (!user) return unauthorized()
+      if (!id) return NextResponse.json({ error: 'id required' }, { status: 400, headers: cors })
+      await ensureCapacitiesSeeded(db)
+      db.capacities = db.capacities.filter(c => c.id !== id && c.slug !== id)
+      await writeDb(db)
+      return NextResponse.json({ success: true }, { headers: cors })
+    }
 
     if (route === 'admin/leads') {
       const user = authFromRequest(request)
@@ -410,6 +650,15 @@ export async function DELETE(request, { params }) {
       if (!user) return unauthorized()
       if (!id) return NextResponse.json({ error: 'id required' }, { status: 400, headers: cors })
       db.reviews = db.reviews.filter(r => r.id !== id)
+      await writeDb(db)
+      return NextResponse.json({ success: true }, { headers: cors })
+    }
+    if (route === 'admin/blogs') {
+      const user = authFromRequest(request)
+      if (!user) return unauthorized()
+      if (!id) return NextResponse.json({ error: 'id required' }, { status: 400, headers: cors })
+      await ensureBlogsSeeded(db)
+      db.blogs = db.blogs.filter(b => b.id !== id)
       await writeDb(db)
       return NextResponse.json({ success: true }, { headers: cors })
     }

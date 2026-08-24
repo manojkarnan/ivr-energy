@@ -235,7 +235,24 @@
       "updatedAt": "2026-07-12T10:25:07.548Z"
     }
   ],
-  "leads": [],
+  "leads": [
+    {
+      "id": "d12f30c1-a37f-426f-ab17-c992a895aae5",
+      "type": "lead",
+      "name": "QA Test User 1787557098704",
+      "email": "qa.test@example.com",
+      "phone": "9876543210",
+      "city": "Chennai",
+      "address": "",
+      "interest": "Residential Rooftop",
+      "message": "Automated QA test submission for solar inquiry &lt;script&gt;alert(\"xss\")&lt;/script&gt;",
+      "monthlyBill": 4500,
+      "roofArea": null,
+      "systemSize": null,
+      "status": "new",
+      "createdAt": "2026-08-24T07:38:18.734Z"
+    }
+  ],
   "reviews": [
     {
       "id": "rev-1",
@@ -244,7 +261,9 @@
       "rating": 5,
       "text": "Job completed as promised. Very cooperative and professional. Mr. Prakash explained the system in detail and clarified all doubts.",
       "order": 1,
-      "createdAt": "2026-07-28T11:55:10.800Z"
+      "createdAt": "2026-07-28T11:55:10.800Z",
+      "avatar": "",
+      "updatedAt": "2026-08-22T10:30:29.240Z"
     },
     {
       "id": "rev-2",
@@ -290,26 +309,29 @@
       "text": "It was pleasant working with IVR Energy. Recently installed 5KV at my residence. Purely efficient and working great.",
       "order": 6,
       "createdAt": "2026-07-28T11:55:10.801Z"
-    },
-    {
-      "id": "test-123",
-      "name": "Test",
-      "text": "Test review",
-      "rating": 5
     }
   ],
   "content": {
     "contact": {
-      "phone": "+91 90477 77936",
-      "phoneRaw": "919047777936",
+      "phone": "+91 90477 77935",
+      "phoneRaw": "919047777935",
+      "secondaryPhone": "+91 95146 05690",
+      "secondaryPhoneRaw": "919514605690",
       "email": "ivrenergysolutions@gmail.com",
       "secondaryEmail": "info@ivrenergy.com",
       "whatsapp": "919047777936",
-      "address": "3rd floor, Door No - 1, Plot No - A, Manasarovar Nagar, Gerugambakkam, Chennai - 600122.",
+      "address": "3rd floor, Door No - 1,\nPlot No - A, Manasarovar Nagar,\nGerugambakkam,\nChennai - 600122.",
       "hours": "Mon–Sat, 9:30 AM – 7:30 PM",
       "mapLat": "13.013944",
       "mapLng": "80.136667",
-      "linkedin": "https://www.linkedin.com/company/ivr-energy"
+      "instagram": "https://www.instagram.com/ivrenergy/",
+      "linkedin": "https://www.linkedin.com/company/ivr-energy",
+      "facebook": "",
+      "youtube": "",
+      "gstNumber": "33BTTPR9122F1ZB",
+      "secondaryAddressTitle": "",
+      "secondaryAddress": "",
+      "secondaryAddressPhone": ""
     },
     "clients": [
       "/client-pcs.png",
@@ -318,12 +340,13 @@
       "/client-meenakshi.jpg",
       "/client-maher.png",
       "/client-mmch.png",
-      "/client-svs.png",
       "/client-vani.png",
-      "/client-muthukumaran.png"
+      "/client-muthukumaran.png",
+      "/projects/uploads/1787398199970-6995ccfe.png",
+      "/projects/uploads/1787484499903-5d59d87d.png"
     ],
     "heroSubheadline": "Engineering • Procurement • Construction • Solar Consultancy • Turnkey EPC Solutions across Residential, Commercial & Industrial sectors.",
-    "updatedAt": "2026-07-31T06:01:06.056Z",
+    "updatedAt": "2026-08-23T11:28:19.972Z",
     "projectsTitle": "From <span class=\"text-gradient-red\">1 KW</span> rooftops to <span class=\"text-gradient-red\">10 MW</span> plants",
     "projectsEyebrow": "Featured EPC Projects",
     "projectsSubtitle": "A portfolio built across Tamilnadu and beyond — spanning industries, campuses and homes.",
@@ -338,7 +361,7 @@
       "services": true,
       "solutions": true,
       "whyUs": true,
-      "calc": true,
+      "calc": false,
       "projects": false,
       "testimonials": true,
       "clients": true,
@@ -446,6 +469,554 @@
     {
       "username": "admin@ivrenergy.com",
       "password": "Solar@IVR.2026"
+    }
+  ],
+  "blogs": [
+    {
+      "id": "pm-surya-ghar-subsidy-guide-tamilnadu-2025",
+      "slug": "pm-surya-ghar-subsidy-guide-tamilnadu-2025",
+      "title": "PM Surya Ghar Muft Bijli Yojana: Complete Subsidy & Application Guide (2025–2026)",
+      "excerpt": "Detailed step-by-step roadmap to claim up to ₹78,000 government subsidy under PM Surya Ghar Yojana in Tamil Nadu with TANGEDCO net-metering.",
+      "category": "Subsidy & Policy",
+      "readTime": "6 min read",
+      "publishedAt": "2026-02-18",
+      "formattedDate": "Feb 18, 2026",
+      "author": {
+        "name": "Er. K. Manoj Kumar",
+        "role": "Chief Solar EPC Engineer",
+        "avatar": "/projects/svs-1mw/1.jpg"
+      },
+      "coverImage": "/projects/svs-1mw/1.jpg",
+      "featured": true,
+      "tags": [
+        "PM Surya Ghar",
+        "TANGEDCO",
+        "Solar Subsidy",
+        "Rooftop Solar",
+        "Tamil Nadu"
+      ],
+      "keyTakeaways": [
+        "Central government subsidy covers up to ₹78,000 for residential rooftop solar systems up to 3 kW.",
+        "Applications must be processed through the official National Portal for Rooftop Solar (pmsuryaghar.gov.in).",
+        "Net-metering integration with TANGEDCO is required for zero-bill credit adjustments.",
+        "IVR Energy provides complete end-to-end documentation, vendor coordination, and CEIG/TNEB commissioning support."
+      ],
+      "sections": [
+        {
+          "heading": "Understanding PM Surya Ghar: Muft Bijli Yojana",
+          "content": "The **PM Surya Ghar: Muft Bijli Yojana** was launched by the Government of India with a massive outlay of ₹75,000 crore to provide free electricity (up to 300 units per month) to 1 crore households across India. \n\nUnder this scheme, residential homeowners, housing societies, and residential welfare associations (RWAs) can install grid-connected rooftop solar systems with direct financial subsidy disbursed directly into their bank accounts."
+        },
+        {
+          "heading": "Subsidy Structure Breakdown (2025–2026)",
+          "content": "The subsidy scheme is segmented based on the sanctioned capacity of the residential rooftop solar plant:",
+          "table": {
+            "headers": [
+              "System Capacity",
+              "Central Government Subsidy (CFA)",
+              "Estimated System Cost (Approx)",
+              "Net Cost to Customer"
+            ],
+            "rows": [
+              [
+                "1 kW Rooftop Solar",
+                "₹30,000",
+                "₹65,000 – ₹75,000",
+                "₹35,000 – ₹45,000"
+              ],
+              [
+                "2 kW Rooftop Solar",
+                "₹60,000",
+                "₹1,25,000 – ₹1,40,000",
+                "₹65,000 – ₹80,000"
+              ],
+              [
+                "3 kW to 10 kW Rooftop Solar",
+                "₹78,000 (Capped)",
+                "₹1,85,000 – ₹2,10,000 (for 3kW)",
+                "₹1,07,000 – ₹1,32,000"
+              ],
+              [
+                "Group Housing / RWAs (up to 500kW)",
+                "₹18,000 per kW",
+                "₹55,000 – ₹62,000 / kW",
+                "Varies by total load"
+              ]
+            ]
+          }
+        },
+        {
+          "heading": "Step-by-Step Application Process for Tamil Nadu Residents",
+          "content": "1. **Registration on National Portal:** Visit [pmsuryaghar.gov.in](https://pmsuryaghar.gov.in), select Tamil Nadu, choose **TANGEDCO** as your DISCOM, and enter your Consumer Service Number (as printed on your EB bill).\n2. **Feasibility Approval & Vendor Selection:** Once TANGEDCO verifies transformer capacity, select **IVR Energy** as your certified EPC partner.\n3. **Site Engineering & Installation:** Our engineering team conducts shadow analysis, installs Tier-1 Mono PERC/TOPCon modules, inverters, and lightning arrestors conforming to MNRE specifications.\n4. **Net Meter Commissioning & Inspection:** TANGEDCO officials inspect the setup and replace the existing single/three-phase meter with a bi-directional net-meter.\n5. **Subsidy Disbursal:** Upon uploading the commissioning report and cancelled cheque on the portal, the central subsidy is directly transferred to your bank account within 30 working days."
+        },
+        {
+          "heading": "Why Work with an Empaneled Turnkey EPC Like IVR Energy?",
+          "content": "While anyone can buy components off the shelf, subsidy clearance requires **strict adherence to BIS and MNRE quality guidelines**, including DCR (Domestic Content Requirement) certified modules and CE-marked grid-tied inverters. \n\nIVR Energy manages the entire liaison process with local TNEB section offices, ensuring seamless net-metering approvals without delays."
+        }
+      ],
+      "faqs": [
+        {
+          "q": "Can I apply for PM Surya Ghar if I live in an apartment?",
+          "a": "Yes, Group Housing Societies (GHS) and Resident Welfare Associations (RWAs) can install rooftop solar for common area lighting, lifts, and water pumps with subsidy support of ₹18,000 per kW up to 500 kW."
+        },
+        {
+          "q": "How much roof area is needed for a 3 kW solar plant?",
+          "a": "A high-efficiency 3 kW solar plant using modern Mono PERC/TOPCon panels requires approximately 200 to 250 sq. ft. of shadow-free rooftop space."
+        },
+        {
+          "q": "Will my solar system work during power cuts?",
+          "a": "Standard on-grid solar systems shut down automatically during grid failures for linesman safety (anti-islanding protection). If backup power is required, IVR Energy can configure a hybrid solar system with battery storage."
+        }
+      ],
+      "status": "published",
+      "order": 0,
+      "content": "## Understanding PM Surya Ghar: Muft Bijli Yojana\n\nThe **PM Surya Ghar: Muft Bijli Yojana** was launched by the Government of India with a massive outlay of ₹75,000 crore to provide free electricity (up to 300 units per month) to 1 crore households across India. \n\nUnder this scheme, residential homeowners, housing societies, and residential welfare associations (RWAs) can install grid-connected rooftop solar systems with direct financial subsidy disbursed directly into their bank accounts.\n\n## Subsidy Structure Breakdown (2025–2026)\n\nThe subsidy scheme is segmented based on the sanctioned capacity of the residential rooftop solar plant:\n\n## Step-by-Step Application Process for Tamil Nadu Residents\n\n1. **Registration on National Portal:** Visit [pmsuryaghar.gov.in](https://pmsuryaghar.gov.in), select Tamil Nadu, choose **TANGEDCO** as your DISCOM, and enter your Consumer Service Number (as printed on your EB bill).\n2. **Feasibility Approval & Vendor Selection:** Once TANGEDCO verifies transformer capacity, select **IVR Energy** as your certified EPC partner.\n3. **Site Engineering & Installation:** Our engineering team conducts shadow analysis, installs Tier-1 Mono PERC/TOPCon modules, inverters, and lightning arrestors conforming to MNRE specifications.\n4. **Net Meter Commissioning & Inspection:** TANGEDCO officials inspect the setup and replace the existing single/three-phase meter with a bi-directional net-meter.\n5. **Subsidy Disbursal:** Upon uploading the commissioning report and cancelled cheque on the portal, the central subsidy is directly transferred to your bank account within 30 working days.\n\n## Why Work with an Empaneled Turnkey EPC Like IVR Energy?\n\nWhile anyone can buy components off the shelf, subsidy clearance requires **strict adherence to BIS and MNRE quality guidelines**, including DCR (Domestic Content Requirement) certified modules and CE-marked grid-tied inverters. \n\nIVR Energy manages the entire liaison process with local TNEB section offices, ensuring seamless net-metering approvals without delays.",
+      "createdAt": "2026-02-18T00:00:00.000Z",
+      "updatedAt": "2026-08-22T10:02:09.590Z"
+    },
+    {
+      "id": "solar-battery-energy-storage-bess-guide",
+      "slug": "solar-battery-energy-storage-bess-guide",
+      "title": "Commercial Battery Energy Storage Systems (BESS): Maximizing Solar Self-Consumption",
+      "excerpt": "Why modern industrial facilities are combining rooftop solar with Lithium Iron Phosphate (LiFePO4) battery storage for peak-shaving and zero diesel generator reliance.",
+      "category": "Technology & Innovation",
+      "readTime": "6 min read",
+      "publishedAt": "2026-01-04",
+      "formattedDate": "Jan 04, 2026",
+      "author": {
+        "name": "IVR Energy Engineering",
+        "role": "Storage & Microgrid Solutions",
+        "avatar": "/projects/muthukumaran-330kw/1.jpg"
+      },
+      "coverImage": "/projects/muthukumaran-330kw/1.jpg",
+      "featured": false,
+      "tags": [
+        "BESS",
+        "Energy Storage",
+        "LiFePO4 Batteries",
+        "Hybrid Solar",
+        "Peak Shaving"
+      ],
+      "keyTakeaways": [
+        "Battery Storage captures surplus daytime solar for utilization during peak evening tariff hours (Time of Day / ToD pricing).",
+        "Provides seamless, zero-switchover backup for sensitive medical, computing, and precision manufacturing equipment.",
+        "Replaces expensive diesel generator fuel costing ₹28 to ₹35 per unit with stored solar at ₹6 to ₹8 per cycle.",
+        "LiFePO4 battery chemistry offers 6,000+ deep discharge cycles and 10 to 15 years operating life."
+      ],
+      "sections": [
+        {
+          "heading": "The Shift Towards Commercial Solar + Storage Microgrids",
+          "content": "As commercial electricity pricing introduces steep **Time-of-Day (ToD) peak surcharges** (up to 20% extra between 6:00 PM and 10:00 PM), businesses are increasingly coupling on-grid solar plants with dedicated **Battery Energy Storage Systems (BESS)**.\n\nRather than selling daytime surplus to the grid at low feed-in tariffs, factories store clean solar power and discharge it during high-tariff evening hours to dramatically cut utility costs."
+        },
+        {
+          "heading": "Key Benefits of BESS for Industrial Campuses",
+          "content": "1. **Peak Shaving & Demand Charge Reduction:** Avoid exceeding maximum sanctioned kVA demand during sudden factory load spikes.\n2. **Genset Diesel Displacement:** Minimize costly diesel generator runtime during scheduled or unscheduled grid brownouts.\n3. **Power Quality & Harmonic Filtering:** Modern hybrid bi-directional inverters regulate voltage sags and eliminate harmonic distortion."
+        }
+      ],
+      "faqs": [
+        {
+          "q": "How safe are LiFePO4 batteries in hot industrial environments?",
+          "a": "Lithium Iron Phosphate (LiFePO4) is the safest lithium battery chemistry available. It has exceptional thermal stability, does not suffer from thermal runaway, and operates reliably in ambient temperatures up to 55°C when integrated with IVR Energy’s liquid or HVAC thermal management."
+        }
+      ],
+      "status": "published",
+      "order": 4,
+      "content": "## The Shift Towards Commercial Solar + Storage Microgrids\n\nAs commercial electricity pricing introduces steep **Time-of-Day (ToD) peak surcharges** (up to 20% extra between 6:00 PM and 10:00 PM), businesses are increasingly coupling on-grid solar plants with dedicated **Battery Energy Storage Systems (BESS)**.\n\nRather than selling daytime surplus to the grid at low feed-in tariffs, factories store clean solar power and discharge it during high-tariff evening hours to dramatically cut utility costs.\n\n## Key Benefits of BESS for Industrial Campuses\n\n1. **Peak Shaving & Demand Charge Reduction:** Avoid exceeding maximum sanctioned kVA demand during sudden factory load spikes.\n2. **Genset Diesel Displacement:** Minimize costly diesel generator runtime during scheduled or unscheduled grid brownouts.\n3. **Power Quality & Harmonic Filtering:** Modern hybrid bi-directional inverters regulate voltage sags and eliminate harmonic distortion.",
+      "createdAt": "2026-01-04T00:00:00.000Z",
+      "updatedAt": "2026-08-22T10:02:09.590Z"
+    }
+  ],
+  "capacities": [
+    {
+      "id": "3kw",
+      "slug": "3kw-solar-system",
+      "aliases": [
+        "3kw",
+        "3-kw",
+        "3kw-solar-system",
+        "3kw-rooftop-solar"
+      ],
+      "kw": "3 kW",
+      "tag": "Most Popular for Homes",
+      "badge": "₹78,000 Direct Subsidy (Max CFA)",
+      "title": "3 kW Residential Rooftop Solar System",
+      "subtitle": "Best-selling on-grid solar power plant for 2 to 3 BHK independent homes & villas in Tamil Nadu.",
+      "description": "The 3 kW rooftop solar system is India's most popular residential solar configuration. Under the PM Surya Ghar Muft Bijli Yojana, a 3 kW system qualifies for the maximum central government direct bank subsidy of ₹78,000. It easily generates 12–15 units per day (360–450 units monthly), powering everyday household appliances including 1–2 inverter ACs, refrigerator, washing machine, TV, fans, lights, and domestic water pump.",
+      "heroHighlights": [
+        {
+          "label": "Daily Generation",
+          "value": "12 – 15 Units"
+        },
+        {
+          "label": "Roof Area Required",
+          "value": "180 – 200 Sq. Ft."
+        },
+        {
+          "label": "Monthly Bill Savings",
+          "value": "₹3000 – ₹5000"
+        },
+        {
+          "label": "Govt Subsidy Credit",
+          "value": "₹78,000 Direct DBT"
+        }
+      ],
+      "dailyUnits": "12 – 15 Units / Day",
+      "monthlyUnits": "360 – 450 Units / Month",
+      "yearlyUnits": "4,500 – 5,400 Units / Year",
+      "roofArea": "180 – 200 Sq. Ft. (RCC or Metal Sheet)",
+      "monthlySavings": "₹3000 – ₹5000 / Month",
+      "yearlySavings": "₹45,000 – ₹50,000 / Year",
+      "twentyFiveYearSavings": "₹10,50,000+ Lifetime Savings",
+      "subsidy": "₹78,000 Direct Bank Credit under PM Surya Ghar",
+      "payback": "~3.2 Years Payback Period",
+      "warranty": "25 Years Panel Performance Warranty | 5–10 Years Inverter Warranty",
+      "suitableFor": "2–3 BHK Independent Homes & Villas with 1–2 ACs",
+      "panelsCount": "6 Nos (550Wp / 580Wp TOPCon Bifacial Modules)",
+      "inverterSpec": "3 kW High-Efficiency Grid-Tie Inverter (Single Phase / 3-Phase with WiFi)",
+      "structureSpec": "Hot-Dip Galvanized (HDG) GI Structure (Engineered for 150 km/h wind resilience)",
+      "appliances": [
+        {
+          "name": "1–2 Inverter Air Conditioners (1.5 Ton)",
+          "desc": "Run day & night with zero peak grid tariff penalty"
+        },
+        {
+          "name": "Double-Door Refrigerator (240L–350L)",
+          "desc": "Continuous 24/7 solar cooling"
+        },
+        {
+          "name": "Automatic Washing Machine + Microwave",
+          "desc": "Cover daytime laundry & heating loads"
+        },
+        {
+          "name": "0.5 HP – 1 HP Domestic Water Pump",
+          "desc": "Morning water tank filling"
+        },
+        {
+          "name": "Complete Home Lighting & Fans (10+ Fans, 20+ LEDs)",
+          "desc": "100% powered with surplus sent to grid"
+        }
+      ],
+      "inclusions": [
+        "Tier-1 TOPCon / Mono PERC High-Efficiency Solar Panels (550Wp+)",
+        "3 kW High-Efficiency Grid-Tie Smart Inverter with WiFi & Mobile App Telemetry",
+        "Hot-Dip Galvanized (HDG) GI Rooftop Mounting Structure (150 km/h wind tested)",
+        "Dual Copper Bonded Chemical Earthing Pits + Class-1 Lightning Arrestor Kit",
+        "ACDB & DCDB Distribution Boxes with Type-2 Surge Protection Devices (SPD)",
+        "End-to-End TANGEDCO Net Metering Liaison & CEIG Safety Approval Processing",
+        "PM Surya Ghar National Portal Registration & Direct Subsidy Disbursal Support",
+        "5 Years Comprehensive Maintenance & Free Performance Checkups"
+      ],
+      "faqs": [
+        {
+          "q": "How many units will a 3 kW solar system generate per day in Tamil Nadu?",
+          "a": "A 3 kW rooftop solar system in Tamil Nadu typically generates between 12 and 15 units (kWh) of clean electricity per day under good sunlight conditions, totaling 360 to 450 units every month."
+        },
+        {
+          "q": "How much subsidy do I get for a 3 kW solar system in 2025–2026?",
+          "a": "Under the PM Surya Ghar Muft Bijli Yojana, a 3 kW residential rooftop solar system qualifies for the maximum direct central subsidy of ₹78,000. This amount is directly credited to your Aadhaar-linked bank account within 30 days of net-meter commissioning."
+        },
+        {
+          "q": "How much roof space is required for a 3 kW solar plant?",
+          "a": "A 3 kW system requires roughly 270 to 300 square feet of shadow-free rooftop area. It can be installed on RCC flat concrete terraces, tiled roofs, or industrial metal sheets."
+        },
+        {
+          "q": "Can a 3 kW solar system run an Air Conditioner (AC)?",
+          "a": "Yes, a 3 kW system comfortably runs one to two 1.5-ton inverter air conditioners along with standard household lights, fans, refrigerator, and water pump during daytime hours."
+        }
+      ],
+      "order": 0,
+      "createdAt": "2026-08-22T11:08:48.729Z",
+      "updatedAt": "2026-08-23T10:54:13.630Z"
+    },
+    {
+      "id": "4kw",
+      "slug": "4kw-solar-system",
+      "aliases": [
+        "4kw",
+        "4-kw",
+        "4kw-solar-system",
+        "4kw-rooftop-solar"
+      ],
+      "kw": "4 kW",
+      "tag": "Ideal for 3-4 BHK + EV",
+      "badge": "₹78,000 Direct Subsidy Support",
+      "title": "4 kW Premium Residential Solar System",
+      "subtitle": "High-yield solar solution for 3 to 4 BHK duplex homes, joint families, and EV owners in Tamil Nadu.",
+      "description": "The 4 kW rooftop solar system is engineered for modern medium-to-large families with higher power demands. If you run multiple air conditioners throughout the day or charge an Electric 2-Wheeler / Electric Car at home, a 4 kW system provides abundant self-generation of 16–20 units daily, ensuring your bi-monthly TNEB electricity bill remains negligible.",
+      "heroHighlights": [
+        {
+          "label": "Daily Generation",
+          "value": "16 – 20 Units"
+        },
+        {
+          "label": "Roof Area Required",
+          "value": "240 – 270 Sq. Ft."
+        },
+        {
+          "label": "Monthly Bill Savings",
+          "value": "₹5,000 – ₹7,000"
+        },
+        {
+          "label": "Govt Subsidy Credit",
+          "value": "₹78,000 Direct DBT"
+        }
+      ],
+      "dailyUnits": "16 – 20 Units / Day",
+      "monthlyUnits": "480 – 600 Units / Month",
+      "yearlyUnits": "5,800 – 7,200 Units / Year",
+      "roofArea": "240 – 270 Sq. Ft. (RCC or Metal Sheet)",
+      "monthlySavings": "₹5000 – ₹7,000 / Month",
+      "yearlySavings": "₹50,000 – ₹70,000 / Year",
+      "twentyFiveYearSavings": "₹14,50,000+ Lifetime Savings",
+      "subsidy": "₹78,000 Direct Bank Credit under PM Surya Ghar",
+      "payback": "~3.3 Years Payback Period",
+      "warranty": "25 Years Panel Performance Warranty | 5–10 Years Inverter Warranty",
+      "suitableFor": "3–4 BHK Independent Houses, Duplexes & EV Owners",
+      "panelsCount": "7–8 Nos (550Wp / 580Wp TOPCon Monocrystalline Modules)",
+      "inverterSpec": "4 kW Smart Grid-Tie Inverter (Single Phase / 3-Phase with Dual MPPT)",
+      "structureSpec": "Elevated Pre-Galvanized / HDG Structural Framework (150 km/h wind resilience)",
+      "appliances": [
+        {
+          "name": "2–3 Inverter Air Conditioners (1.5 Ton)",
+          "desc": "Run simultaneously across master & guest bedrooms"
+        },
+        {
+          "name": "Electric Vehicle (EV) Scooter / Car Charger",
+          "desc": "Zero-cost green transportation fuel from rooftop"
+        },
+        {
+          "name": "2 Large Refrigerators + Microwave + Dishwasher",
+          "desc": "Handle heavy kitchen & culinary loads"
+        },
+        {
+          "name": "1 HP – 1.5 HP Borewell & Sump Water Motors",
+          "desc": "Pump water daily without grid power spikes"
+        },
+        {
+          "name": "Full Household Lighting, Home Theater & Gadgets",
+          "desc": "100% solar powered throughout the year"
+        }
+      ],
+      "inclusions": [
+        "Tier-1 TOPCon High-Yield Monocrystalline Solar Panels",
+        "4 kW Single-Phase / Three-Phase Smart Grid-Tie Inverter with Cloud Monitoring",
+        "Heavy-Duty Pre-Galvanized Structural Framework with Custom Elevation",
+        "Triple Chemical Earthing Pits (Separate AC, DC, and Lightning paths)",
+        "Class-1 Lightning Protection & High-Grade UV-Resistant DC Solar Cables",
+        "TANGEDCO Bi-Directional Net-Meter Synchronization & Documentation",
+        "PM Surya Ghar Portal Liaison & Direct Bank Subsidy Processing",
+        "5 Years Comprehensive Maintenance & 24/7 App Performance Telemetry"
+      ],
+      "faqs": [
+        {
+          "q": "How many units will a 4 kW solar system produce each month?",
+          "a": "In Tamil Nadu, a 4 kW solar system generates approximately 480 to 600 units (kWh) per month, producing over 6,000 units annually."
+        },
+        {
+          "q": "Can a 4 kW solar system charge my Electric Vehicle (EV)?",
+          "a": "Yes, absolutely. A 4 kW solar plant generates 16–20 units daily. An electric scooter typically needs 2–3 units for a full charge, and an EV car (like Tata Nexon EV) consumes ~15–20 units for 100+ km of driving, making your commute 100% free with solar."
+        },
+        {
+          "q": "What is the government subsidy for a 4 kW solar system?",
+          "a": "Under PM Surya Ghar Muft Bijli Yojana, direct residential subsidies are provided up to 3 kW (capped at ₹78,000). So for a 4 kW system, you receive the full ₹78,000 maximum subsidy directly in your bank account."
+        }
+      ],
+      "order": 1,
+      "createdAt": "2026-08-22T11:08:48.729Z",
+      "updatedAt": "2026-08-23T10:41:05.865Z"
+    },
+    {
+      "id": "5kw",
+      "slug": "5kw-solar-system",
+      "aliases": [
+        "5kw",
+        "5-kw",
+        "5kw-solar-system",
+        "5kw-rooftop-solar"
+      ],
+      "kw": "5 kW",
+      "tag": "High Energy Independence",
+      "badge": "₹78,000 Direct Subsidy Support",
+      "title": "5 kW Premium Residential Villa Solar System",
+      "subtitle": "The ultimate high-capacity power plant for luxury villas, duplexes, joint families, and home offices.",
+      "description": "The 5 kW rooftop solar system provides complete energy self-sufficiency for large homes with high bi-monthly electricity tariff slabs. Generating 20–25 units every day (600–750 units monthly), it powers multiple heavy loads like central ACs, geysers, EV fast chargers, home office servers, and high-capacity water pumps without worrying about rising EB rates.",
+      "heroHighlights": [
+        {
+          "label": "Daily Generation",
+          "value": "20 – 25 Units"
+        },
+        {
+          "label": "Roof Area Required",
+          "value": "450 – 500 Sq. Ft."
+        },
+        {
+          "label": "Monthly Bill Savings",
+          "value": "₹5,000 – ₹7,000"
+        },
+        {
+          "label": "Govt Subsidy Credit",
+          "value": "₹78,000 Direct DBT"
+        }
+      ],
+      "dailyUnits": "20 – 25 Units / Day",
+      "monthlyUnits": "600 – 750 Units / Month",
+      "yearlyUnits": "7,500 – 9,000 Units / Year",
+      "roofArea": "300 – 350 Sq. Ft. (RCC or Metal Sheet)",
+      "monthlySavings": "₹7,000 – ₹10,000 / Month",
+      "yearlySavings": "₹75,000 – ₹1,00,000 / Year",
+      "twentyFiveYearSavings": "₹19,00,000+ Lifetime Savings",
+      "subsidy": "₹78,000 Direct Bank Credit under PM Surya Ghar",
+      "payback": "~3.1 Years Payback Period",
+      "warranty": "25 Years Panel Performance Warranty | 5–10 Years Inverter Warranty",
+      "suitableFor": "4+ BHK Luxury Villas, Joint Families, Duplexes & Home Offices",
+      "panelsCount": "9–10 Nos (550Wp / 580Wp TOPCon Ultra High-Yield Modules)",
+      "inverterSpec": "5 kW Three-Phase / Single-Phase Smart Inverter with Dual MPPT & Cloud App",
+      "structureSpec": "Elevated High-Clearance HDG Framing (Allows full walkable roof terrace use)",
+      "appliances": [
+        {
+          "name": "3–4 Inverter ACs + Water Geysers",
+          "desc": "Cool or heat multiple rooms continuously without bill shock"
+        },
+        {
+          "name": "EV 7.4 kW / 3.3 kW Fast Charging Point",
+          "desc": "Charge your electric car overnight or during peak solar hours"
+        },
+        {
+          "name": "Multiple Refrigerators, Deep Freezers & Kitchen Appliances",
+          "desc": "Heavy daily kitchen & refrigeration load"
+        },
+        {
+          "name": "1.5 HP – 2 HP Agricultural / High-Pressure Submersible Pump",
+          "desc": "Effortless water supply and garden maintenance"
+        },
+        {
+          "name": "Home Office Server, CCTV, Computers & Complete House Load",
+          "desc": "Uninterrupted power security & grid export"
+        }
+      ],
+      "inclusions": [
+        "Tier-1 Ultra High-Yield TOPCon Monocrystalline Modules",
+        "5 kW Three-Phase / Single-Phase Smart Inverter with Remote Cloud Telemetry",
+        "Elevated Walkable Rooftop Galvanized Steel Framing (6–8 ft clear height)",
+        "Dedicated AC & DC Surge Protection Boxes with Type-2 SPDs & Fast MCBs",
+        "Quad Chemical Earthing Electrodes + Class-1 Copper Lightning Arrestor",
+        "End-to-End TNEB Liaison, Net Metering & Grid Synchronisation",
+        "PM Surya Ghar National Portal Direct Subsidy Processing",
+        "5 Years Free Comprehensive Maintenance & Annual Health Checks"
+      ],
+      "faqs": [
+        {
+          "q": "How much electricity bill savings can I expect with a 5 kW solar plant?",
+          "a": "A 5 kW system generates between 600 and 750 units per month. For homes paying higher slab rates in Tamil Nadu, this translates to savings of ₹5,000 to ₹7,000 every month (or ₹10,000 to ₹14,000 per bi-monthly billing cycle)."
+        },
+        {
+          "q": "Can I use my rooftop terrace after installing a 5 kW solar system?",
+          "a": "Yes! IVR Energy offers elevated high-clearance mounting structures (6 to 8 feet high), allowing you to walk, dry clothes, host gatherings, and use your terrace as a shaded rooftop living area."
+        },
+        {
+          "q": "What is the ROI payback timeline for a 5 kW residential system?",
+          "a": "With the ₹78,000 PM Surya Ghar subsidy and monthly bill savings of ₹5,000–₹7,000, most homeowners completely recover their entire capital investment within 3.0 to 3.2 years."
+        }
+      ],
+      "order": 2,
+      "createdAt": "2026-08-22T11:08:48.729Z",
+      "updatedAt": "2026-08-23T10:42:31.000Z"
+    },
+    {
+      "id": "10kw",
+      "slug": "10kw-solar-system",
+      "aliases": [
+        "10kw",
+        "10-kw",
+        "10kw-solar-system",
+        "10kw-commercial-solar"
+      ],
+      "kw": "10 kW+",
+      "tag": "Commercial & Large Estates",
+      "badge": "40% Accelerated Depreciation & Tax Benefit",
+      "title": "10 kW Commercial & Large Estate Solar System",
+      "subtitle": "Tailored for clinics, commercial offices, schools, supermarkets, institutions, and luxury estates.",
+      "description": "The 10 kW+ solar power plant is designed for high-consumption commercial establishments, healthcare clinics, retail stores, educational facilities, and large estates. Generating 40–50 units every day (1,200–1,500 units monthly), it delivers massive tariff reduction under commercial electricity tariff slabs while providing 40% accelerated depreciation tax savings.",
+      "heroHighlights": [
+        {
+          "label": "Daily Generation",
+          "value": "40 – 50 Units"
+        },
+        {
+          "label": "Roof Area Required",
+          "value": "900 – 1,000 Sq. Ft."
+        },
+        {
+          "label": "Monthly Bill Savings",
+          "value": "₹11,000 – ₹15,000"
+        },
+        {
+          "label": "Tax & Depreciation",
+          "value": "40% Accelerated Depreciation"
+        }
+      ],
+      "dailyUnits": "40 – 50 Units / Day",
+      "monthlyUnits": "1,200 – 1,500 Units / Month",
+      "yearlyUnits": "15,000 – 18,000 Units / Year",
+      "roofArea": "900 – 1,000 Sq. Ft. (RCC, Shed or Metal Sheet)",
+      "monthlySavings": "₹11,000 – ₹15,000 / Month",
+      "yearlySavings": "₹1,30,000 – ₹1,80,000 / Year",
+      "twentyFiveYearSavings": "₹40,00,000+ Lifetime Commercial Savings",
+      "subsidy": "40% Accelerated Depreciation + Commercial Tariff Cuts",
+      "payback": "~2.8 Years Payback Period",
+      "warranty": "25 Years Panel Performance Warranty | 5–10 Years Inverter Warranty",
+      "suitableFor": "Offices, Clinics, Schools, Commercial Buildings & High-Rise Apartments",
+      "panelsCount": "18–20 Nos (550Wp / 580Wp TOPCon High-Density Modules)",
+      "inverterSpec": "10 kW Three-Phase Dual MPPT Commercial Solar Inverter",
+      "structureSpec": "Industrial Custom Structural Steel Framing (160 km/h wind tested)",
+      "appliances": [
+        {
+          "name": "6–10 Commercial Air Conditioning Units",
+          "desc": "Cut expensive commercial peak daytime power tariffs"
+        },
+        {
+          "name": "Full Office IT Infrastructure, Computers & Servers",
+          "desc": "Clean, stabilized solar power for critical computing"
+        },
+        {
+          "name": "Commercial Elevators & High-Capacity Water Motors",
+          "desc": "Handle 3-phase heavy mechanical loads effortlessly"
+        },
+        {
+          "name": "Commercial Refrigeration, Kitchens & Lighting",
+          "desc": "Slash retail & hospitality operating overhead"
+        },
+        {
+          "name": "Three-Phase Commercial Heavy Equipment",
+          "desc": "Reliable renewable energy supply for production & service"
+        }
+      ],
+      "inclusions": [
+        "Tier-1 High-Density Monocrystalline Solar Modules (550Wp+)",
+        "10 kW Three-Phase Dual MPPT Commercial Solar Inverter with SCADA / IoT",
+        "Industrial Custom Structural Steel Framing (160 km/h wind load tested)",
+        "Heavy-Duty AC & DC Combiner Boxes with Class-1 Surge Arrestors",
+        "Dedicated Quad Chemical Earthing Grid with Low Earth Resistance Certificate",
+        "Full CEIG Electrical Safety Inspection & TANGEDCO HT/LT Net Metering",
+        "Accelerated Depreciation Documentation for Income Tax Filing Support",
+        "Annual Maintenance Contract (AMC) & Remote Generation Analytics"
+      ],
+      "faqs": [
+        {
+          "q": "What are the tax benefits of a 10 kW commercial solar plant in India?",
+          "a": "Commercial businesses can claim up to 40% Accelerated Depreciation (AD) in the first year of commissioning under Section 32 of the Income Tax Act, significantly lowering corporate tax liability."
+        },
+        {
+          "q": "How much space is required for a 10 kW commercial rooftop system?",
+          "a": "A 10 kW system requires approximately 900 to 1,000 square feet of shadow-free rooftop or industrial tin shed area."
+        },
+        {
+          "q": "What is the typical ROI payback for a 10 kW commercial solar installation?",
+          "a": "Due to higher commercial electricity tariff slabs (₹8–₹12/unit) and 40% accelerated depreciation tax benefits, a 10 kW commercial solar system achieves full capital payback within 2.5 to 3 years."
+        }
+      ],
+      "order": 4,
+      "createdAt": "2026-08-22T11:08:48.729Z",
+      "updatedAt": "2026-08-22T11:08:48.729Z"
     }
   ]
 }

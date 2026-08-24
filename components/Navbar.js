@@ -13,9 +13,9 @@ const NAV_ITEMS = [
   { label: 'Services', href: '/services' },
   { label: 'Solutions', href: '/#solutions' },
   { label: 'Projects', href: '/projects' },
-  { label: 'Calculator', href: '/#calculator' },
+  { label: 'Blog', href: '/blog' },
   { label: 'FAQs', href: '/faqs' },
-  { label: 'Contact', href: '/#contact' },
+  { label: 'Contact', href: '/contact' },
 ]
 
 const containerVariants = {
@@ -89,10 +89,14 @@ export default function Navbar({ onQuote, content }) {
   useEffect(() => {
     if (pathname === '/services') {
       setActiveSection('Services')
-    } else if (pathname === '/projects') {
+    } else if (pathname === '/projects' || pathname?.startsWith('/projects/')) {
       setActiveSection('Projects')
     } else if (pathname === '/faqs') {
       setActiveSection('FAQs')
+    } else if (pathname === '/blog' || pathname?.startsWith('/blog/')) {
+      setActiveSection('Blog')
+    } else if (pathname === '/contact') {
+      setActiveSection('Contact')
     } else if (pathname === '/') {
       const hash = typeof window !== 'undefined' ? window.location.hash : ''
       if (hash) {
@@ -250,7 +254,7 @@ export default function Navbar({ onQuote, content }) {
               className="fixed inset-0 z-[99] lg:hidden bg-black/40 backdrop-blur-md"
             />
 
-            {/* Floating Card container matching Image 1 */}
+            {/* Floating Card container */}
             <motion.div
               initial={{ opacity: 0, y: -16, scale: 0.96 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}

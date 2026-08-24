@@ -35,5 +35,8 @@ Thumbs.db
 # Temporary upload folder (since files are uploaded to Vercel Blob in production)
 /public/projects/uploads/
 
+# TypeScript build info cache
+tsconfig.tsbuildinfo
+
 # Local helper scripts
 /scratch/

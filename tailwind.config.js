@@ -22,8 +22,9 @@ module.exports = {
     },
     extend: {
       fontFamily: {
-        sans: ['var(--font-inter)', 'Inter', 'system-ui', 'sans-serif'],
-        heading: ['var(--font-manrope)', 'Manrope', 'Inter', 'system-ui', 'sans-serif'],
+        sans: ['var(--font-geist)', 'var(--font-inter)', 'Inter', 'system-ui', 'sans-serif'],
+        heading: ['var(--font-geist)', 'var(--font-manrope)', 'Manrope', 'Inter', 'system-ui', 'sans-serif'],
+        geist: ['var(--font-geist)', 'sans-serif'],
       },
       maxWidth: {
         container: "1280px",

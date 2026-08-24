@@ -20,8 +20,8 @@ export function TestimonialsSection({
 }: TestimonialsSectionProps) {
   return (
     <section className={cn(
-      "bg-gradient-to-b from-[#ffffff] via-red-50/20 to-[#ffffff] text-neutral-900",
-      "py-16 sm:py-24 md:py-28 px-0 border-t border-b border-neutral-200/60 relative overflow-hidden",
+      "bg-white text-neutral-900",
+      "py-16 sm:py-24 md:py-28 px-0 border-t border-neutral-100 relative overflow-hidden",
       className
     )}>
       <div className="mx-auto flex max-w-container flex-col items-center gap-6 text-center sm:gap-12 relative z-10">
