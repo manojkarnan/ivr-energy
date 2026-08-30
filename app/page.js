@@ -884,7 +884,7 @@ function Hero({ onQuote, content }) {
 
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4, duration: 0.6 }} className="mt-8 sm:mt-10 md:mt-12 max-w-5xl" >
+        <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4, duration: 0.6 }} className="mt-8 sm:mt-10 md:mt-12 w-full max-w-5xl mx-auto" >
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-neutral-200/60 rounded-2xl sm:rounded-3xl overflow-hidden glass shadow-soft" >
 
