@@ -531,7 +531,7 @@ export default function ContactPage() {
                 <div className="flex items-center justify-center text-[12px] text-neutral-500 pt-1">
                   <span className="flex items-center gap-1.5 font-medium">
                     <ShieldCheck className="h-4 w-4 text-emerald-600" />
-                    100% Privacy Protected · No Spam Guarantee
+                    100% Privacy Protected
                   </span>
                 </div>
               </form>
