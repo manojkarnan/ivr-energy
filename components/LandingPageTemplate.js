@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  Sun, Zap, ArrowRight, Phone, Mail, MapPin, CheckCircle2,
+  Sun, ArrowRight, Phone, Mail, MapPin, CheckCircle2,
   HelpCircle, ShieldCheck, Award, Clock, IndianRupee, Layers,
   ChevronRight, Sparkles, MessageCircle, FileText, Check, PhoneCall
 } from 'lucide-react'

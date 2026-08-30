@@ -1,15 +1,10 @@
 'use client'
 
-import { useEffect, useState, useRef, useMemo } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import Link from 'next/link'
-import { motion, AnimatePresence } from 'framer-motion'
-import {
-  Sun, Zap, ArrowRight, Phone, Mail, MapPin, Menu, X, ArrowLeft,
-  ChevronRight, ChevronDown, Sparkles, PhoneCall, HelpCircle, Search,
-  CheckCircle2, Clock, ShieldCheck, IndianRupee, Layers, Check
-} from 'lucide-react'
+import { motion } from 'framer-motion'
+import { Search, X, HelpCircle, PhoneCall, Phone } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import { companyNAP } from '@/data/companyStats'
@@ -19,28 +14,13 @@ export default function FAQsPage() {
   const [content, setContent] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('All')
-  const [visible, setVisible] = useState(true)
-  const lastScrollY = useRef(0)
 
   useEffect(() => {
     window.scrollTo(0, 0)
-    const handleScrollEvent = () => {
-      const currentScrollY = window.scrollY
-      if (currentScrollY > lastScrollY.current && currentScrollY > 120) {
-        setVisible(false)
-      } else {
-        setVisible(true)
-      }
-      lastScrollY.current = currentScrollY
-    }
-    window.addEventListener('scroll', handleScrollEvent, { passive: true })
-
     fetch('/api/content')
       .then(r => r.json())
       .then(j => setContent(j.content))
       .catch(() => { })
-
-    return () => window.removeEventListener('scroll', handleScrollEvent)
   }, [])
 
   const phoneDisplay = content?.contact?.phone || companyNAP.phone
@@ -293,7 +273,7 @@ export default function FAQsPage() {
       {/* Sticky Bottom Quick-Contact Bar */}
       <motion.div
         initial={{ y: 100, opacity: 0 }}
-        animate={visible ? { y: 0, opacity: 1 } : { y: 100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
         transition={{ type: 'spring', stiffness: 260, damping: 28 }}
         className="fixed bottom-0 inset-x-0 z-40 pointer-events-none"
       >
