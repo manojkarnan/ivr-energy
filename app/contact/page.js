@@ -372,8 +372,7 @@ export default function ContactPage() {
           {/* Left Column: Interactive Solar Inquiry Form (Span 7) */}
           <div className="lg:col-span-7 rounded-3xl bg-white border border-neutral-200/90 p-5 sm:p-8 md:p-10 shadow-sm space-y-6 sm:space-y-7 relative overflow-hidden">
             <div>
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-50 text-[#D71920] font-bold text-xs uppercase tracking-wider border border-red-200/60 mb-3 shadow-xs">
-                <CheckCircle2 className="h-3.5 w-3.5" />
+              <div className="inline-flex items-center px-3 py-1 rounded-full bg-red-50 text-[#D71920] font-bold text-xs uppercase tracking-wider border border-red-200/60 mb-3 shadow-xs">
                 <span>Zero-Cost Rooftop Assessment</span>
               </div>
               <h2 className="text-2xl sm:text-3xl font-extrabold text-neutral-900 tracking-tight">
@@ -444,7 +443,6 @@ export default function ContactPage() {
                     <input
                       type="text"
                       required
-                      placeholder="e.g. Rajesh Kumar"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                       className="w-full bg-white border border-neutral-300 hover:border-neutral-400 focus:border-[#D71920] focus:ring-2 focus:ring-red-100 rounded-xl px-4 py-3 text-base sm:text-sm font-medium text-neutral-900 transition-all shadow-xs outline-none"
@@ -458,7 +456,6 @@ export default function ContactPage() {
                     <input
                       type="tel"
                       required
-                      placeholder="e.g. 98765 43210"
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                       className="w-full bg-white border border-neutral-300 hover:border-neutral-400 focus:border-[#D71920] focus:ring-2 focus:ring-red-100 rounded-xl px-4 py-3 text-base sm:text-sm font-medium text-neutral-900 transition-all shadow-xs outline-none"
@@ -474,7 +471,6 @@ export default function ContactPage() {
                     </label>
                     <input
                       type="email"
-                      placeholder="rajesh@example.com"
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                       className="w-full bg-white border border-neutral-300 hover:border-neutral-400 focus:border-[#D71920] focus:ring-2 focus:ring-red-100 rounded-xl px-4 py-3 text-base sm:text-sm font-medium text-neutral-900 transition-all shadow-xs outline-none"
@@ -487,7 +483,6 @@ export default function ContactPage() {
                     </label>
                     <input
                       type="text"
-                      placeholder="e.g. Chennai, Hosur, Coimbatore"
                       value={formData.city}
                       onChange={(e) => setFormData({ ...formData, city: e.target.value })}
                       className="w-full bg-white border border-neutral-300 hover:border-neutral-400 focus:border-[#D71920] focus:ring-2 focus:ring-red-100 rounded-xl px-4 py-3 text-base sm:text-sm font-medium text-neutral-900 transition-all shadow-xs outline-none"
@@ -502,10 +497,9 @@ export default function ContactPage() {
                   </label>
                   <textarea
                     rows={3}
-                    placeholder="Monthly EB bill, rooftop area, or specific query..."
                     value={formData.message}
                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                    className="w-full bg-white border border-neutral-300 hover:border-neutral-400 focus:border-[#D71920] focus:ring-2 focus:ring-red-100 rounded-xl p-3.5 sm:p-4 text-base sm:text-sm font-medium text-neutral-900 placeholder:text-neutral-400 transition-all shadow-xs resize-none outline-none"
+                    className="w-full bg-white border border-neutral-300 hover:border-neutral-400 focus:border-[#D71920] focus:ring-2 focus:ring-red-100 rounded-xl p-3.5 sm:p-4 text-base sm:text-sm font-medium text-neutral-900 transition-all shadow-xs resize-none outline-none"
                   />
                 </div>
 

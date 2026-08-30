@@ -52,7 +52,7 @@ function Case({ content }) {
               Trusted Partners
             </span>
             <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl tracking-tight font-bold text-neutral-900 text-left">
-              Trusted by leading businesses &amp; institutions
+              Trusted by leading businesses
             </h2>
             <p className="text-xs sm:text-sm md:text-base text-neutral-500 max-w-xl text-left">
               Powering diverse sectors with high-efficiency turnkey solar installations.
