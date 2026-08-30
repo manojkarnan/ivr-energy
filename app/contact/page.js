@@ -15,7 +15,8 @@ import {
   ArrowRight,
   Building2,
   CheckCircle2,
-  Loader2
+  Loader2,
+  ShieldCheck
 } from 'lucide-react'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
@@ -507,25 +508,25 @@ export default function ContactPage() {
                 <Button
                   type="submit"
                   disabled={submitting}
-                  className="w-full bg-[#D71920] hover:bg-[#b01319] active:scale-[0.99] text-white font-bold h-12 rounded-xl text-sm transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer tracking-wide"
+                  className="w-full bg-gradient-to-r from-[#D71920] via-[#c4151b] to-[#b01319] hover:from-[#b01319] hover:to-[#8f0e14] active:scale-[0.99] text-white font-bold min-h-[52px] h-auto py-3.5 px-4 sm:px-6 rounded-2xl text-sm sm:text-base transition-all duration-200 shadow-lg shadow-red-600/20 hover:shadow-xl hover:shadow-red-600/30 flex items-center justify-center gap-2 cursor-pointer text-center leading-snug whitespace-normal"
                 >
                   {submitting ? (
                     <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <Loader2 className="h-4.5 w-4.5 animate-spin flex-shrink-0" />
                       <span>Transmitting Inquiry to Engineering Desk...</span>
                     </>
                   ) : (
                     <>
-                      <span>Get Free Solar Proposal & Cost Breakdown</span>
-                      <ArrowRight className="h-4 w-4" />
+                      <span className="truncate-none">Get Free Solar Proposal &amp; Cost Breakdown</span>
+                      <ArrowRight className="h-4.5 w-4.5 flex-shrink-0" />
                     </>
                   )}
                 </Button>
 
-                <div className="flex items-center justify-center text-[11px] text-neutral-500 pt-1">
-                  <span className="flex items-center gap-1.5">
-                    <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
-                    100% Privacy Protected
+                <div className="flex items-center justify-center text-[12px] text-neutral-500 pt-1">
+                  <span className="flex items-center gap-1.5 font-medium">
+                    <ShieldCheck className="h-4 w-4 text-emerald-600" />
+                    100% Privacy Protected · No Spam Guarantee
                   </span>
                 </div>
               </form>
