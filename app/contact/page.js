@@ -370,10 +370,10 @@ export default function ContactPage() {
             ========================================================================= */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* Left Column: Interactive Solar Inquiry Form (Span 7) */}
-          <div className="lg:col-span-7 rounded-3xl bg-white border border-neutral-200/90 p-6 sm:p-10 shadow-sm space-y-7 relative overflow-hidden">
+          <div className="lg:col-span-7 rounded-3xl bg-white border border-neutral-200/90 p-5 sm:p-8 md:p-10 shadow-sm space-y-6 sm:space-y-7 relative overflow-hidden">
             <div>
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-50 text-[#D71920] font-bold text-xs uppercase tracking-wider border border-red-200/60 mb-3 shadow-xs">
-                <FileCheck2 className="h-3.5 w-3.5" />
+                <CheckCircle2 className="h-3.5 w-3.5" />
                 <span>Zero-Cost Rooftop Assessment</span>
               </div>
               <h2 className="text-2xl sm:text-3xl font-extrabold text-neutral-900 tracking-tight">
@@ -405,7 +405,7 @@ export default function ContactPage() {
                 </Button>
               </motion.div>
             ) : (
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6">
                 {error && (
                   <div className="p-4 rounded-xl bg-red-50 border border-red-200 text-[#D71920] text-xs font-medium">
                     {error}
@@ -414,16 +414,16 @@ export default function ContactPage() {
 
                 {/* Requirement Chips */}
                 <div>
-                  <label className="block text-xs font-bold text-neutral-900 uppercase tracking-wider mb-3">
+                  <label className="block text-xs font-bold text-neutral-900 uppercase tracking-wider mb-2.5">
                     1. Select Solar Requirement Type
                   </label>
-                  <div className="flex flex-wrap gap-2.5">
+                  <div className="flex flex-wrap gap-2">
                     {PROJECT_TYPES.map((type) => (
                       <button
                         key={type.id}
                         type="button"
                         onClick={() => setSelectedType(type.id)}
-                        className={`px-4 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                        className={`px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                           selectedType === type.id
                             ? 'bg-[#D71920] text-white shadow-md border border-[#D71920]'
                             : 'bg-neutral-50 text-neutral-700 hover:bg-neutral-100 hover:text-neutral-900 border border-neutral-200 shadow-xs'
@@ -436,7 +436,7 @@ export default function ContactPage() {
                 </div>
 
                 {/* Name & Phone Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
                   <div>
                     <label className="block text-xs font-bold text-neutral-800 mb-1.5">
                       Your Full Name <span className="text-[#D71920]">*</span>
@@ -444,9 +444,10 @@ export default function ContactPage() {
                     <input
                       type="text"
                       required
+                      placeholder="e.g. Rajesh Kumar"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full bg-white border border-neutral-300 hover:border-neutral-400 focus:border-[#D71920] focus:ring-2 focus:ring-red-100 rounded-xl px-4 py-3 text-sm font-medium text-neutral-900 transition-all shadow-xs outline-none"
+                      className="w-full bg-white border border-neutral-300 hover:border-neutral-400 focus:border-[#D71920] focus:ring-2 focus:ring-red-100 rounded-xl px-4 py-3 text-base sm:text-sm font-medium text-neutral-900 transition-all shadow-xs outline-none"
                     />
                   </div>
 
@@ -457,24 +458,26 @@ export default function ContactPage() {
                     <input
                       type="tel"
                       required
+                      placeholder="e.g. 98765 43210"
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      className="w-full bg-white border border-neutral-300 hover:border-neutral-400 focus:border-[#D71920] focus:ring-2 focus:ring-red-100 rounded-xl px-4 py-3 text-sm font-medium text-neutral-900 transition-all shadow-xs outline-none"
+                      className="w-full bg-white border border-neutral-300 hover:border-neutral-400 focus:border-[#D71920] focus:ring-2 focus:ring-red-100 rounded-xl px-4 py-3 text-base sm:text-sm font-medium text-neutral-900 transition-all shadow-xs outline-none"
                     />
                   </div>
                 </div>
 
                 {/* Email & City Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
                   <div>
                     <label className="block text-xs font-bold text-neutral-800 mb-1.5">
                       Email Address (Optional)
                     </label>
                     <input
                       type="email"
+                      placeholder="rajesh@example.com"
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className="w-full bg-white border border-neutral-300 hover:border-neutral-400 focus:border-[#D71920] focus:ring-2 focus:ring-red-100 rounded-xl px-4 py-3 text-sm font-medium text-neutral-900 transition-all shadow-xs outline-none"
+                      className="w-full bg-white border border-neutral-300 hover:border-neutral-400 focus:border-[#D71920] focus:ring-2 focus:ring-red-100 rounded-xl px-4 py-3 text-base sm:text-sm font-medium text-neutral-900 transition-all shadow-xs outline-none"
                     />
                   </div>
 
@@ -484,9 +487,10 @@ export default function ContactPage() {
                     </label>
                     <input
                       type="text"
+                      placeholder="e.g. Chennai, Hosur, Coimbatore"
                       value={formData.city}
                       onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                      className="w-full bg-white border border-neutral-300 hover:border-neutral-400 focus:border-[#D71920] focus:ring-2 focus:ring-red-100 rounded-xl px-4 py-3 text-sm font-medium text-neutral-900 transition-all shadow-xs outline-none"
+                      className="w-full bg-white border border-neutral-300 hover:border-neutral-400 focus:border-[#D71920] focus:ring-2 focus:ring-red-100 rounded-xl px-4 py-3 text-base sm:text-sm font-medium text-neutral-900 transition-all shadow-xs outline-none"
                     />
                   </div>
                 </div>
@@ -498,9 +502,10 @@ export default function ContactPage() {
                   </label>
                   <textarea
                     rows={3}
+                    placeholder="Monthly EB bill, rooftop area, or specific query..."
                     value={formData.message}
                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                    className="w-full bg-white border border-neutral-300 hover:border-neutral-400 focus:border-[#D71920] focus:ring-2 focus:ring-red-100 rounded-xl p-4 text-sm font-medium text-neutral-900 placeholder:text-neutral-400 transition-all shadow-xs resize-none outline-none"
+                    className="w-full bg-white border border-neutral-300 hover:border-neutral-400 focus:border-[#D71920] focus:ring-2 focus:ring-red-100 rounded-xl p-3.5 sm:p-4 text-base sm:text-sm font-medium text-neutral-900 placeholder:text-neutral-400 transition-all shadow-xs resize-none outline-none"
                   />
                 </div>
 
