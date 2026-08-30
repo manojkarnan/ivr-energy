@@ -267,12 +267,12 @@ function StatCard({ s, className = '' }) {
   return (
     <div
       onMouseEnter={() => setTrigger(prev => prev + 1)}
-      className={`bg-white/60 backdrop-blur px-6 py-8 text-center hover:bg-white/90 transition-colors cursor-default ${className}`}
+      className={`bg-white/65 backdrop-blur-md px-4 py-5 sm:px-5 sm:py-6 text-center hover:bg-white/95 transition-all duration-200 cursor-default ${className}`}
     >
-      <div className="text-3xl md:text-4xl font-bold text-neutral-900">
+      <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-neutral-900 tracking-tight">
         <AnimatedCounter to={Number(s.value) || 0} suffix={s.suffix || ''} trigger={trigger} />
       </div>
-      <div className="mt-2 text-xs md:text-sm font-medium text-neutral-500 uppercase tracking-wider">{s.label}</div>
+      <div className="mt-1 text-[11px] sm:text-xs font-semibold text-neutral-500 uppercase tracking-wider">{s.label}</div>
     </div>
   )
 }
@@ -870,13 +870,13 @@ function Hero({ onQuote, content }) {
 
           </div>
 
-          <div className="mt-14 flex flex-wrap items-center gap-x-8 gap-y-4 text-sm text-neutral-600" >
+          <div className="mt-8 sm:mt-10 flex flex-wrap items-center gap-x-6 sm:gap-x-8 gap-y-3 text-xs sm:text-sm text-neutral-600" >
 
             {badges.map((b, i) => {
 
               const I = iconMap[b.icon] || CheckCircle2
 
-              return <div key={i} className="flex items-center gap-2" ><I className={`h-5 w-5 text-[#D71920] ${b.icon === 'star' ? 'fill-[#D71920]' : ''}`} /> {b.text}</div>
+              return <div key={i} className="flex items-center gap-2" ><I className={`h-4.5 w-4.5 sm:h-5 sm:w-5 text-[#D71920] ${b.icon === 'star' ? 'fill-[#D71920]' : ''}`} /> {b.text}</div>
 
             })}
 
@@ -884,9 +884,9 @@ function Hero({ onQuote, content }) {
 
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5, duration: 0.7 }} className="mt-16 lg:mt-24" >
+        <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4, duration: 0.6 }} className="mt-8 sm:mt-10 md:mt-12 max-w-5xl" >
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-neutral-200/70 rounded-3xl overflow-hidden glass shadow-soft" >
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-neutral-200/60 rounded-2xl sm:rounded-3xl overflow-hidden glass shadow-soft" >
 
             {stats.map((s, i) => (
               <StatCard key={i} s={s} />
