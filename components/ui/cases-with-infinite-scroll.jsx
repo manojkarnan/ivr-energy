@@ -21,32 +21,30 @@ const DEFAULT_CLIENTS = [
 
 function Case({ content }) {
   const [api, setApi] = useState(undefined);
-  const [current, setCurrent] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
 
   const clientList = content?.clients && content.clients.length > 0
     ? content.clients.map((c) => (typeof c === "string" ? { name: "", src: c.trim() } : { name: c.name || "", src: c.src.trim() }))
     : DEFAULT_CLIENTS;
 
   useEffect(() => {
-    if (!api) {
+    if (!api || isPaused) {
       return;
     }
 
-    const timer = setTimeout(() => {
-      if (api.selectedScrollSnap() + 1 === api.scrollSnapList().length) {
-        setCurrent(0);
-        api.scrollTo(0);
-      } else {
-        api.scrollNext();
-        setCurrent(current + 1);
-      }
-    }, 2000);
+    const interval = setInterval(() => {
+      api.scrollNext();
+    }, 2500);
 
-    return () => clearTimeout(timer);
-  }, [api, current]);
+    return () => clearInterval(interval);
+  }, [api, isPaused]);
 
   return (
-    <div className="w-full py-12 sm:py-16 lg:py-24 bg-white border-t border-neutral-100">
+    <section 
+      aria-label="Trusted Clients and Partners"
+      role="region"
+      className="w-full py-12 sm:py-16 lg:py-24 bg-white border-t border-neutral-100"
+    >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-6 sm:gap-8">
           <div className="flex flex-col gap-2.5 sm:gap-3">
@@ -60,35 +58,48 @@ function Case({ content }) {
               Powering diverse sectors with high-efficiency turnkey solar installations.
             </p>
           </div>
-          <Carousel
-            setApi={setApi}
-            className="w-full"
-            opts={{ loop: true, align: "start" }}
+          <div
+            onMouseEnter={() => setIsPaused(true)}
+            onMouseLeave={() => setIsPaused(false)}
+            onFocus={() => setIsPaused(true)}
+            onBlur={() => setIsPaused(false)}
           >
-            {/* Display 3 logos on mobile view (basis-1/3), perfectly square */}
-            <CarouselContent className="-ml-2 sm:-ml-3 md:-ml-4 py-4 sm:py-6 px-1 items-center">
-              {clientList.map((client, index) => (
-                <CarouselItem
-                  className="pl-2 sm:pl-3 md:pl-4 basis-1/3 sm:basis-1/4 md:basis-1/5 lg:basis-1/6 py-1 self-center"
-                  key={index}
-                >
-                  <div className="w-full aspect-square rounded-xl sm:rounded-2xl bg-white border border-neutral-200/80 p-3 sm:p-4 md:p-5 flex items-center justify-center transition-all duration-300 hover:border-red-400 hover:shadow-[0_10px_30px_rgba(215,25,32,0.12)] hover:-translate-y-1 group cursor-pointer overflow-hidden">
-                    <div className="w-full h-full flex items-center justify-center p-1">
-                      <img
-                        src={client.src}
-                        alt={client.name || "Client Logo"}
-                        className="max-h-full max-w-full w-auto h-auto object-contain transition-transform duration-300 group-hover:scale-105 pointer-events-none select-none"
-                        draggable="false"
-                      />
+            <Carousel
+              setApi={setApi}
+              className="w-full"
+              opts={{ loop: true, align: "start" }}
+              aria-label="Client logos carousel"
+            >
+              {/* Display 3 logos on mobile view (basis-1/3), perfectly square */}
+              <CarouselContent className="-ml-2 sm:-ml-3 md:-ml-4 py-4 sm:py-6 px-1 items-center">
+                {clientList.map((client, index) => (
+                  <CarouselItem
+                    className="pl-2 sm:pl-3 md:pl-4 basis-1/3 sm:basis-1/4 md:basis-1/5 lg:basis-1/6 py-1 self-center"
+                    key={`client-item-${index}-${client.name || index}`}
+                    aria-label={client.name ? `${client.name} (${index + 1} of ${clientList.length})` : `Partner ${index + 1} of ${clientList.length}`}
+                  >
+                    <div className="w-full aspect-square rounded-xl sm:rounded-2xl bg-white border border-neutral-200/80 p-3 sm:p-4 md:p-5 flex items-center justify-center transition-all duration-300 hover:border-red-400 hover:shadow-[0_10px_30px_rgba(215,25,32,0.12)] hover:-translate-y-1 group cursor-pointer overflow-hidden">
+                      <div className="w-full h-full flex items-center justify-center p-1">
+                        <img
+                          src={client.src}
+                          alt={client.name ? `${client.name} solar partner logo` : "IVR Energy Client Logo"}
+                          width={120}
+                          height={120}
+                          loading="lazy"
+                          decoding="async"
+                          className="max-h-full max-w-full w-auto h-auto object-contain transition-transform duration-300 group-hover:scale-105 pointer-events-none select-none"
+                          draggable="false"
+                        />
+                      </div>
                     </div>
-                  </div>
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-          </Carousel>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+            </Carousel>
+          </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 }
 

@@ -6,6 +6,7 @@ import { ShieldCheck, Lock, ArrowLeft, PhoneCall } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
+import { companyNAP } from '@/data/companyStats'
 
 export default function PrivacyPage() {
   const [content, setContent] = useState(null)
@@ -18,9 +19,9 @@ export default function PrivacyPage() {
       .catch(() => { })
   }, [])
 
-  const phoneDisplay = content?.contact?.phone || '+91 90477 77936'
-  const phoneRaw = content?.contact?.phoneRaw || '919047777936'
-  const email = content?.contact?.email || 'ivrenergysolutions@gmail.com'
+  const phoneDisplay = content?.contact?.phone || companyNAP.phone
+  const phoneRaw = content?.contact?.phoneRaw || companyNAP.phoneRaw
+  const email = content?.contact?.email || companyNAP.primaryEmail
 
   return (
     <div className="min-h-screen bg-neutral-50 font-sans antialiased text-neutral-900">
@@ -34,8 +35,8 @@ export default function PrivacyPage() {
           <div className="inline-flex items-center gap-2 rounded-full border border-red-500/30 bg-red-500/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-red-300 mb-6">
             <Lock className="h-3.5 w-3.5" /> Data Security & Trust
           </div>
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
-            Privacy <span className="text-gradient-red">Policy</span>
+          <h1 className="text-4xl sm:text-6xl md:text-7xl font-light tracking-tight leading-[1.08] text-white">
+            Privacy <span className="font-normal text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-[#ff4d52] to-amber-400">Policy</span>
           </h1>
           <p className="mt-6 text-lg text-neutral-300 leading-relaxed max-w-2xl mx-auto">
             At IVR Energy, we are committed to safeguarding your personal details and rooftop solar data. Learn how we handle and protect your information.
@@ -148,12 +149,12 @@ export default function PrivacyPage() {
               Contact Us
             </h2>
             <p className="mb-2">If you have any questions or concerns regarding this Privacy Policy, please reach out to us:</p>
-            <div className="bg-neutral-50 p-5 rounded-2xl border border-neutral-200 text-sm space-y-1.5">
+            <address className="not-italic bg-neutral-50 p-5 rounded-2xl border border-neutral-200 text-sm space-y-1.5 block">
               <p><strong>IVR Energy (OPC) Private Limited</strong></p>
-              <p>3rd Floor, Door No. 1, Plot No. A, Manasarovar Nagar, Gerugambakkam, Chennai - 600122</p>
+              <p>{companyNAP.address.fullFormatted}</p>
               <p>Email: <a href={`mailto:${email}`} className="text-[#D71920] font-semibold hover:underline">{email}</a></p>
               <p>Phone: <a href={`tel:+${phoneRaw}`} className="text-[#D71920] font-semibold hover:underline">{phoneDisplay}</a></p>
-            </div>
+            </address>
           </section>
         </>
       )}

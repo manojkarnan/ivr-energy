@@ -19,6 +19,8 @@ import { TestimonialsSection } from '@/components/ui/testimonials-with-marquee'
 import { FlippingCard } from '@/components/ui/flipping-card'
 import { SupplyCardsMotion } from '@/components/ui/supply-cards-motion'
 import { SOLAR_CAPACITIES_DATA, sortCapacitiesAscending } from '@/data/capacities'
+import { DEFAULT_REVIEWS } from '@/data/reviews'
+import { companyStats } from '@/data/companyStats'
 
 const ICON_MAP = {
   PenTool, HardHat, Home, Building2, Factory, PanelsTopLeft, Handshake, Wrench,
@@ -147,7 +149,7 @@ const SUPPLY_ITEMS = [
 
 
 const COMPARISON_DATA = [
-  { dim: 'Experience', ivr: '12+ years with 500+ projects', trad: 'Varies, often limited' },
+  { dim: 'Experience', ivr: `${companyStats.experience} with ${companyStats.projects} projects`, trad: 'Varies, often limited' },
   { dim: 'Component Quality', ivr: 'Tier-1 only, 25-yr warranty', trad: 'Mixed quality, shorter warranty' },
   { dim: 'Government Support', ivr: 'Full liaison & subsidy processing', trad: 'Customer responsibility' },
   { dim: 'Warranty', ivr: 'Comprehensive 5-year workmanship', trad: '1-year standard' },
@@ -211,14 +213,14 @@ function SectionHeader({ eyebrow, title, sub, light = false, align = 'center' })
     <motion.div
       initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.3 }}
       variants={fadeUp}
-      className={`max-w-3xl ${align === 'center' ? 'mx-auto text-center' : ''} mb-12 md:mb-16`}
+      className={`max-w-4xl ${align === 'center' ? 'mx-auto text-center' : ''} mb-12 md:mb-16`}
     >
       {eyebrow && (
         <span className="inline-block text-xs font-bold tracking-[0.2em] uppercase text-[#D71920] mb-3">
           {eyebrow}
         </span>
       )}
-      <h2 className={`text-3xl sm:text-4xl md:text-5xl font-heading font-extrabold tracking-tight leading-tight ${light ? 'text-white' : 'text-neutral-900'}`}>
+      <h2 className={`text-3xl sm:text-4xl md:text-5xl font-light tracking-tight leading-tight ${light ? 'text-white' : 'text-neutral-900'}`}>
         {title}
       </h2>
       {sub && <p className={`mt-4 text-base md:text-lg leading-relaxed ${light ? 'text-neutral-300' : 'text-neutral-600'}`}>{sub}</p>}
@@ -227,28 +229,48 @@ function SectionHeader({ eyebrow, title, sub, light = false, align = 'center' })
 }
 
 function AnimatedCounter({ value, suffix = '', duration = 2 }) {
-  const [count, setCount] = useState(0)
+  const [count, setCount] = useState(value)
+  const [hasMounted, setHasMounted] = useState(false)
   const ref = useRef(null)
   const inView = useInView(ref, { once: true, amount: 0.5 })
 
   useEffect(() => {
-    if (!inView) return
-    let start = 0
-    const end = value
-    const increment = end / (duration * 60)
-    const timer = setInterval(() => {
-      start += increment
-      if (start >= end) {
-        setCount(end)
-        clearInterval(timer)
-      } else {
-        setCount(Math.floor(start))
-      }
-    }, 1000 / 60)
-    return () => clearInterval(timer)
-  }, [inView, value, duration])
+    setHasMounted(true)
+  }, [])
 
-  return <span ref={ref}>{count}{suffix}</span>
+  useEffect(() => {
+    if (!hasMounted || !inView) return
+    const target = Number(value) || 0
+    if (target === 0) {
+      setCount(0)
+      return
+    }
+
+    setCount(0)
+    let raf, start
+
+    const step = (ts) => {
+      if (!start) start = ts
+      const progress = Math.min((ts - start) / (duration * 1000), 1)
+      const easeOut = 1 - Math.pow(1 - progress, 3)
+      setCount(Math.floor(easeOut * target))
+
+      if (progress < 1) {
+        raf = requestAnimationFrame(step)
+      } else {
+        setCount(target)
+      }
+    }
+
+    raf = requestAnimationFrame(step)
+    return () => cancelAnimationFrame(raf)
+  }, [hasMounted, inView, value, duration])
+
+  return (
+    <span ref={ref} className="inline-block tabular-nums" aria-label={`${value}${suffix}`}>
+      {count.toLocaleString('en-IN')}{suffix}
+    </span>
+  )
 }
 
 /* ──────────────────────────────────────────────
@@ -291,7 +313,7 @@ function HeroSection({ content }) {
 
       {/* Content */}
       <div className="relative z-10 container mx-auto px-6 text-center">
-        <motion.div initial="hidden" animate="visible" variants={stagger} className="max-w-4xl mx-auto">
+        <motion.div initial="hidden" animate="visible" variants={stagger} className="max-w-5xl md:max-w-6xl mx-auto">
           <motion.div variants={fadeUp} custom={0}>
             <span className="inline-block text-xs font-bold tracking-[0.25em] uppercase text-[#D71920] mb-6 px-4 py-2 rounded-full border border-[#D71920]/30 bg-[#D71920]/10 backdrop-blur-sm">
               {badge}
@@ -299,7 +321,7 @@ function HeroSection({ content }) {
           </motion.div>
 
           <motion.h1 variants={fadeUp} custom={1}
-            className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-heading font-extrabold text-white leading-[1.1] tracking-tight"
+            className="text-4xl sm:text-6xl md:text-7xl font-light tracking-tight text-white leading-[1.08]"
             dangerouslySetInnerHTML={{ __html: titleHtml }}
           />
 
@@ -502,7 +524,6 @@ function ServicesGridSection() {
     <section id="services-grid" className="py-20 md:py-28 bg-white border-t border-neutral-100">
       <div className="container mx-auto px-6">
         <SectionHeader
-          eyebrow="Our Services"
           title={<>Complete <span className="text-gradient-red">turnkey solar</span> services</>}
           sub="From consultancy to commissioning — one accountable partner for every step of your solar journey."
         />
@@ -540,7 +561,6 @@ function CapacitySizingSection() {
     <section id="capacities" className="py-20 md:py-28 bg-white scroll-mt-28 border-t border-neutral-100">
       <div className="container mx-auto px-4 sm:px-6 max-w-7xl">
         <SectionHeader
-          eyebrow="Rooftop Solar Sizing & Specs"
           title={<>Explore <span className="text-gradient-red">3 kW, 4 kW, 5 kW & 10 kW</span> Systems</>}
           sub="Select any capacity below to view its complete technical specifications, appliance compatibility, daily yield estimates, and PM Surya Ghar subsidy details."
         />
@@ -643,7 +663,6 @@ function CapacitySizingSection() {
    ────────────────────────────────────────────── */
 
 function EPCSection({ content }) {
-  const eyebrow = content?.epcEyebrow || "Solar EPC"
   const titleHtml = content?.epcTitle || 'Engineering, Procurement & <span class="text-gradient-red">Construction</span>'
   const sub = content?.epcSubtitle || "Our turnkey EPC process ensures quality at every step — from initial planning to final commissioning and ongoing maintenance."
   const rawList = (content?.epcTimeline && content.epcTimeline.length > 0) ? content.epcTimeline : EPC_TIMELINE
@@ -657,7 +676,6 @@ function EPCSection({ content }) {
     <section id="epc" className="py-20 md:py-28 bg-white scroll-mt-28 border-t border-neutral-100">
       <div className="container mx-auto px-6">
         <SectionHeader
-          eyebrow={eyebrow}
           title={<span dangerouslySetInnerHTML={{ __html: titleHtml }} />}
           sub={sub}
         />
@@ -702,7 +720,6 @@ function EPCSection({ content }) {
 }
 
 function ApprovalSection({ content }) {
-  const eyebrow = content?.approvalEyebrow || "Government Approvals"
   const titleHtml = content?.approvalTitle || 'Hassle-free <span class="text-gradient-red">approval process</span>'
   const sub = content?.approvalSubtitle || "Our liaison team handles the complete DISCOM approval, net metering, and subsidy documentation process."
   const rawList = (content?.approvalSteps && content.approvalSteps.length > 0) ? content.approvalSteps : APPROVAL_STEPS
@@ -716,7 +733,6 @@ function ApprovalSection({ content }) {
     <section id="approvals" className="py-20 md:py-28 bg-white scroll-mt-28 border-t border-neutral-100">
       <div className="container mx-auto px-6">
         <SectionHeader
-          eyebrow={eyebrow}
           title={<span dangerouslySetInnerHTML={{ __html: titleHtml }} />}
           sub={sub}
         />
@@ -758,7 +774,6 @@ function ApprovalSection({ content }) {
 }
 
 function SupplySection({ content }) {
-  const eyebrow = content?.supplyEyebrow || "Scope of Supply"
   const titleHtml = content?.supplyTitle || 'Premium <span class="text-gradient-red">Tier-1 components</span>'
   const sub = content?.supplySubtitle || "We source exclusively from certified Tier-1 manufacturers to ensure maximum performance, reliability, and warranty coverage."
   const rawList = (content?.supplyItems && content.supplyItems.length > 0) ? content.supplyItems : SUPPLY_ITEMS
@@ -772,7 +787,6 @@ function SupplySection({ content }) {
     <section id="supply" className="py-20 md:py-28 bg-white scroll-mt-28 border-t border-neutral-100 overflow-hidden">
       <div className="container mx-auto px-4 sm:px-6">
         <SectionHeader
-          eyebrow={eyebrow}
           title={<span dangerouslySetInnerHTML={{ __html: titleHtml }} />}
           sub={sub}
         />
@@ -785,7 +799,6 @@ function SupplySection({ content }) {
 }
 
 function ComparisonSection({ content }) {
-  const eyebrow = content?.comparisonEyebrow || "Why Choose Us"
   const titleHtml = content?.comparisonTitle || 'The IVR Energy <span class="text-gradient-red">advantage</span>'
   const sub = content?.comparisonSubtitle || "See how our engineering-first approach delivers superior outcomes compared to traditional solar EPC providers."
   const rows = (content?.comparisonData && content.comparisonData.length > 0) ? content.comparisonData : COMPARISON_DATA
@@ -794,7 +807,6 @@ function ComparisonSection({ content }) {
     <section className="py-20 md:py-28 bg-white border-t border-neutral-100">
       <div className="container mx-auto px-6">
         <SectionHeader
-          eyebrow={eyebrow}
           title={<span dangerouslySetInnerHTML={{ __html: titleHtml }} />}
           sub={sub}
         />
@@ -807,10 +819,10 @@ function ComparisonSection({ content }) {
           <div className="overflow-x-auto no-scrollbar">
             <div className="min-w-[580px]">
               {/* Header */}
-              <div className="grid grid-cols-3 bg-neutral-50 border-b border-neutral-200/60">
-                <div className="p-4 md:p-5 font-bold text-sm text-neutral-500">Dimension</div>
-                <div className="p-4 md:p-5 font-bold text-sm text-[#D71920] text-center">IVR Energy</div>
-                <div className="p-4 md:p-5 font-bold text-sm text-neutral-500 text-center">Traditional EPC</div>
+              <div className="grid grid-cols-3 bg-neutral-50/80 border-b border-neutral-200/70">
+                <div className="p-4 md:p-5 font-bold text-sm text-neutral-600 text-left">Dimension</div>
+                <div className="p-4 md:p-5 font-bold text-sm text-[#D71920] text-left">IVR Energy</div>
+                <div className="p-4 md:p-5 font-bold text-sm text-neutral-600 text-left">Traditional EPC</div>
               </div>
 
               {/* Rows */}
@@ -821,14 +833,14 @@ function ComparisonSection({ content }) {
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.08 }}
-                  className="comparison-row grid grid-cols-3 border-b border-neutral-100 last:border-0"
+                  className="comparison-row grid grid-cols-3 border-b border-neutral-100 last:border-0 hover:bg-neutral-50/50 transition-colors"
                 >
-                  <div className="p-4 md:p-5 font-semibold text-sm text-neutral-900">{row.dim}</div>
-                  <div className="p-4 md:p-5 text-sm text-neutral-700 text-center flex items-center justify-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
-                    <span className="text-left">{row.ivr}</span>
+                  <div className="p-4 md:p-5 font-semibold text-sm text-neutral-900 flex items-start leading-snug">{row.dim}</div>
+                  <div className="p-4 md:p-5 text-sm text-neutral-800 flex items-start gap-2.5 leading-snug">
+                    <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0 mt-0.5" />
+                    <span>{row.ivr}</span>
                   </div>
-                  <div className="p-4 md:p-5 text-sm text-neutral-500 text-center">{row.trad}</div>
+                  <div className="p-4 md:p-5 text-sm text-neutral-600 flex items-start leading-snug">{row.trad}</div>
                 </motion.div>
               ))}
             </div>
@@ -840,9 +852,8 @@ function ComparisonSection({ content }) {
 }
 
 function WorkflowSection({ content }) {
-  const eyebrow = content?.workflowEyebrow || "Our Process"
   const titleHtml = content?.workflowTitle || 'Your solar journey in <span class="text-gradient-red">8 seamless steps</span>'
-  const sub = content?.workflowSubtitle || "A refined, transparent execution playbook honed across 500+ projects."
+  const sub = content?.workflowSubtitle || `A refined, transparent execution playbook honed across ${companyStats.projects} projects.`
   const rawList = (content?.workflowSteps && content.workflowSteps.length > 0) ? content.workflowSteps : WORKFLOW_STEPS
 
   const steps = rawList.map(item => ({
@@ -854,7 +865,6 @@ function WorkflowSection({ content }) {
     <section className="py-20 md:py-28 bg-white border-t border-neutral-100">
       <div className="container mx-auto px-6">
         <SectionHeader
-          eyebrow={eyebrow}
           title={<span dangerouslySetInnerHTML={{ __html: titleHtml }} />}
           sub={sub}
         />
@@ -901,14 +911,16 @@ function WorkflowSection({ content }) {
    ────────────────────────────────────────────── */
 
 function ServicesReviewsSection({ reviews }) {
-  const list = (reviews && reviews.length) ? reviews : REVIEWS_DATA
-  const testimonials = list.map(r => ({
+  const list = (reviews && reviews.length > 0) ? reviews : DEFAULT_REVIEWS
+  const testimonials = list.map((r, idx) => ({
+    id: r.id || `rev-${idx}`,
     author: {
       name: r.name,
       handle: r.role || "Rooftop Owner",
       avatar: r.avatar || r.image || r.img || r.photo || ""
     },
-    text: r.text
+    text: r.text,
+    rating: Number(r.rating) || 5
   }))
 
   return (
@@ -935,7 +947,6 @@ function FAQSection() {
     <section className="py-20 md:py-28 bg-white border-t border-neutral-100">
       <div className="container mx-auto px-6">
         <SectionHeader
-          eyebrow="FAQs"
           title={<>Common <span className="text-gradient-red">questions answered</span></>}
           sub="Everything you need to know about timelines, maintenance, subsidies, and monitoring."
         />
@@ -998,12 +1009,12 @@ function FinalCTASection() {
             >
               Get Started Today
             </motion.span>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-heading font-extrabold leading-tight">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-light tracking-tight leading-tight">
               Ready to Generate Your Own{' '}
               <span className="text-gradient-red">Solar Power?</span>
             </h2>
             <p className="mt-5 text-neutral-400 leading-relaxed max-w-2xl mx-auto text-base md:text-lg">
-              Join 500+ satisfied customers who have made the switch to clean, affordable solar energy with IVR Energy.
+              Join {companyStats.clients} happy clients who have made the switch to clean, affordable solar energy with IVR Energy.
             </p>
 
             <div className="mt-10 flex flex-col sm:flex-row justify-center gap-4">

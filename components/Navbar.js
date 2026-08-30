@@ -8,13 +8,13 @@ import { Phone, ArrowRight, Menu, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 const NAV_ITEMS = [
-  { label: 'Home', href: '/#home' },
-  { label: 'About', href: '/#about' },
+  { label: 'Home', href: '/' },
   { label: 'Services', href: '/services' },
-  { label: 'Solutions', href: '/#solutions' },
+  { label: 'Solutions', href: '/solutions' },
   { label: 'Projects', href: '/projects' },
   { label: 'Blog', href: '/blog' },
   { label: 'FAQs', href: '/faqs' },
+  { label: 'About', href: '/about' },
   { label: 'Contact', href: '/contact' },
 ]
 
@@ -87,7 +87,11 @@ export default function Navbar({ onQuote, content }) {
 
   // Track active page/section
   useEffect(() => {
-    if (pathname === '/services') {
+    if (pathname === '/about') {
+      setActiveSection('About')
+    } else if (pathname === '/solutions') {
+      setActiveSection('Solutions')
+    } else if (pathname === '/services') {
       setActiveSection('Services')
     } else if (pathname === '/projects' || pathname?.startsWith('/projects/')) {
       setActiveSection('Projects')
@@ -136,16 +140,22 @@ export default function Navbar({ onQuote, content }) {
     }
   }
 
-  const handleQuoteClick = () => {
+  const handleQuoteClick = (e) => {
     setOpen(false)
-    if (onQuote) {
-      onQuote()
-    } else if (pathname === '/') {
-      const contactElem = document.getElementById('contact')
-      if (contactElem) {
-        contactElem.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    if (pathname === '/') {
+      if (e) e.preventDefault()
+      if (onQuote) {
+        onQuote()
+      } else {
+        const elem = document.getElementById('contact')
+        if (elem) {
+          const top = elem.getBoundingClientRect().top + window.scrollY - 80
+          window.scrollTo({ top, behavior: 'smooth' })
+          window.history.replaceState(null, '', '#contact')
+        }
       }
     } else if (typeof window !== 'undefined') {
+      if (e) e.preventDefault()
       window.location.href = '/#contact'
     }
   }
@@ -174,6 +184,10 @@ export default function Navbar({ onQuote, content }) {
             <img
               src="/ivr-logo.webp"
               alt="IVR Energy"
+              width={170}
+              height={44}
+              fetchPriority="high"
+              decoding="async"
               className="h-8 sm:h-10 lg:h-11 w-auto object-contain transition-transform group-hover:scale-105"
             />
           </Link>
@@ -221,12 +235,13 @@ export default function Navbar({ onQuote, content }) {
             >
               <Phone className="h-3.5 w-3.5" /> {phoneDisplay}
             </a>
-            <Button
-              onClick={handleQuoteClick}
-              className="bg-[#D71920] hover:bg-[#a5121a] text-white rounded-full px-5 h-9 text-xs font-bold uppercase tracking-wide shadow-glow-red"
-            >
-              Get Free Quote <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
-            </Button>
+            <Link href="/#contact" onClick={handleQuoteClick}>
+              <Button
+                className="bg-[#D71920] hover:bg-[#a5121a] text-white rounded-full px-5 h-9 text-xs font-bold uppercase tracking-wide shadow-glow-red cursor-pointer"
+              >
+                Get Free Quote <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+              </Button>
+            </Link>
           </div>
 
           {/* Mobile Menu Hamburger Button */}
@@ -264,7 +279,15 @@ export default function Navbar({ onQuote, content }) {
             >
               {/* Header: Logo & Close Icon */}
               <div className="flex items-center justify-between pb-3 border-b border-neutral-100">
-                <img src="/ivr-logo.webp" alt="IVR Energy" className="h-8 sm:h-9 w-auto object-contain" />
+                <img
+                  src="/ivr-logo.webp"
+                  alt="IVR Energy"
+                  width={140}
+                  height={36}
+                  loading="lazy"
+                  decoding="async"
+                  className="h-8 sm:h-9 w-auto object-contain"
+                />
                 <motion.button
                   onClick={() => setOpen(false)}
                   whileTap={{ scale: 0.9 }}
@@ -311,12 +334,13 @@ export default function Navbar({ onQuote, content }) {
                   <span>{phoneDisplay}</span>
                 </a>
 
-                <Button
-                  onClick={handleQuoteClick}
-                  className="w-full bg-[#18181b] hover:bg-black text-white rounded-full py-6 text-sm font-bold uppercase tracking-wider shadow-md active:scale-[0.99] transition-transform"
-                >
-                  GET FREE QUOTE
-                </Button>
+                <Link href="/#contact" onClick={handleQuoteClick} className="w-full">
+                  <Button
+                    className="w-full bg-[#18181b] hover:bg-black text-white rounded-full py-6 text-sm font-bold uppercase tracking-wider shadow-md active:scale-[0.99] transition-transform cursor-pointer"
+                  >
+                    GET FREE QUOTE
+                  </Button>
+                </Link>
               </div>
             </motion.div>
           </>

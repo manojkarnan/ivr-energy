@@ -11,6 +11,19 @@ import { BLOG_POSTS } from '@/data/blogs'
 import { SEED_PROJECTS } from '@/data/projects'
 import { DEFAULT_REVIEWS } from '@/data/reviews'
 import { SOLAR_CAPACITIES_DATA, sortCapacitiesAscending } from '@/data/capacities'
+import { ALL_LANDING_PAGES_LIST } from '@/data/landingPages'
+
+async function ensureLandingPagesSeeded(db) {
+  if (!Array.isArray(db.landingPages) || db.landingPages.length === 0) {
+    db.landingPages = ALL_LANDING_PAGES_LIST.map((lp, idx) => ({
+      ...lp,
+      order: idx,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }))
+    await writeDb(db)
+  }
+}
 
 async function ensureCapacitiesSeeded(db) {
   if (!Array.isArray(db.capacities) || db.capacities.length === 0) {
@@ -166,6 +179,10 @@ export async function GET(request, { params }) {
       await ensureCapacitiesSeeded(db)
       return NextResponse.json({ capacities: sortCapacitiesAscending(db.capacities) }, { headers: cors })
     }
+    if (route === 'landing-pages') {
+      await ensureLandingPagesSeeded(db)
+      return NextResponse.json({ landingPages: db.landingPages || [] }, { headers: cors })
+    }
     if (route === 'blogs') {
       await ensureBlogsSeeded(db)
       const published = (db.blogs || []).filter(b => b.status !== 'draft')
@@ -176,6 +193,12 @@ export async function GET(request, { params }) {
       const user = authFromRequest(request)
       if (!user) return unauthorized()
       return NextResponse.json({ user }, { headers: cors })
+    }
+    if (route === 'admin/landing-pages') {
+      const user = authFromRequest(request)
+      if (!user) return unauthorized()
+      await ensureLandingPagesSeeded(db)
+      return NextResponse.json({ landingPages: db.landingPages || [] }, { headers: cors })
     }
     if (route === 'admin/capacities') {
       const user = authFromRequest(request)
@@ -443,6 +466,50 @@ export async function POST(request, { params }) {
       return NextResponse.json({ success: true, capacity: doc }, { headers: cors })
     }
 
+    if (route === 'admin/landing-pages') {
+      const user = authFromRequest(request)
+      if (!user) return unauthorized()
+      await ensureLandingPagesSeeded(db)
+      const now = new Date().toISOString()
+      const slug = String(body.slug || '').trim().toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/(^-|-$)/g, '') || `page-${Date.now()}`
+      const doc = {
+        slug,
+        metaTitle: String(body.metaTitle || body.h1 || 'Solar System in Chennai'),
+        metaDescription: String(body.metaDescription || ''),
+        h1: String(body.h1 || 'Solar Sizing in Chennai'),
+        tagline: String(body.tagline || ''),
+        badge: String(body.badge || 'Approved Solar EPC Solution'),
+        directAnswer: String(body.directAnswer || ''),
+        heroStats: Array.isArray(body.heroStats) ? body.heroStats : [
+          { label: 'Installed Capacity', val: '15+ MW' },
+          { label: 'Delivered Projects', val: '250+' },
+          { label: 'Happy Clients', val: '180+' },
+          { label: 'Field Experience', val: '12+ Years' }
+        ],
+        overviewTitle: String(body.overviewTitle || 'Why Choose IVR Energy for Solar'),
+        overviewText: String(body.overviewText || ''),
+        systemSpecs: Array.isArray(body.systemSpecs) ? body.systemSpecs : [],
+        pricingData: body.pricingData || {
+          capacity: '3 kW to 10 kW',
+          priceRange: '₹1,80,000 to ₹6,50,000',
+          subsidyAvailable: 'Up to ₹78,000 Direct DBT',
+          effectiveCost: 'Starting from ₹1,02,000',
+          typicalPayback: '3.2 to 3.8 Years'
+        },
+        chennaiEngineeringHighlights: Array.isArray(body.chennaiEngineeringHighlights) ? body.chennaiEngineeringHighlights : [],
+        processSteps: Array.isArray(body.processSteps) ? body.processSteps : [],
+        projectExamples: Array.isArray(body.projectExamples) ? body.projectExamples : [],
+        faqs: Array.isArray(body.faqs) ? body.faqs : [],
+        relatedLinks: Array.isArray(body.relatedLinks) ? body.relatedLinks : [],
+        order: body.order !== undefined ? Number(body.order) : (db.landingPages || []).length,
+        createdAt: now,
+        updatedAt: now,
+      }
+      db.landingPages = [...(db.landingPages || []), doc]
+      await writeDb(db)
+      return NextResponse.json({ success: true, landingPage: doc }, { headers: cors })
+    }
+
     if (route === 'leads' || route === 'contact' || route === 'quote') {
       const limitRes = checkRateLimit(request, { limit: 6, windowMs: 60 * 1000, keyPrefix: 'leads_submit' })
       if (!limitRes.allowed) {
@@ -605,6 +672,24 @@ export async function PATCH(request, { params }) {
       await writeDb(db)
       return NextResponse.json({ success: true, capacity: db.capacities[idx] }, { headers: cors })
     }
+    if (route === 'admin/landing-pages') {
+      const user = authFromRequest(request)
+      if (!user) return unauthorized()
+      await ensureLandingPagesSeeded(db)
+      const { slug, id, ...rest } = body
+      const targetSlug = slug || id
+      if (!targetSlug) return NextResponse.json({ error: 'slug/id required' }, { status: 400, headers: cors })
+      const idx = (db.landingPages || []).findIndex(lp => lp.slug === targetSlug || lp.id === targetSlug)
+      if (idx === -1) return NextResponse.json({ error: 'Not found' }, { status: 404, headers: cors })
+      const update = { ...rest }
+      if (update.slug) {
+        update.slug = String(update.slug).trim().toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/(^-|-$)/g, '')
+      }
+      const merged = { ...db.landingPages[idx], ...update, updatedAt: new Date().toISOString() }
+      db.landingPages[idx] = merged
+      await writeDb(db)
+      return NextResponse.json({ success: true, landingPage: db.landingPages[idx] }, { headers: cors })
+    }
     return NextResponse.json({ error: 'Not found' }, { status: 404, headers: cors })
   } catch (e) {
     return NextResponse.json({ error: e.message }, { status: 500, headers: cors })
@@ -618,6 +703,18 @@ export async function DELETE(request, { params }) {
     const db = await readDb()
     const url = new URL(request.url)
     const id = url.searchParams.get('id')
+    const slug = url.searchParams.get('slug')
+
+    if (route === 'admin/landing-pages') {
+      const user = authFromRequest(request)
+      if (!user) return unauthorized()
+      const targetSlug = slug || id
+      if (!targetSlug) return NextResponse.json({ error: 'slug or id required' }, { status: 400, headers: cors })
+      await ensureLandingPagesSeeded(db)
+      db.landingPages = (db.landingPages || []).filter(lp => lp.slug !== targetSlug && lp.id !== targetSlug)
+      await writeDb(db)
+      return NextResponse.json({ success: true }, { headers: cors })
+    }
 
     if (route === 'admin/capacities') {
       const user = authFromRequest(request)

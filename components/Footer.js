@@ -3,52 +3,53 @@
 import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 import { Phone, Mail, MapPin, Linkedin, Instagram, Facebook, Youtube, MessageCircle, ArrowUpRight } from 'lucide-react'
+import { companyNAP } from '@/data/companyStats'
 
 const QUICK_LINKS = [
   { label: 'Home', href: '/' },
-  { label: 'About', href: '/#about' },
   { label: 'Services', href: '/services' },
   { label: 'Solutions', href: '/#solutions' },
   { label: 'Projects', href: '/projects' },
   { label: 'Blog', href: '/blog' },
   { label: 'FAQs', href: '/faqs' },
+  { label: 'About', href: '/about' },
   { label: 'Contact', href: '/contact' },
 ]
 
 const SOLAR_CAPACITIES = [
-  { label: '3 kW Solar System', href: '/services/3kw-solar-system' },
+  { label: '3 kW Solar System', href: '/3kw-solar-system-chennai' },
   { label: '4 kW Solar System', href: '/services/4kw-solar-system' },
-  { label: '5 kW Solar System', href: '/services/5kw-solar-system' },
+  { label: '5 kW Solar System', href: '/5kw-solar-system-chennai' },
   { label: '10 kW+ Solar System', href: '/services/10kw-solar-system' },
-  { label: 'Solar Savings Calculator', href: '/#calculator' },
+  { label: 'Solar Price List 2026', href: '/solar-panel-price-chennai' },
+  { label: 'Solar Subsidy Guide', href: '/solar-subsidy-chennai' },
 ]
 
 const SERVICES_LIST = [
-  { label: 'Residential Rooftop Solar', href: '/services' },
-  { label: 'Commercial Solar Rooftop', href: '/services' },
-  { label: 'Industrial Captive Solar', href: '/services' },
-  { label: 'Ground Mounted Solar Farms', href: '/services' },
-  { label: 'Solar Consultancy & DPR', href: '/services' },
-  { label: 'DISCOM & Net Metering', href: '/services' },
-  { label: 'Solar O&M Services', href: '/services' },
+  { label: 'Solar Panel Installation', href: '/solar-panel-installation-chennai' },
+  { label: 'Residential Rooftop Solar', href: '/residential-solar-chennai' },
+  { label: 'Commercial Solar Rooftop', href: '/commercial-solar-chennai' },
+  { label: 'Industrial Solar Plants', href: '/industrial-solar-chennai' },
+  { label: 'PM Surya Ghar Subsidy', href: '/pm-surya-ghar-chennai' },
+  { label: 'TANGEDCO Net Metering', href: '/solar-net-metering-tamil-nadu' },
 ]
 
 export default function Footer({ content }) {
   const router = useRouter()
   const pathname = usePathname()
   const isHomePage = pathname === '/'
-  const phoneDisplay = content?.contact?.phone || '+91 90477 77936'
-  const phoneRaw = content?.contact?.phoneRaw || '919047777936'
-  const email = content?.contact?.email || 'ivrenergysolutions@gmail.com'
-  const secondaryEmail = content?.contact?.secondaryEmail || 'info@ivrenergy.com'
+  const phoneDisplay = content?.contact?.phone || companyNAP.phone
+  const phoneRaw = content?.contact?.phoneRaw || companyNAP.phoneRaw
+  const email = content?.contact?.email || companyNAP.primaryEmail
+  const secondaryEmail = content?.contact?.secondaryEmail || companyNAP.secondaryEmail
   const instagram = content?.contact?.instagram || 'https://www.instagram.com/ivrenergy/'
   const linkedin = content?.contact?.linkedin || 'https://www.linkedin.com/company/ivr-energy'
   const facebook = content?.contact?.facebook || ''
   const youtube = content?.contact?.youtube || ''
-  const gstNumber = content?.contact?.gstNumber || '33BTTPR9122F1ZB'
+  const gstNumber = content?.contact?.gstNumber || companyNAP.gstNumber
   const address =
     content?.contact?.address ||
-    '3rd floor, Door No - 1,\nPlot No - A, Manasarovar Nagar,\nGerugambakkam,\nChennai - 600122.'
+    companyNAP.address.multiline
   const secondaryAddressTitle = content?.contact?.secondaryAddressTitle || ''
   const secondaryAddress = content?.contact?.secondaryAddress || ''
   const secondaryAddressPhone = content?.contact?.secondaryAddressPhone || ''
@@ -134,9 +135,9 @@ export default function Footer({ content }) {
                 <span className="w-1.5 h-1.5 rounded-full bg-[#D71920]" />
                 {secondaryAddress ? 'Chennai Head Office' : 'Our Office'}
               </h3>
-              <p className="text-xs text-neutral-400 leading-relaxed whitespace-pre-line">
+              <address className="not-italic text-xs text-neutral-400 leading-relaxed whitespace-pre-line">
                 {address}
-              </p>
+              </address>
             </div>
           </div>
 
@@ -215,7 +216,7 @@ export default function Footer({ content }) {
             {secondaryAddress && (
               <div className="mt-6 pt-4 border-t border-neutral-800">
                 <h3 className="text-base font-bold text-white tracking-wide mb-1.5 flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#D71920]" />
                   {secondaryAddressTitle || 'Branch Office'}
                 </h3>
                 <p className="text-xs text-neutral-400 leading-relaxed whitespace-pre-line">

@@ -320,7 +320,7 @@ export default function BlogPostPage({ params }) {
           </div>
 
           {/* Article Title */}
-          <h1 className="text-2xl sm:text-4xl md:text-5xl font-extrabold text-white tracking-tight leading-[1.2] break-words mb-4 sm:mb-6">
+          <h1 className="text-3xl sm:text-5xl md:text-6xl font-light tracking-tight text-white leading-[1.08] break-words mb-4 sm:mb-6">
             {post.title}
           </h1>
 

@@ -1,10 +1,11 @@
 import { Geist, Inter, Manrope } from 'next/font/google'
 import './globals.css'
 import { Toaster } from '@/components/ui/sonner'
+import { companyNAP } from '@/data/companyStats'
 
-const geist = Geist({ subsets: ['latin'], variable: '--font-geist', weight: ['400', '500', '600', '700', '800', '900'], display: 'swap' })
-const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' })
-const manrope = Manrope({ subsets: ['latin'], variable: '--font-manrope', weight: ['400', '500', '600', '700', '800'], display: 'swap' })
+const geist = Geist({ subsets: ['latin'], variable: '--font-geist', display: 'swap', preload: true })
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap', preload: true })
+const manrope = Manrope({ subsets: ['latin'], variable: '--font-manrope', display: 'swap', preload: true })
 
 export const viewport = {
   width: 'device-width',
@@ -84,13 +85,18 @@ export const metadata = {
   icons: {
     icon: [
       { url: '/favicon.ico', sizes: 'any' },
-      { url: '/icon.png', type: 'image/png', sizes: '512x512' },
+      { url: '/favicon-48x48.png', sizes: '48x48', type: 'image/png' },
+      { url: '/favicon-96x96.png', sizes: '96x96', type: 'image/png' },
+      { url: '/favicon-192x192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icon.png', sizes: '512x512', type: 'image/png' },
     ],
     shortcut: '/favicon.ico',
     apple: [
       { url: '/apple-icon.png', sizes: '180x180', type: 'image/png' },
+      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
     ],
   },
+  manifest: '/site.webmanifest',
   other: {
     'geo.region': 'IN-TN',
     'geo.placename': 'Chennai, Tamil Nadu, India',
@@ -113,22 +119,22 @@ const geoAndEntityJsonLd = {
       legalName: 'IVR Energy (OPC) Private Limited',
       slogan: 'Powering India with Clean & Sustainable Solar Energy',
       url: siteUrl,
-      logo: `${siteUrl}/ivr-logo.webp`,
-      image: `${siteUrl}/ivr-logo.webp`,
+      logo: `${siteUrl}/logo.png`,
+      image: `${siteUrl}/logo.png`,
       description: 'Premier Solar EPC company based in Chennai providing turnkey solar power solutions across Residential, Commercial, and Industrial sectors in Tamil Nadu and India.',
-      telephone: '+91 90477 77936',
-      email: 'ivrenergysolutions@gmail.com',
+      telephone: companyNAP.phone,
+      email: companyNAP.primaryEmail,
       priceRange: '₹₹',
       foundingDate: '2014',
-      taxID: '33BTTPR9122F1ZB',
-      vatID: '33BTTPR9122F1ZB',
+      taxID: companyNAP.gstNumber,
+      vatID: companyNAP.gstNumber,
       address: {
         '@type': 'PostalAddress',
-        streetAddress: '3rd floor, Door No - 1, Plot No - A, Manasarovar Nagar, Gerugambakkam',
-        addressLocality: 'Chennai',
-        addressRegion: 'Tamil Nadu',
-        postalCode: '600122',
-        addressCountry: 'IN',
+        streetAddress: companyNAP.address.streetAddress,
+        addressLocality: companyNAP.address.city,
+        addressRegion: companyNAP.address.state,
+        postalCode: companyNAP.address.pincode,
+        addressCountry: companyNAP.address.countryCode,
       },
       geo: {
         '@type': 'GeoCoordinates',
@@ -244,6 +250,13 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`${geist.variable} ${inter.variable} ${manrope.variable}`} suppressHydrationWarning>
       <head>
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png" />
+        <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png" />
+        <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192x192.png" />
+        <link rel="icon" type="image/png" sizes="512x512" href="/icon.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+        <link rel="manifest" href="/site.webmanifest" />
         <meta name="geo.region" content="IN-TN" />
         <meta name="geo.placename" content="Chennai, Tamil Nadu, India" />
         <meta name="geo.position" content="13.013944;80.136667" />

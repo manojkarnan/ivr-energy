@@ -20,8 +20,7 @@ import {
 
   Send, ArrowUpRight, Search, Filter, PanelsTopLeft, LineChart, MoveRight, ChevronLeft, ChevronRight, ChevronDown, Check,
 
-  ArrowUp, Quote,
-
+  ArrowUp, Quote, Clock,
 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -33,10 +32,12 @@ import { Textarea } from '@/components/ui/textarea'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 
 import Navbar from '@/components/Navbar'
-
 import Footer from '@/components/Footer'
+import dynamic from 'next/dynamic'
+import { companyStats, companyNAP } from '@/data/companyStats'
+import { COMBINED_FAQS } from '@/data/faqs'
 
-import { Case } from '@/components/ui/cases-with-infinite-scroll'
+const Case = dynamic(() => import('@/components/ui/cases-with-infinite-scroll').then(mod => mod.Case), { ssr: true })
 
 const ICON_MAP = {
   PenTool, HardHat, Home, Building2, Factory, PanelsTopLeft, Handshake, Wrench,
@@ -67,13 +68,7 @@ const NAV = [
 
 ]
 
-const STATS = [
-  { value: 15, suffix: '+ MW', label: 'Installed Capacity' },
-  { value: 180, suffix: '+', label: 'Happy Clients' },
-  { value: 12, suffix: '+', label: 'Years Experience' },
-  { value: 250, suffix: '+', label: 'Projects Delivered' },
-  { value: 6500, suffix: 'T', label: 'CO₂ Reduced (tons)' },
-]
+const STATS = companyStats.statItems
 
 const SERVICES = [
 
@@ -216,57 +211,54 @@ const TESTIMONIALS = [
   { name: "Ramachandran Saamy", role: "Rooftop Owner", rating: 5, text: "Installed rooftop system. Their approach towards the work is really professional." },
 ]
 
-const FAQS = [
-  { q: "What is Solar Power or Solar Energy?", a: "Solar power is the conversion of energy from sunlight into electricity, either directly using photovoltaics (PV), indirectly using concentrated solar power, or a combination." },
-  { q: "How do solar photovoltaic panels work?", a: "PV panels allow photons (particles of light) to knock electrons free from atoms, generating a flow of electricity. Panels comprise many smaller photovoltaic cells that convert sunlight into DC electricity." },
-  { q: "What are the financial benefits of solar energy?", a: "A solar system typically lasts 35 years, with Tier-1 modules guaranteed to generate for 25 years. Payback is just 3 - 4 years — the remaining 20+ years of electricity are essentially free." },
-  { q: "Do solar panels produce power when the sun isn't shining?", a: "Panels need sunlight to generate — no, they don't work in darkness. However, with battery storage, homes can continue to consume solar-produced energy at night." },
-  { q: "Off-grid or On-grid — which is better?", a: "Off-grid is used where there is no grid connectivity or as a backup. On-grid connects to the utility grid and dramatically reduces or zeroes your EB bill with net metering." },
-  { q: "How much will maintenance cost?", a: "Solar panels require very little maintenance — mostly periodic cleaning. Annual O&M contracts with IVR Energy keep systems performing at peak efficiency." },
-  { q: "Is my roof suitable for solar panels?", a: "Any shadow-free area receiving sunlight for most of the day is suitable. Our team conducts a free shadow analysis during the site survey." },
-  { q: "What size solar system should I get?", a: "System size depends on your daily unit consumption. Use our savings calculator or share your electricity bill and we'll recommend the optimal capacity." },
-  { q: "How long will my solar system last?", a: "Panels come with 10 years product warranty and 25 years generation warranty. Inverters typically last 10 - 15 years." },
-  { q: "Do I need to inform my power supplier?", a: "Not required for off-grid systems. For on-grid net-metering systems, DISCOM approval is mandatory — IVR Energy handles the paperwork for you." },
-  { q: "How does Solar Net Metering work?", a: "Net metering lets you export excess solar generation to the grid and consume it back later. Your bi-directional meter tracks import & export — you're billed only on the net." },
-  { q: "Is smart monitoring included?", a: "Yes. Modern inverters include free cloud monitoring via app — you just need an internet connection at site." },
-]
+const FAQS = COMBINED_FAQS
 
 function AnimatedCounter({ to, suffix = '', duration = 2, trigger = 0 }) {
-
   const ref = useRef(null)
-
   const inView = useInView(ref, { once: true, margin: '-50px' })
-
-  const [n, setN] = useState(0)
+  // Initialize with target value so SSR output & search crawlers immediately receive the actual statistic
+  const [n, setN] = useState(to)
+  const [hasMounted, setHasMounted] = useState(false)
 
   useEffect(() => {
+    setHasMounted(true)
+  }, [])
 
-    if (!inView) return
+  useEffect(() => {
+    if (!hasMounted || !inView) return
+
+    const target = Number(to) || 0
+    if (target === 0) {
+      setN(0)
+      return
+    }
 
     setN(0)
-
     let raf, start
 
     const step = (ts) => {
-
       if (!start) start = ts
+      const progress = Math.min((ts - start) / (duration * 1000), 1)
+      // Cubic ease-out curve for smooth, natural counter deceleration
+      const easeOut = 1 - Math.pow(1 - progress, 3)
+      setN(Math.floor(easeOut * target))
 
-      const p = Math.min((ts - start) / (duration * 1000), 1)
-
-      setN(Math.floor(p * to))
-
-      if (p < 1) raf = requestAnimationFrame(step)
-
+      if (progress < 1) {
+        raf = requestAnimationFrame(step)
+      } else {
+        setN(target)
+      }
     }
 
     raf = requestAnimationFrame(step)
-
     return () => cancelAnimationFrame(raf)
+  }, [hasMounted, inView, to, duration, trigger])
 
-  }, [inView, to, duration, trigger])
-
-  return <span ref={ref}>{n.toLocaleString('en-IN')}{suffix}</span>
-
+  return (
+    <span ref={ref} className="inline-block tabular-nums" aria-label={`${to}${suffix}`}>
+      {n.toLocaleString('en-IN')}{suffix}
+    </span>
+  )
 }
 
 function StatCard({ s, className = '' }) {
@@ -506,6 +498,14 @@ function Nav({ onQuote, content }) {
               src="/ivr-logo.webp"
 
               alt="IVR Energy"
+
+              width={170}
+
+              height={48}
+
+              fetchPriority="high"
+
+              decoding="async"
 
               className="h-10 md:h-12 w-auto object-contain transition-transform group-hover:scale-105"
 
@@ -886,10 +886,10 @@ function Hero({ onQuote, content }) {
 
         <motion.div initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5, duration: 0.7 }} className="mt-16 lg:mt-24" >
 
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-px bg-neutral-200/70 rounded-3xl overflow-hidden glass shadow-soft" >
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-neutral-200/70 rounded-3xl overflow-hidden glass shadow-soft" >
 
             {stats.map((s, i) => (
-              <StatCard key={i} s={s} className={i === 4 ? "col-span-2 md:col-span-1" : ""} />
+              <StatCard key={i} s={s} />
             ))}
 
           </div>
@@ -1494,7 +1494,7 @@ function BentoSolutionsWhyUs({ content }) {
 function Process({ content }) {
   const eyebrow = content?.processEyebrow || 'Our Process'
   const titleHtml = content?.processTitle || 'Your solar journey in <span class="text-gradient-red" >8 seamless steps</span>'
-  const subtitle = content?.processSubtitle || 'A refined, transparent execution playbook honed across 180+ projects.'
+  const subtitle = content?.processSubtitle || `A refined, transparent execution playbook honed across ${companyStats.projects} projects.`
   const steps = content?.processSteps || PROCESS
 
   return (
@@ -2231,14 +2231,14 @@ function Contact({ content }) {
 
   const c = content?.contact || {}
 
-  const phoneDisplay = c.phone || '+91 90477 77936'
+  const phoneDisplay = c.phone || companyNAP.phone
 
-  const phoneRaw = c.phoneRaw || '919047777936'
+  const phoneRaw = c.phoneRaw || companyNAP.phoneRaw
 
-  const email = c.email || 'ivrenergysolutions@gmail.com'
-  const secondaryEmail = c.secondaryEmail || 'info@ivrenergy.com'
-  const whatsapp = c.whatsapp || '919047777936'
-  const address = c.address || 'Door No 1, Manasarovar Nagar, Plot A, Gerugambakkam, Chennai  — 600122'
+  const email = c.email || companyNAP.primaryEmail
+  const secondaryEmail = c.secondaryEmail || companyNAP.secondaryEmail
+  const whatsapp = c.whatsapp || companyNAP.phoneRaw
+  const address = c.address || companyNAP.address.fullFormatted
   const hours = c.hours || 'Mon - Sat, 9:30 AM  -  7:30 PM'
   const mapLat = c.mapLat || '13.013901231811213'
   const mapLng = c.mapLng || '80.13669724989127'
@@ -2264,17 +2264,34 @@ function Contact({ content }) {
   return (
     <Section id="contact" className="bg-[#ffffff]" >
       <div className="container mx-auto px-6" >
-        <SectionHeader eyebrow="Get in touch" title={<>Let's power your building with <span className="text-gradient-red">clean energy</span></>} sub="Book a free site visit — our engineer will visit within 48 hours." />
-        <div className="grid lg:grid-cols-5 gap-8 items-start" >
+        <SectionHeader eyebrow="Get in Touch" title={<>Ready to switch to <span className="text-gradient-red" >solar power?</span></>} sub="Talk to our engineers for a custom feasibility study, system sizing, and transparent quote." />
+        <div className="grid lg:grid-cols-5 gap-8 mt-12" >
           {/* Left Column: Contact Cards */}
           <div className="lg:col-span-2 space-y-4" >
-            {/* Call Us Card */}
-            <div className="rounded-[28px] bg-gradient-to-br from-[#D71920] to-[#b3141a] text-white p-7 shadow-[12px_12px_30px_rgba(215,25,32,0.35)] border border-red-500/20" >
-              <div className="text-[10px] uppercase font-bold tracking-widest text-white/80" >CALL US</div>
-              <a href={`tel:+${phoneRaw}`} className="mt-1 block text-2xl sm:text-3xl font-extrabold tracking-tight hover:opacity-90" >{phoneDisplay}</a>
-              <div className="mt-1 text-xs text-white/80" >{hours}</div>
+            {/* Call Card */}
+            <a href={`tel:+${phoneRaw}`} className="block rounded-[24px] bg-[#ffffff] p-6 border border-neutral-200/80 shadow-[0_8px_25px_rgba(0,0,0,0.05)] transition-all" >
+              <div className="flex items-start gap-4" >
+                <div className="w-11 h-11 rounded-2xl bg-[#ffffff] text-[#D71920] border border-neutral-200/80 shadow-sm flex items-center justify-center flex-shrink-0" >
+                  <PhoneCall className="h-5 w-5" />
+                </div>
+                <div>
+                  <div className="text-[10px] uppercase font-bold tracking-widest text-neutral-400" >CALL DIRECTLY</div>
+                  <div className="mt-1 text-base font-bold text-neutral-900 tracking-tight" >{phoneDisplay}</div>
+                </div>
+              </div>
+            </a>
+            {/* Working Hours Card */}
+            <div className="rounded-[24px] bg-[#ffffff] p-6 border border-neutral-200/80 shadow-[0_8px_25px_rgba(0,0,0,0.05)] transition-all">
+              <div className="flex items-start gap-4">
+                <div className="w-11 h-11 rounded-2xl bg-[#ffffff] text-[#D71920] border border-neutral-200/80 shadow-sm flex items-center justify-center flex-shrink-0">
+                  <Clock className="h-5 w-5" />
+                </div>
+                <div>
+                  <div className="text-[10px] uppercase font-bold tracking-widest text-neutral-400">WORKING HOURS</div>
+                  <div className="mt-1 text-sm font-normal text-neutral-700">{hours}</div>
+                </div>
+              </div>
             </div>
-
             {/* Email Card */}
             <div className="rounded-[24px] bg-[#ffffff] p-6 border border-neutral-200/80 shadow-[0_8px_25px_rgba(0,0,0,0.05)] transition-all" >
               <div className="flex items-start gap-4" >
@@ -2298,27 +2315,16 @@ function Contact({ content }) {
             </div>
 
             {/* Office Card */}
-
             <a href={`https://www.google.com/maps?q=${mapLat},${mapLng}`} target="_blank" rel="noreferrer" className="block rounded-[24px] bg-[#ffffff] p-6 border border-neutral-200/80 shadow-[0_8px_25px_rgba(0,0,0,0.05)] transition-all" >
-
               <div className="flex items-start gap-4" >
-
                 <div className="w-11 h-11 rounded-2xl bg-[#ffffff] text-[#D71920] border border-neutral-200/80 shadow-sm flex items-center justify-center flex-shrink-0" >
-
                   <MapPin className="h-5 w-5" />
-
                 </div>
-
                 <div>
-
                   <div className="text-[10px] uppercase font-bold tracking-widest text-neutral-400" >OFFICE</div>
-
-                  <div className="mt-1 text-sm font-normal text-neutral-700 leading-relaxed" >{address}</div>
-
+                  <address className="not-italic mt-1 text-sm font-normal text-neutral-700 leading-relaxed" >{address}</address>
                 </div>
-
               </div>
-
             </a>
 
             {/* WhatsApp Card */}
@@ -2463,11 +2469,11 @@ function ParallaxMap({ content }) {
 
   const mapLng = c.mapLng || '80.136667'
 
-  const address = c.address || 'Door No 1, Manasarovar Nagar, Plot A, Gerugambakkam, Chennai  — 600122'
+  const address = c.address || companyNAP.address.fullFormatted
 
-  const phoneDisplay = c.phone || '+91 90477 77936'
+  const phoneDisplay = c.phone || companyNAP.phone
 
-  const phoneRaw = c.phoneRaw || '919047777936'
+  const phoneRaw = c.phoneRaw || companyNAP.phoneRaw
 
   const [isMobile, setIsMobile] = useState(false)
 
@@ -2589,11 +2595,11 @@ function ParallaxMap({ content }) {
 
               </h3>
 
-              <p className="mt-2 text-sm text-neutral-600 leading-relaxed" >
+              <address className="not-italic mt-2 text-sm text-neutral-600 leading-relaxed" >
 
                 {address}
 
-              </p>
+              </address>
 
               <div className="mt-5 flex flex-col sm:flex-row gap-3" >
 
@@ -3257,7 +3263,7 @@ function FAQChatbot() {
 
               <div className="flex items-center gap-2" >
 
-                <span className="w-2.5 h-2.5 rounded-full bg-green-400 animate-pulse" />
+                <span className="w-2.5 h-2.5 rounded-full bg-red-400 animate-pulse ring-2 ring-white/50" />
 
                 <span className="font-bold text-sm" >IVR energy assistant</span>
 
@@ -3401,7 +3407,26 @@ function App() {
 
   const [reviews, setReviews] = useState([])
 
-  const onQuote = () => { document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' }) }
+  const onQuote = () => {
+    const elem = document.getElementById('contact')
+    if (elem) {
+      const top = elem.getBoundingClientRect().top + window.scrollY - 80
+      window.scrollTo({ top, behavior: 'smooth' })
+    }
+  }
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.location.hash === '#contact') {
+      const timer = setTimeout(() => {
+        const elem = document.getElementById('contact')
+        if (elem) {
+          const top = elem.getBoundingClientRect().top + window.scrollY - 80
+          window.scrollTo({ top, behavior: 'smooth' })
+        }
+      }, 350)
+      return () => clearTimeout(timer)
+    }
+  }, [])
 
   useEffect(() => {
     fetch('/api/content').then(r => r.json()).then(j => { if (j.content) setContent(j.content) }).catch(() => { })

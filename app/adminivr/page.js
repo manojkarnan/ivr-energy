@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from 'sonner'
 import {
@@ -8,14 +8,16 @@ import {
   FolderKanban, Search, Trash2, Phone, Mail, MapPin, Edit3, Plus, X, Save,
   Eye, EyeOff, ArrowRight, Loader2, Download, CheckCircle2, Clock, Sparkles, Upload, ImageIcon, Star,
   BookOpen, ExternalLink, Globe, Tag, FileText, Bold, Italic, List, ListOrdered, Heading1, Heading2, Quote, Code, CheckSquare, Table, ArrowLeft, RefreshCw, HelpCircle,
-  Copy, Check
+  Copy, Check, Home, Building2, Wrench, ShieldCheck, Layers, ArrowUp, ArrowDown
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { BLOG_CATEGORIES } from '@/data/blogs'
-import { DEFAULT_FAQS } from '@/data/faqs'
+import { DEFAULT_FAQS, FAQ_CATEGORIES } from '@/data/faqs'
 import { sortCapacitiesAscending } from '@/data/capacities'
+import { ALL_LANDING_PAGES_LIST } from '@/data/landingPages'
+import { companyStats, companyNAP } from '@/data/companyStats'
 
 const TOKEN_KEY = 'ivr_admin_token'
 const USER_KEY = 'ivr_admin_user'
@@ -26,9 +28,12 @@ function Login({ onLogin }) {
   const [p, setP] = useState('')
   const [show, setShow] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
   async function submit(e) {
     e.preventDefault()
+    if (!u || !p) { setError('Please enter both username and password.'); return }
+    setError('')
     setLoading(true)
     try {
       const r = await fetch('/api/admin/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username: u, password: p }) })
@@ -39,50 +44,117 @@ function Login({ onLogin }) {
         toast.success(`Welcome, ${j.user.username}`)
         onLogin(j.user, j.token)
       } else {
+        setError(j.error || 'Invalid credentials. Please try again.')
         toast.error(j.error || 'Login failed')
       }
-    } catch { toast.error('Network error') }
+    } catch { setError('Network error. Please check your connection.'); toast.error('Network error') }
     setLoading(false)
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-neutral-950 via-[#1a0505] to-neutral-950 flex items-center justify-center p-4 relative overflow-hidden" >
-      <div className="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-[#D71920]/40 blur-3xl"  />
-      <div className="absolute -bottom-32 -right-32 w-96 h-96 rounded-full bg-orange-500/20 blur-3xl"  />
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="relative w-full max-w-md" >
-        <div className="text-center mb-8" >
-          <div className="inline-flex flex-col items-center gap-3 mb-4" >
-            <div className="bg-white rounded-2xl px-6 py-4 shadow-2xl" >
-              <img src="/ivr-logo.webp"  alt="IVR Energy"  className="h-16 md:h-20 w-auto object-contain"  />
-            </div>
-            <div className="text-xs uppercase tracking-widest text-neutral-400 mt-1" >Admin Panel</div>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#0a0a0a] relative overflow-hidden w-full">
+      {/* Ambient Gradient Glows */}
+      <div className="absolute top-[-20%] left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full bg-[#D71920]/20 blur-[180px] pointer-events-none" />
+      <div className="absolute bottom-[-15%] right-[-10%] w-[400px] h-[400px] rounded-full bg-orange-600/10 blur-[140px] pointer-events-none" />
+      <div className="absolute top-[30%] left-[-5%] w-[300px] h-[300px] rounded-full bg-red-900/15 blur-[120px] pointer-events-none" />
+
+      {/* Subtle Grid Pattern Overlay */}
+      <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.15) 1px, transparent 1px)', backgroundSize: '32px 32px' }} />
+
+      <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: 'easeOut' }} className="relative z-10 w-full max-w-[400px] px-4">
+        {/* Glass Card */}
+        <div className="rounded-3xl bg-gradient-to-br from-white/[0.08] to-white/[0.02] backdrop-blur-2xl border border-white/[0.08] shadow-[0_8px_64px_rgba(0,0,0,0.4)] p-8 md:p-10 flex flex-col items-center">
+          {/* Logo */}
+          <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-white shadow-lg mb-5">
+            <img src="/ivr-logo.webp" alt="IVR Energy" className="h-10 w-auto object-contain" />
           </div>
-        </div>
-        <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl" >
-          <div className="mb-6" >
-            <div className="text-2xl font-bold text-white" >Welcome back</div>
-            <div className="text-sm text-neutral-400 mt-1" >Sign in to manage leads & projects</div>
-          </div>
-          <form onSubmit={submit} className="space-y-4" >
-            <div>
-              <label className="text-xs font-semibold text-neutral-300 uppercase tracking-wider" >Username</label>
-              <Input value={u} onChange={e => setU(e.target.value)} placeholder="admin@ivr"  className="mt-2 h-12 rounded-xl bg-white/10 border-white/10 text-white placeholder:text-neutral-500 focus:border-[#D71920]"  autoComplete="username"  />
-            </div>
-            <div>
-              <label className="text-xs font-semibold text-neutral-300 uppercase tracking-wider" >Password</label>
-              <div className="relative mt-2" >
-                <Input type={show ? 'text' : 'password'} value={p} onChange={e => setP(e.target.value)} placeholder="Enter password"  className="h-12 rounded-xl bg-white/10 border-white/10 text-white placeholder:text-neutral-500 focus:border-[#D71920] pr-11"  autoComplete="current-password"  />
-                <button type="button"  onClick={() => setShow(s => !s)} className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-white" >
-                  {show ? <EyeOff className="h-4 w-4"  /> : <Eye className="h-4 w-4"  />}
-                </button>
+
+          {/* Title */}
+          <h1 className="text-2xl font-semibold text-white mb-1 text-center tracking-tight">
+            IVR Energy
+          </h1>
+          <p className="text-sm text-neutral-400 mb-8 text-center">
+            Admin Control Panel
+          </p>
+
+          {/* Form */}
+          <form onSubmit={submit} className="flex flex-col w-full gap-4">
+            <div className="w-full flex flex-col gap-3">
+              <div>
+                <label className="text-[11px] font-medium text-neutral-500 uppercase tracking-wider mb-1.5 block">
+                  Username
+                </label>
+                <input
+                  type="text"
+                  value={u}
+                  onChange={e => setU(e.target.value)}
+                  placeholder="admin@ivrenergy.com"
+                  autoComplete="username"
+                  className="w-full px-4 py-3.5 rounded-xl bg-white/[0.06] border border-white/[0.08] text-white placeholder-neutral-500 text-sm focus:outline-none focus:ring-2 focus:ring-[#D71920]/50 focus:border-[#D71920]/30 transition-all duration-200"
+                />
               </div>
+
+              <div>
+                <label className="text-[11px] font-medium text-neutral-500 uppercase tracking-wider mb-1.5 block">
+                  Password
+                </label>
+                <div className="relative">
+                  <input
+                    type={show ? 'text' : 'password'}
+                    value={p}
+                    onChange={e => setP(e.target.value)}
+                    placeholder="Enter your password"
+                    autoComplete="current-password"
+                    className="w-full px-4 py-3.5 rounded-xl bg-white/[0.06] border border-white/[0.08] text-white placeholder-neutral-500 text-sm focus:outline-none focus:ring-2 focus:ring-[#D71920]/50 focus:border-[#D71920]/30 transition-all duration-200 pr-12"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShow(s => !s)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-neutral-300 transition-colors cursor-pointer"
+                    tabIndex={-1}
+                  >
+                    {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+
+              {error && (
+                <motion.div
+                  initial={{ opacity: 0, y: -4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-2.5 text-center"
+                >
+                  {error}
+                </motion.div>
+              )}
             </div>
-            <Button type="submit"  disabled={loading} className="w-full h-12 bg-[#D71920] hover:bg-[#a5121a] rounded-xl text-white font-semibold shadow-glow-red mt-2" >
-              {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin"  /> Signing in...</> : <>Sign In <ArrowRight className="ml-2 h-4 w-4"  /></>}
-            </Button>
+
+            <div className="w-full h-px bg-gradient-to-r from-transparent via-white/10 to-transparent my-1" />
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-gradient-to-r from-[#D71920] to-[#e63946] text-white font-semibold px-5 py-3.5 rounded-xl shadow-lg shadow-[#D71920]/20 hover:shadow-xl hover:shadow-[#D71920]/30 hover:brightness-110 transition-all duration-200 text-sm flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" /> Signing in...
+                </>
+              ) : (
+                <>
+                  Sign In <ArrowRight className="h-4 w-4" />
+                </>
+              )}
+            </button>
           </form>
         </div>
-        <div className="text-center mt-6 text-xs text-neutral-500" >Authorized personnel only</div>
+
+        {/* Footer */}
+        <div className="mt-8 text-center">
+          <p className="text-neutral-600 text-xs">
+            Authorized personnel only · <span className="text-neutral-500">IVR Energy Pvt Ltd</span>
+          </p>
+        </div>
       </motion.div>
     </div>
   )
@@ -680,12 +752,29 @@ function Projects({ token }) {
   const [projects, setProjects] = useState([])
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState(null) // project object or 'new'
+  const [savingHeader, setSavingHeader] = useState(false)
+  const [headerOpen, setHeaderOpen] = useState(false)
+  const [headerContent, setHeaderContent] = useState({
+    projectsPageTitle: 'Engineering Excellence Across <span class="text-gradient-red">Tamil Nadu & Beyond</span>',
+    projectsPageSubtitle: 'Explore our commissioned utility-scale, industrial captive, and commercial rooftop solar installations engineered for peak kilowatt-hour generation.'
+  })
 
   async function load() {
     setLoading(true)
-    const r = await fetch('/api/admin/projects', { headers: { Authorization: `Bearer ${token}` } })
-    const j = await r.json()
-    setProjects(j.projects || [])
+    try {
+      const r = await fetch('/api/admin/projects', { headers: { Authorization: `Bearer ${token}` } })
+      const j = await r.json()
+      setProjects(j.projects || [])
+
+      const cr = await fetch('/api/content')
+      const cj = await cr.json()
+      if (cj.content) {
+        setHeaderContent({
+          projectsPageTitle: cj.content.projectsPageTitle || 'Engineering Excellence Across <span class="text-gradient-red">Tamil Nadu & Beyond</span>',
+          projectsPageSubtitle: cj.content.projectsPageSubtitle || 'Explore our commissioned utility-scale, industrial captive, and commercial rooftop solar installations engineered for peak kilowatt-hour generation.'
+        })
+      }
+    } catch {}
     setLoading(false)
   }
   useEffect(() => { load() /* eslint-disable-next-line */ }, [])
@@ -707,12 +796,129 @@ function Projects({ token }) {
     load()
   }
 
+  async function saveHeaderSettings(e) {
+    e.preventDefault()
+    setSavingHeader(true)
+    try {
+      const r = await fetch('/api/admin/content', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify(headerContent)
+      })
+      const j = await r.json()
+      if (j.success) {
+        toast.success('Projects Page Header saved & synced to live /projects')
+      } else {
+        toast.error(j.error || 'Failed to save page header')
+      }
+    } catch (e) {
+      toast.error('Save failed: ' + e.message)
+    }
+    setSavingHeader(false)
+  }
+
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6" >
-        <div className="text-neutral-600 text-sm" >Manage projects displayed on the website. Changes reflect live.</div>
-        <Button onClick={() => setEditing({ title: '', client: '', location: '', capacity: '', type: 'Commercial', img: '', gallery: [], order: 999 })} className="bg-[#D71920] hover:bg-[#a5121a] rounded-xl" >
-          <Plus className="h-4 w-4 mr-2"  /> Add Project
+    <div className="space-y-6">
+      {/* Page Header Banner & SEO Title Settings Card */}
+      <div className="bg-white rounded-2xl border border-neutral-200 shadow-soft overflow-hidden">
+        <div 
+          onClick={() => setHeaderOpen(!headerOpen)}
+          className="p-5 flex items-center justify-between cursor-pointer hover:bg-neutral-50/80 transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-red-50 text-[#D71920] border border-red-100 flex items-center justify-center shrink-0">
+              <FolderKanban className="h-5 w-5" />
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-neutral-900 flex items-center gap-2">
+                Projects Page Header Settings
+                <span className="text-[11px] font-normal text-neutral-500 bg-neutral-100 px-2 py-0.5 rounded-md">
+                  /projects
+                </span>
+              </h2>
+              <p className="text-xs text-neutral-500 mt-0.5">
+                Customize the main title headline and description on the public projects page.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <a
+              href="/projects"
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="hidden sm:inline-flex items-center gap-1 text-xs font-semibold text-[#D71920] hover:underline mr-2"
+            >
+              <ExternalLink className="h-3.5 w-3.5" /> View Live Page
+            </a>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="rounded-xl text-xs"
+            >
+              {headerOpen ? 'Hide Settings' : 'Edit Page Header'}
+            </Button>
+          </div>
+        </div>
+
+        {headerOpen && (
+          <form onSubmit={saveHeaderSettings} className="p-5 pt-0 border-t border-neutral-100 bg-neutral-50/50 space-y-4">
+            <div className="space-y-3 pt-4">
+              <div>
+                <label className="text-xs font-bold text-neutral-700 uppercase tracking-wider block mb-1.5">
+                  Page Main Title (HTML Supported)
+                </label>
+                <Input
+                  value={headerContent.projectsPageTitle}
+                  onChange={(e) => setHeaderContent({ ...headerContent, projectsPageTitle: e.target.value })}
+                  placeholder='e.g. Engineering Excellence Across <span class="text-gradient-red">Tamil Nadu & Beyond</span>'
+                  className="h-11 rounded-xl bg-white text-xs font-semibold"
+                  required
+                />
+                <p className="text-[11px] text-neutral-400 mt-1">
+                  Tip: Wrap highlighted words in <code className="text-[#D71920]">&lt;span class="text-gradient-red"&gt;text&lt;/span&gt;</code> for the red gradient style.
+                </p>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-neutral-700 uppercase tracking-wider block mb-1.5">
+                  Page Subtitle / Description
+                </label>
+                <Textarea
+                  value={headerContent.projectsPageSubtitle}
+                  onChange={(e) => setHeaderContent({ ...headerContent, projectsPageSubtitle: e.target.value })}
+                  placeholder="Enter descriptive subhead for the projects page..."
+                  rows={3}
+                  className="rounded-xl bg-white text-xs leading-relaxed"
+                  required
+                />
+              </div>
+
+              <div className="flex justify-end pt-2">
+                <Button
+                  type="submit"
+                  disabled={savingHeader}
+                  className="bg-[#D71920] hover:bg-[#a5121a] text-white rounded-xl text-xs h-10 px-5 font-bold shadow-glow-red flex items-center gap-1.5"
+                >
+                  {savingHeader ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                  Save Projects Header
+                </Button>
+              </div>
+            </div>
+          </form>
+        )}
+      </div>
+
+      {/* Projects List Controls Bar */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-5 rounded-2xl border border-neutral-200 shadow-soft">
+        <div>
+          <h3 className="text-base font-bold text-neutral-900">Project Portfolio Items</h3>
+          <p className="text-xs text-neutral-500 mt-0.5">Manage the solar EPC installation cards shown across the website.</p>
+        </div>
+        <Button onClick={() => setEditing({ title: '', client: '', location: '', capacity: '', type: 'Commercial', img: '', gallery: [], order: 999 })} className="bg-[#D71920] hover:bg-[#a5121a] text-white rounded-xl text-xs font-bold shadow-glow-red cursor-pointer">
+          <Plus className="h-4 w-4 mr-1.5" /> Add New Project
         </Button>
       </div>
       {loading ? (
@@ -890,12 +1096,99 @@ function ProjectEditor({ project, onSave, onClose, token }) {
   )
 }
 
-// -------- Site Content Manager --------
+// -------- Site Content Manager (Organized Page-Orderwise) --------
+const PAGE_GROUPS = [
+  {
+    id: 'home',
+    label: 'Home Page',
+    path: '/',
+    icon: Home,
+    badge: '10 Sections',
+    defaultTab: 'text',
+    desc: 'Hero, Trust Badges, Stats, Why Us, Process, Calculator, FAQs & Visibility',
+    tabs: [
+      { id: 'text', label: '01. Hero Header' },
+      { id: 'badges', label: '02. Trust Badges' },
+      { id: 'stats', label: '03. Stats Counter' },
+      { id: 'subsidy', label: '04. Subsidy Banner' },
+      { id: 'whyUs', label: '05. Why Choose Us' },
+      { id: 'process', label: '06. Working Process' },
+      { id: 'calculator', label: '07. Solar ROI Calculator' },
+      { id: 'projects', label: '08. Projects Section Text' },
+      { id: 'faqs', label: '09. FAQ Section Text' },
+      { id: 'visibility', label: '10. Section Visibility' },
+    ]
+  },
+  {
+    id: 'about',
+    label: 'About Page',
+    path: '/about',
+    icon: Users,
+    badge: 'Full Page',
+    defaultTab: 'about',
+    desc: 'Hero, Mission & Narrative, 3 Pillars, Evolution Timeline, Values & CTA',
+    tabs: [
+      { id: 'about', label: 'About Page Full Manager' }
+    ]
+  },
+  {
+    id: 'solutions',
+    label: 'Solutions Page',
+    path: '/solutions',
+    icon: Zap,
+    badge: '6 Segments',
+    defaultTab: 'solutions',
+    desc: 'Hero, 6 Solution Categories & Specs, Topology Comparison Matrix & CTA',
+    tabs: [
+      { id: 'solutions', label: 'Solutions Page Full Manager' }
+    ]
+  },
+  {
+    id: 'services',
+    label: 'Services Page',
+    path: '/services',
+    icon: Wrench,
+    badge: 'Capacity Sizing',
+    defaultTab: 'services',
+    desc: 'Hero, System Sizing Packages (3kW, 4kW, 5kW, 10kW+), EPC Capabilities & CTA',
+    tabs: [
+      { id: 'services', label: 'Services Page Full Manager' }
+    ]
+  },
+  {
+    id: 'contact',
+    label: 'Contact Info & Footer',
+    path: '/contact',
+    icon: Phone,
+    badge: 'Global Info',
+    defaultTab: 'contact',
+    desc: 'Phone numbers, WhatsApp, Email, Head Office & Branch Locations, Working Hours',
+    tabs: [
+      { id: 'contact', label: 'Contact Details & Branch Locations' }
+    ]
+  },
+  {
+    id: 'media',
+    label: 'Media, Logos & Legal',
+    path: 'Global',
+    icon: FileText,
+    badge: 'Assets & Policy',
+    defaultTab: 'images',
+    desc: 'Section Background Images, Client & Partner Logos, Terms of Service & Privacy Policy',
+    tabs: [
+      { id: 'images', label: '01. Section Images' },
+      { id: 'clients', label: '02. Client Logos' },
+      { id: 'legal', label: '03. Terms & Privacy' },
+    ]
+  },
+]
+
 function Content({ token }) {
   const [content, setContent] = useState({})
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [uploadingKey, setUploadingKey] = useState(null)
+  const [selectedPage, setSelectedPage] = useState('home')
   const [subTab, setSubTab] = useState('text')
 
   async function load() {
@@ -930,55 +1223,120 @@ function Content({ token }) {
     setUploadingKey(null)
   }
 
-  if (loading) return <div className="p-12 flex justify-center" ><Loader2 className="h-8 w-8 animate-spin text-[#D71920]"  /></div>
+  const activeGroup = PAGE_GROUPS.find(g => g.id === selectedPage) || PAGE_GROUPS[0]
 
-  const subTabs = [
-    { id: 'text', label: 'Hero Text' },
-    { id: 'badges', label: 'Trust Badges' },
-    { id: 'stats', label: 'Stats' },
-    { id: 'subsidy', label: 'Subsidy Banner' },
-    { id: 'about', label: 'About Section' },
-    { id: 'services', label: 'Services' },
-    { id: 'solutions', label: 'Solutions' },
-    { id: 'whyUs', label: 'Why Us' },
-    { id: 'process', label: 'Process' },
-    { id: 'faqs', label: 'FAQs' },
-    { id: 'projects', label: 'Projects Text' },
-    { id: 'calculator', label: 'Calculator' },
-    { id: 'contact', label: 'Contact Info' },
-    { id: 'images', label: 'Section Images' },
-    { id: 'clients', label: 'Client Logos' },
-    { id: 'visibility', label: 'Section Visibility' },
-    { id: 'legal', label: 'Terms & Privacy' },
-  ]
+  function handleSelectPage(pageId) {
+    setSelectedPage(pageId)
+    const group = PAGE_GROUPS.find(g => g.id === pageId)
+    if (group) {
+      setSubTab(group.defaultTab || group.tabs[0].id)
+    }
+  }
+
+  if (loading) return <div className="p-12 flex justify-center"><Loader2 className="h-8 w-8 animate-spin text-[#D71920]" /></div>
 
   return (
-    <div>
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-        <div className="inline-flex gap-1 bg-neutral-100 p-1 rounded-full flex-wrap">
-          {subTabs.map(t => (
-            <button key={t.id} onClick={() => setSubTab(t.id)} className={`px-4 py-2 rounded-full text-xs font-semibold transition-all ${subTab === t.id ? 'bg-white text-[#D71920] shadow' : 'text-neutral-600 hover:text-neutral-900'}`}>{t.label}</button>
-          ))}
+    <div className="space-y-6">
+      {/* ──────── TIER 1: PAGE-ORDERWISE SELECTOR TABS ──────── */}
+      <div className="bg-white rounded-2xl p-3 sm:p-4 border border-neutral-200/80 shadow-sm">
+        <div className="flex items-center justify-between pb-3 mb-3 border-b border-neutral-100">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold uppercase tracking-wider text-neutral-400">Manage Content By Page</span>
+          </div>
+          {saving && <span className="text-xs inline-flex items-center gap-1 text-[#D71920] font-bold"><Loader2 className="h-3 w-3 animate-spin" /> Saving Changes...</span>}
         </div>
-        {saving && <span className="text-xs inline-flex items-center gap-1 text-[#D71920]"><Loader2 className="h-3 w-3 animate-spin" /> Saving...</span>}
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-2.5">
+          {PAGE_GROUPS.map((p) => {
+            const isSelected = selectedPage === p.id
+            const Icon = p.icon
+            return (
+              <button
+                key={p.id}
+                onClick={() => handleSelectPage(p.id)}
+                className={`p-3 rounded-xl text-left transition-all relative border flex flex-col justify-between cursor-pointer ${
+                  isSelected
+                    ? 'bg-red-50/80 border-[#D71920] text-neutral-900 shadow-sm ring-1 ring-[#D71920]'
+                    : 'bg-neutral-50/70 border-neutral-200/80 hover:bg-neutral-100/80 text-neutral-600'
+                }`}
+              >
+                <div className="flex items-center justify-between w-full mb-2">
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isSelected ? 'bg-[#D71920] text-white shadow-sm' : 'bg-neutral-200 text-neutral-700'}`}>
+                    <Icon className="h-4 w-4" />
+                  </div>
+                  <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded-full font-bold ${isSelected ? 'bg-red-200/80 text-[#D71920]' : 'bg-neutral-200/80 text-neutral-600'}`}>
+                    {p.path}
+                  </span>
+                </div>
+                <div>
+                  <div className={`text-xs font-bold tracking-tight ${isSelected ? 'text-[#D71920]' : 'text-neutral-900'}`}>
+                    {p.label}
+                  </div>
+                  <div className="text-[10px] text-neutral-400 mt-0.5 font-medium truncate">
+                    {p.badge}
+                  </div>
+                </div>
+              </button>
+            )
+          })}
+        </div>
       </div>
 
+      {/* ──────── TIER 2: ORDERED SECTIONS PILL BAR (For Multi-Section Pages) ──────── */}
+      {activeGroup.tabs.length > 1 && (
+        <div className="bg-white rounded-2xl p-2 sm:p-3 border border-neutral-200/80 shadow-2xs flex items-center gap-2 overflow-x-auto no-scrollbar">
+          <span className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider px-2 shrink-0">
+            {activeGroup.label} Sections:
+          </span>
+          <div className="flex items-center gap-1.5 flex-nowrap">
+            {activeGroup.tabs.map((t) => {
+              const isTabActive = subTab === t.id
+              return (
+                <button
+                  key={t.id}
+                  onClick={() => setSubTab(t.id)}
+                  className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+                    isTabActive
+                      ? 'bg-[#D71920] text-white shadow-sm shadow-red-600/20'
+                      : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200 hover:text-neutral-900'
+                  }`}
+                >
+                  {t.label}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ──────── TIER 3: EDITORS ──────── */}
+      {/* Home Page Sections */}
       {subTab === 'text' && <HeroTextEditor content={content} save={save} />}
       {subTab === 'badges' && <BadgesEditor content={content} save={save} />}
       {subTab === 'stats' && <StatsEditor content={content} save={save} />}
       {subTab === 'subsidy' && <SubsidyEditor content={content} save={save} />}
-      {subTab === 'about' && <AboutSectionEditor content={content} save={save} />}
-      {subTab === 'services' && <ServicesSectionEditor content={content} save={save} />}
-      {subTab === 'solutions' && <SolutionsSectionEditor content={content} save={save} />}
       {subTab === 'whyUs' && <WhyUsSectionEditor content={content} save={save} />}
       {subTab === 'process' && <ProcessSectionEditor content={content} save={save} />}
-      {subTab === 'faqs' && <FaqsSectionEditor content={content} save={save} />}
-      {subTab === 'projects' && <ProjectsTextEditor content={content} save={save} />}
       {subTab === 'calculator' && <CalculatorEditor content={content} save={save} />}
+      {subTab === 'projects' && <ProjectsTextEditor content={content} save={save} />}
+      {subTab === 'faqs' && <FaqsSectionEditor content={content} save={save} />}
+      {subTab === 'visibility' && <VisibilityEditor content={content} save={save} />}
+
+      {/* About Page Full Manager */}
+      {subTab === 'about' && <AboutSectionEditor content={content} save={save} />}
+
+      {/* Solutions Page Full Manager */}
+      {subTab === 'solutions' && <SolutionsSectionEditor content={content} save={save} />}
+
+      {/* Services Page Full Manager */}
+      {subTab === 'services' && <ServicesSectionEditor content={content} save={save} />}
+
+      {/* Contact Info & Footer */}
       {subTab === 'contact' && <ContactInfoEditor content={content} save={save} />}
+
+      {/* Media, Logos & Legal */}
       {subTab === 'images' && <ImagesEditor content={content} uploadFor={uploadFor} uploadingKey={uploadingKey} save={save} />}
       {subTab === 'clients' && <ClientsEditor content={content} save={save} token={token} />}
-      {subTab === 'visibility' && <VisibilityEditor content={content} save={save} />}
       {subTab === 'legal' && <LegalEditor content={content} save={save} />}
     </div>
   )
@@ -1068,18 +1426,12 @@ function BadgesEditor({ content, save }) {
 }
 
 function StatsEditor({ content, save }) {
-  const seed = [
-    { value: 15, suffix: '+ MW', label: 'Installed Capacity' },
-    { value: 180, suffix: '+', label: 'Happy Clients' },
-    { value: 12, suffix: '+', label: 'Years Experience' },
-    { value: 250, suffix: '+', label: 'Projects Delivered' },
-    { value: 6500, suffix: 'T', label: 'CO₂ Reduced (tons)' },
-  ]
+  const seed = companyStats.statItems
   const [items, setItems] = useState((content.stats && content.stats.length) ? content.stats : seed)
   const update = (i, patch) => setItems(items.map((x, idx) => idx === i ? { ...x, ...patch } : x))
   return (
     <div className="rounded-2xl bg-white p-6 shadow-soft border border-neutral-100" >
-      <div className="text-sm text-neutral-600 mb-4" >These 5 stats appear in the animated counter row on the hero.</div>
+      <div className="text-sm text-neutral-600 mb-4" >These stats appear in the animated counter row on the hero.</div>
       <div className="grid gap-3" >
         {items.map((s, i) => (
           <div key={i} className="grid grid-cols-3 gap-3 bg-neutral-50 rounded-xl p-3" >
@@ -1160,51 +1512,261 @@ function SubsidyEditor({ content, save }) {
   )
 }
 
+const SEED_ABOUT_TIMELINE = [
+  { year: '2018', title: 'Establishment & Foundation', desc: 'Founded with a core focus on precision solar structural engineering and specialized electrical consulting in Tamil Nadu.' },
+  { year: '2020', title: 'Commercial Scale & Expansion', desc: 'Expanded turnkey rooftop EPC services to hospitals, colleges, and commercial complexes across Chennai and industrial hubs.' },
+  { year: '2022', title: 'MW-Scale Industrial Captive Plants', desc: 'Delivered HT grid-connected captive installations for textile, chemical, and precision manufacturing sectors.' },
+  { year: '2024', title: 'PM Surya Ghar National Empanelment', desc: 'Accredited with national nodal agencies for fast-track DBT subsidy disbursal and residential villa solar solutions.' },
+  { year: '2026', title: 'Smart IoT, Storage & EV Solar Carports', desc: 'Pioneering integrated hybrid storage systems, smart microgrids, and bi-directional EV charging solar canopies.' },
+]
+
+const SEED_ABOUT_VALUES = [
+  { title: 'Engineering Rigor', desc: 'Every layout is verified through computational solar irradiance and shading simulations to maximize lifetime kWh output.' },
+  { title: 'Absolute Transparency', desc: 'No hidden clauses or subcontracted delays. Transparent Bill of Materials (BOM) with genuine Tier-1 manufacturer warranties.' },
+  { title: 'Enduring Stewardship', desc: 'We treat every solar plant as a quarter-century infrastructure asset, backed by dedicated SLA maintenance teams.' },
+]
+
 function AboutSectionEditor({ content, save }) {
+  const [activeTab, setActiveTab] = useState('hero')
+
   const [f, setF] = useState({
-    aboutEyebrow: content.aboutEyebrow || 'About IVR Energy',
-    aboutTitle: content.aboutTitle || 'A single-vertical solar company built on <span class="text-gradient-red" >expertise & trust</span>.',
-    aboutDescription: content.aboutDescription || 'IVR Energy is promoted by experienced professionals with wide knowledge of the solar industry — supported by financial partners and government nodal agencies. We focus on <strong>only solar power generation</strong>, diversified across Residential Rooftop, Commercial Rooftop, Industrial Rooftop and Ground-Mounted solar farms.',
-    aboutMission: content.aboutMission || 'Make every home & business a self-sustaining power producer.',
-    aboutVision: content.aboutVision || "Accelerate India's transition to 100% clean energy.",
-    aboutCards: content.aboutCards || [
-      { t: 'Government Approved.', d: 'Empanelled with DISCOM & nodal agencies for subsidy clearance.', icon: 'ShieldCheck' },
-      { t: 'Experienced Team.', d: 'Solar-only specialists with 12+ years of field engineering expertise.', icon: 'Award' },
-      { t: 'Financial Support.', d: 'Bank tie-ups & subsidy assistance under PM Surya Ghar Yojana.', icon: 'IndianRupee' },
-      { t: 'Turnkey Delivery.', d: 'From site shadow analysis to net-metering & 24/7 O&M support.', icon: 'Wrench' }
-    ]
+    // Hero
+    aboutHeroTitle: content.aboutHeroTitle || 'Engineering renewable power with <span class="font-normal bg-gradient-to-r from-[#ff4b55] via-[#D71920] to-orange-500 bg-clip-text text-transparent">clarity</span>, <span class="font-normal text-neutral-900">precision</span>, and <span class="font-normal bg-gradient-to-r from-[#ff4b55] via-[#D71920] to-orange-500 bg-clip-text text-transparent">integrity</span>.',
+    aboutHeroDescription: content.aboutHeroDescription || 'IVR Energy is a premier Solar EPC contractor based in Tamil Nadu. We engineer, procure, and construct high-yield rooftop and captive solar assets for homeowners, commercial institutions, and industrial leaders across India.',
+    
+    // Mission & Narrative
+    aboutMissionHeading: content.aboutMissionHeading || 'Our Mission & Purpose',
+    aboutMissionP1: content.aboutMissionP1 || 'At <strong class="font-semibold text-neutral-900">IVR Energy</strong>, we believe the transition to clean solar energy should be transparent, high-yielding, and built to last. With over 12+ years of dedicated solar EPC experience across Tamil Nadu, we treat every installation as a multi-decade critical infrastructure asset.',
+    aboutMissionP2: content.aboutMissionP2 || 'Our engineering methodology eliminates the guesswork from renewable power. By conducting precision 3D shadow simulations, utilizing Tier-1 TOPCon and Mono-PERC modules, and installing hot-dip galvanized structures tested for high-velocity winds, we guarantee maximum kilowatt-hour generation.',
+    aboutMissionP3: content.aboutMissionP3 || 'From independent homes securing direct PM Surya Ghar DBT subsidies to multi-megawatt industrial captive power plants, we take complete turnkey ownership—managing DISCOM net-metering liaison, CEIG safety clearances, and lifetime cloud SCADA performance tracking.',
+
+    // 3 Right Pillar Cards
+    aboutMissionCardTitle: content.aboutMissionCardTitle || 'Our Mission',
+    aboutMissionCardDesc: content.aboutMissionCardDesc || 'Deliver zero-headache, high-yield rooftop solar for homes, businesses, and industrial plants.',
+    aboutPurposeCardTitle: content.aboutPurposeCardTitle || 'Our Purpose',
+    aboutPurposeCardDesc: content.aboutPurposeCardDesc || 'Accelerate clean energy adoption through precision engineering and Tier-1 hardware.',
+    aboutTurnkeyCardTitle: content.aboutTurnkeyCardTitle || 'Turnkey Assurance',
+    aboutTurnkeyCardDesc: content.aboutTurnkeyCardDesc || 'End-to-end execution: shadow analysis, DISCOM net-metering, and direct DBT subsidies.',
+
+    // Evolution Timeline
+    aboutTimelineTitle: content.aboutTimelineTitle || 'Evolution & Growth',
+    aboutTimelineSubtitle: content.aboutTimelineSubtitle || "Key milestones in IVR Energy's journey from foundation to industry leadership.",
+    aboutTimeline: (content.aboutTimeline && content.aboutTimeline.length > 0) ? content.aboutTimeline : SEED_ABOUT_TIMELINE,
+
+    // Core Values
+    aboutValuesEyebrow: content.aboutValuesEyebrow || 'Our Principles',
+    aboutValuesTitle: content.aboutValuesTitle || 'Core Values',
+    aboutValues: (content.aboutValues && content.aboutValues.length > 0) ? content.aboutValues : SEED_ABOUT_VALUES,
+
+    // Bottom CTA Bento Box
+    aboutCtaTitle: content.aboutCtaTitle || 'Begin your solar feasibility assessment.',
+    aboutCtaDesc: content.aboutCtaDesc || 'Connect directly with our engineering team for an exact irradiance report, system capacity sizing, and subsidy overview.',
+    aboutCtaButtonText: content.aboutCtaButtonText || 'Request Site Assessment'
   })
 
   return (
     <div className="rounded-2xl bg-white p-6 shadow-soft border border-neutral-100 space-y-6">
-      <div className="text-sm font-bold text-neutral-900 border-b pb-2">About Section Full Editor</div>
-      <FieldRow label="Section Eyebrow"><Input value={f.aboutEyebrow} onChange={e => setF({ ...f, aboutEyebrow: e.target.value })} className="h-11 rounded-xl" /></FieldRow>
-      <FieldRow label="Title (HTML supported)"><Textarea value={f.aboutTitle} onChange={e => setF({ ...f, aboutTitle: e.target.value })} rows={2} className="rounded-xl" /></FieldRow>
-      <FieldRow label="Description (HTML supported)"><Textarea value={f.aboutDescription} onChange={e => setF({ ...f, aboutDescription: e.target.value })} rows={4} className="rounded-xl" /></FieldRow>
-      
-      <div className="grid grid-cols-2 gap-4">
-        <FieldRow label="Our Mission"><Textarea value={f.aboutMission} onChange={e => setF({ ...f, aboutMission: e.target.value })} rows={2} className="rounded-xl" /></FieldRow>
-        <FieldRow label="Our Vision"><Textarea value={f.aboutVision} onChange={e => setF({ ...f, aboutVision: e.target.value })} rows={2} className="rounded-xl" /></FieldRow>
-      </div>
-
-      <div>
-        <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wider">Feature Grid Cards (4 Cards)</label>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3">
-          {f.aboutCards.map((c, idx) => (
-            <div key={idx} className="bg-neutral-50 p-4 rounded-2xl border border-neutral-200/80 space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-xs font-bold text-neutral-500">Card #{idx + 1}</span>
-                <IconSelect value={c.icon} onChange={icon => { const newC = [...f.aboutCards]; newC[idx].icon = icon; setF({ ...f, aboutCards: newC }) }} />
-              </div>
-              <Input value={c.t} onChange={e => { const newC = [...f.aboutCards]; newC[idx].t = e.target.value; setF({ ...f, aboutCards: newC }) }} placeholder="Title" className="h-10 rounded-xl" />
-              <Textarea value={c.d} onChange={e => { const newC = [...f.aboutCards]; newC[idx].d = e.target.value; setF({ ...f, aboutCards: newC }) }} placeholder="Description" rows={2} className="rounded-xl" />
-            </div>
-          ))}
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b pb-4">
+        <div>
+          <h3 className="font-bold text-neutral-900 text-lg">About Page Content Manager</h3>
+          <p className="text-sm text-neutral-500 mt-1">Manage and update all sections of the live About Page (/about).</p>
         </div>
+        <Button onClick={() => save(f)} className="bg-[#D71920] hover:bg-[#a5121a] text-white rounded-xl font-bold px-6">
+          <Save className="h-4 w-4 mr-2" /> Save About Page
+        </Button>
       </div>
 
-      <div className="pt-4 flex justify-end">
-        <Button onClick={() => save(f)} className="bg-[#D71920] hover:bg-[#a5121a] rounded-xl"><Save className="h-4 w-4 mr-2" /> Save About Section</Button>
+      {/* Sub Navigation */}
+      <div className="flex gap-2 border-b border-neutral-200 pb-2 overflow-x-auto">
+        {[
+          { id: 'hero', label: 'Hero & Mission Narrative' },
+          { id: 'pillars', label: '3 Core Pillar Cards' },
+          { id: 'timeline', label: 'Evolution Timeline' },
+          { id: 'values', label: 'Core Values (3D Cards)' },
+          { id: 'cta', label: 'Bottom CTA Bento Box' }
+        ].map(t => (
+          <button
+            key={t.id}
+            onClick={() => setActiveTab(t.id)}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+              activeTab === t.id
+                ? 'bg-[#D71920] text-white shadow-sm'
+                : 'bg-neutral-100 text-neutral-600 hover:text-neutral-900'
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {/* TAB 1: HERO & MISSION */}
+      {activeTab === 'hero' && (
+        <div className="space-y-6">
+          <div className="bg-neutral-50 p-5 rounded-2xl border border-neutral-200 space-y-4">
+            <div className="text-xs font-bold uppercase tracking-wider text-[#D71920]">01. Hero Headline & Overview</div>
+            <FieldRow label="Hero Title (HTML supported)">
+              <Textarea value={f.aboutHeroTitle} onChange={e => setF({ ...f, aboutHeroTitle: e.target.value })} rows={3} className="rounded-xl bg-white font-mono text-xs" />
+            </FieldRow>
+            <FieldRow label="Hero Subtitle / Description">
+              <Textarea value={f.aboutHeroDescription} onChange={e => setF({ ...f, aboutHeroDescription: e.target.value })} rows={3} className="rounded-xl bg-white text-sm" />
+            </FieldRow>
+          </div>
+
+          <div className="bg-neutral-50 p-5 rounded-2xl border border-neutral-200 space-y-4">
+            <div className="text-xs font-bold uppercase tracking-wider text-[#D71920]">02. Our Mission & Purpose Narrative (Left Column)</div>
+            <FieldRow label="Section Heading">
+              <Input value={f.aboutMissionHeading} onChange={e => setF({ ...f, aboutMissionHeading: e.target.value })} className="h-11 rounded-xl bg-white font-bold" />
+            </FieldRow>
+            <FieldRow label="Paragraph 1 (HTML supported)">
+              <Textarea value={f.aboutMissionP1} onChange={e => setF({ ...f, aboutMissionP1: e.target.value })} rows={3} className="rounded-xl bg-white text-sm" />
+            </FieldRow>
+            <FieldRow label="Paragraph 2 (HTML supported)">
+              <Textarea value={f.aboutMissionP2} onChange={e => setF({ ...f, aboutMissionP2: e.target.value })} rows={3} className="rounded-xl bg-white text-sm" />
+            </FieldRow>
+            <FieldRow label="Paragraph 3 (HTML supported)">
+              <Textarea value={f.aboutMissionP3} onChange={e => setF({ ...f, aboutMissionP3: e.target.value })} rows={3} className="rounded-xl bg-white text-sm" />
+            </FieldRow>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 2: 3 PILLAR CARDS */}
+      {activeTab === 'pillars' && (
+        <div className="space-y-4">
+          <div className="text-xs font-bold uppercase tracking-wider text-neutral-600">Right Column Structured Cards</div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-neutral-50 p-4 rounded-2xl border border-neutral-200 space-y-3">
+              <div className="text-xs font-bold text-[#D71920]">Card 1: Our Mission</div>
+              <FieldRow label="Title">
+                <Input value={f.aboutMissionCardTitle} onChange={e => setF({ ...f, aboutMissionCardTitle: e.target.value })} className="h-10 rounded-xl bg-white font-bold" />
+              </FieldRow>
+              <FieldRow label="Description">
+                <Textarea value={f.aboutMissionCardDesc} onChange={e => setF({ ...f, aboutMissionCardDesc: e.target.value })} rows={3} className="rounded-xl bg-white text-xs" />
+              </FieldRow>
+            </div>
+
+            <div className="bg-neutral-50 p-4 rounded-2xl border border-neutral-200 space-y-3">
+              <div className="text-xs font-bold text-[#D71920]">Card 2: Our Purpose</div>
+              <FieldRow label="Title">
+                <Input value={f.aboutPurposeCardTitle} onChange={e => setF({ ...f, aboutPurposeCardTitle: e.target.value })} className="h-10 rounded-xl bg-white font-bold" />
+              </FieldRow>
+              <FieldRow label="Description">
+                <Textarea value={f.aboutPurposeCardDesc} onChange={e => setF({ ...f, aboutPurposeCardDesc: e.target.value })} rows={3} className="rounded-xl bg-white text-xs" />
+              </FieldRow>
+            </div>
+
+            <div className="bg-neutral-50 p-4 rounded-2xl border border-neutral-200 space-y-3">
+              <div className="text-xs font-bold text-[#D71920]">Card 3: Turnkey Assurance</div>
+              <FieldRow label="Title">
+                <Input value={f.aboutTurnkeyCardTitle} onChange={e => setF({ ...f, aboutTurnkeyCardTitle: e.target.value })} className="h-10 rounded-xl bg-white font-bold" />
+              </FieldRow>
+              <FieldRow label="Description">
+                <Textarea value={f.aboutTurnkeyCardDesc} onChange={e => setF({ ...f, aboutTurnkeyCardDesc: e.target.value })} rows={3} className="rounded-xl bg-white text-xs" />
+              </FieldRow>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 3: EVOLUTION TIMELINE */}
+      {activeTab === 'timeline' && (
+        <div className="space-y-6">
+          <div className="bg-neutral-50 p-4 rounded-2xl border border-neutral-200 space-y-4">
+            <FieldRow label="Timeline Section Title">
+              <Input value={f.aboutTimelineTitle} onChange={e => setF({ ...f, aboutTimelineTitle: e.target.value })} className="h-11 rounded-xl bg-white font-bold" />
+            </FieldRow>
+            <FieldRow label="Timeline Subtitle">
+              <Input value={f.aboutTimelineSubtitle} onChange={e => setF({ ...f, aboutTimelineSubtitle: e.target.value })} className="h-11 rounded-xl bg-white text-sm" />
+            </FieldRow>
+          </div>
+
+          <div>
+            <div className="flex justify-between items-center mb-4">
+              <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wider">Milestone Nodes ({f.aboutTimeline.length} Items)</label>
+              <Button variant="outline" size="sm" onClick={() => setF({ ...f, aboutTimeline: [...f.aboutTimeline, { year: '2027', title: 'New Milestone', desc: 'Milestone description...' }] })} className="rounded-xl">
+                <Plus className="h-4 w-4 mr-1" /> Add Milestone Year
+              </Button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {f.aboutTimeline.map((item, idx) => (
+                <div key={idx} className="bg-neutral-50 p-4 rounded-2xl border border-neutral-200 space-y-3 relative">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-bold text-[#D71920]">Milestone #{idx + 1}</span>
+                    <Button variant="outline" size="sm" onClick={() => setF({ ...f, aboutTimeline: f.aboutTimeline.filter((_, i) => i !== idx) })} className="rounded-xl text-red-600 border-red-200">
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    <Input value={item.year || ''} onChange={e => { const list = [...f.aboutTimeline]; list[idx].year = e.target.value; setF({ ...f, aboutTimeline: list }) }} placeholder="Year (e.g. 2024)" className="h-10 rounded-xl bg-white font-bold col-span-1" />
+                    <Input value={item.title || ''} onChange={e => { const list = [...f.aboutTimeline]; list[idx].title = e.target.value; setF({ ...f, aboutTimeline: list }) }} placeholder="Milestone Title" className="h-10 rounded-xl bg-white font-bold col-span-2" />
+                  </div>
+                  <Textarea value={item.desc || ''} onChange={e => { const list = [...f.aboutTimeline]; list[idx].desc = e.target.value; setF({ ...f, aboutTimeline: list }) }} placeholder="Description" rows={3} className="rounded-xl bg-white text-xs" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 4: CORE VALUES */}
+      {activeTab === 'values' && (
+        <div className="space-y-6">
+          <div className="bg-neutral-50 p-4 rounded-2xl border border-neutral-200 space-y-4">
+            <FieldRow label="Section Eyebrow">
+              <Input value={f.aboutValuesEyebrow} onChange={e => setF({ ...f, aboutValuesEyebrow: e.target.value })} className="h-11 rounded-xl bg-white" />
+            </FieldRow>
+            <FieldRow label="Section Title">
+              <Input value={f.aboutValuesTitle} onChange={e => setF({ ...f, aboutValuesTitle: e.target.value })} className="h-11 rounded-xl bg-white font-bold" />
+            </FieldRow>
+          </div>
+
+          <div>
+            <div className="flex justify-between items-center mb-4">
+              <label className="text-xs font-semibold text-neutral-600 uppercase tracking-wider">Core Value 3D Cards ({f.aboutValues.length} Cards)</label>
+              <Button variant="outline" size="sm" onClick={() => setF({ ...f, aboutValues: [...f.aboutValues, { title: 'New Core Value', desc: 'Value description...' }] })} className="rounded-xl">
+                <Plus className="h-4 w-4 mr-1" /> Add Value Card
+              </Button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {f.aboutValues.map((v, idx) => (
+                <div key={idx} className="bg-neutral-50 p-4 rounded-2xl border border-neutral-200 space-y-3 relative">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-bold text-[#D71920]">Value #{idx + 1}</span>
+                    <Button variant="outline" size="sm" onClick={() => setF({ ...f, aboutValues: f.aboutValues.filter((_, i) => i !== idx) })} className="rounded-xl text-red-600 border-red-200">
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <Input value={v.title || ''} onChange={e => { const list = [...f.aboutValues]; list[idx].title = e.target.value; setF({ ...f, aboutValues: list }) }} placeholder="Value Title" className="h-10 rounded-xl bg-white font-bold" />
+                  <Textarea value={v.desc || ''} onChange={e => { const list = [...f.aboutValues]; list[idx].desc = e.target.value; setF({ ...f, aboutValues: list }) }} placeholder="Description" rows={3} className="rounded-xl bg-white text-xs" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 5: BOTTOM CTA */}
+      {activeTab === 'cta' && (
+        <div className="bg-neutral-50 p-5 rounded-2xl border border-neutral-200 space-y-4">
+          <div className="text-xs font-bold uppercase tracking-wider text-[#D71920]">Bottom Dark CTA Bento Box</div>
+          <FieldRow label="Headline">
+            <Input value={f.aboutCtaTitle} onChange={e => setF({ ...f, aboutCtaTitle: e.target.value })} className="h-11 rounded-xl bg-white font-bold" />
+          </FieldRow>
+          <FieldRow label="Description">
+            <Textarea value={f.aboutCtaDesc} onChange={e => setF({ ...f, aboutCtaDesc: e.target.value })} rows={3} className="rounded-xl bg-white text-sm" />
+          </FieldRow>
+          <FieldRow label="Button Text">
+            <Input value={f.aboutCtaButtonText} onChange={e => setF({ ...f, aboutCtaButtonText: e.target.value })} className="h-11 rounded-xl bg-white" />
+          </FieldRow>
+        </div>
+      )}
+
+      <div className="pt-4 flex justify-end border-t border-neutral-200">
+        <Button onClick={() => save(f)} className="bg-[#D71920] hover:bg-[#a5121a] text-white rounded-xl font-bold h-12 px-8 text-sm">
+          <Save className="h-4 w-4 mr-2" /> Save All About Page Sections
+        </Button>
       </div>
     </div>
   )
@@ -1243,7 +1805,7 @@ const SEED_SUPPLY_ITEMS = [
 ]
 
 const SEED_COMPARISON_DATA = [
-  { dim: 'Experience', ivr: '12+ years with 500+ projects', trad: 'Varies, often limited' },
+  { dim: 'Experience', ivr: `${companyStats.experience} with ${companyStats.projects} projects`, trad: 'Varies, often limited' },
   { dim: 'Component Quality', ivr: 'Tier-1 only, 25-yr warranty', trad: 'Mixed quality, shorter warranty' },
   { dim: 'Government Support', ivr: 'Full liaison & subsidy processing', trad: 'Customer responsibility' },
   { dim: 'Warranty', ivr: 'Comprehensive 5-year workmanship', trad: '1-year standard' },
@@ -1368,7 +1930,7 @@ function ServicesSectionEditor({ content, save }) {
     // 5. 8-Step Workflow
     workflowEyebrow: content.workflowEyebrow || 'OUR PROCESS',
     workflowTitle: content.workflowTitle || 'Your solar journey in <span class="text-gradient-red">8 seamless steps</span>',
-    workflowSubtitle: content.workflowSubtitle || 'A refined, transparent execution playbook honed across 500+ projects.',
+    workflowSubtitle: content.workflowSubtitle || `A refined, transparent execution playbook honed across ${companyStats.projects} projects.`,
     workflowSteps: (content.workflowSteps && content.workflowSteps.length > 0) ? content.workflowSteps : SEED_WORKFLOW_STEPS
   })
 
@@ -1647,49 +2209,507 @@ function ServicesSectionEditor({ content, save }) {
   )
 }
 
+const SEED_SOLUTIONS_LIST = [
+  {
+    id: 'residential',
+    num: '01',
+    title: 'Residential Rooftop Solar',
+    subtitle: 'Villas, Gated Communities & Independent Homes',
+    badge: 'PM Surya Ghar Subsidy Eligible',
+    desc: 'Turnkey on-grid rooftop solar systems engineered to eliminate bi-monthly power bills. Fast-tracked with TANGEDCO bi-directional net-metering and direct central government DBT subsidy assistance.',
+    specs: [
+      { label: 'System Range', val: '3 kW – 10 kW' },
+      { label: 'Monthly Generation', val: '360 – 1,200 Units' },
+      { label: 'Payback Timeline', val: '2.5 – 3.2 Years' },
+      { label: 'Roof Area', val: '300 – 1,000 Sq. Ft.' },
+    ],
+    highlights: [
+      'Up to ₹78,000 direct bank DBT subsidy under PM Surya Ghar Yojana',
+      'High-efficiency Tier-1 TOPCon / Mono-PERC bi-facial modules',
+      'Dual-MPPT smart inverters with Wi-Fi real-time phone tracking',
+      'Hot-dip galvanized (80µm) structure tested for 160 km/h wind gusts',
+    ],
+  },
+  {
+    id: 'commercial',
+    num: '02',
+    title: 'Commercial Rooftop EPC',
+    subtitle: 'Hospitals, Institutions, Offices & Hotels',
+    badge: '40% Accelerated Tax Depreciation',
+    desc: 'High-capacity commercial rooftop solar systems (10 kW to 100 kW+) designed to offset high-tier commercial electricity tariffs and lower recurring operational overheads.',
+    specs: [
+      { label: 'System Range', val: '10 kW – 100 kW+' },
+      { label: 'Monthly Generation', val: '1,200 – 12,000 Units' },
+      { label: 'Payback Timeline', val: '2.8 – 3.5 Years' },
+      { label: 'Tax Advantage', val: '40% Year-1 Depreciation' },
+    ],
+    highlights: [
+      'Cuts daytime peak commercial energy bills by up to 70%',
+      'Section 32 Accelerated Depreciation corporate tax benefits',
+      'Three-phase commercial string inverters with integrated SCADA',
+      'Full CEIG electrical safety certification and DISCOM clearance',
+    ],
+  },
+  {
+    id: 'industrial',
+    num: '03',
+    title: 'Industrial Captive Power Plants',
+    subtitle: 'Textile Mills, Foundries, Chemical & Manufacturing',
+    badge: 'High-Tension (HT) Grid Evacuation',
+    desc: 'Megawatt-scale rooftop and ground captive solar installations engineered for heavy continuous machinery loads, with complete HT substation synchronization and wheeling & banking liaison.',
+    specs: [
+      { label: 'System Range', val: '100 kW – 5 MW+' },
+      { label: 'Grid Level', val: '11kV / 22kV / 33kV HT' },
+      { label: 'Levelized Cost', val: '< ₹2.50 / Unit' },
+      { label: 'Monitoring', val: 'Industrial SCADA / Telemetry' },
+    ],
+    highlights: [
+      'Drastically lowers industrial power costs from ₹9.50+ to under ₹2.50/unit',
+      'Complete HT transformer, switchgear, and vacuum circuit breaker EPC',
+      'Harmonic distortion suppression and power factor optimization',
+      'Thermal drone thermography and automated preventive washing',
+    ],
+  },
+  {
+    id: 'agricultural',
+    num: '04',
+    title: 'Agricultural & Hybrid Storage (BESS)',
+    subtitle: 'Farms, Plantations, Cold Storage & Microgrids',
+    badge: 'PM-KUSUM & Battery Storage',
+    desc: 'Off-grid and hybrid solar installations with Battery Energy Storage Systems (BESS) for continuous daytime agricultural pumping and uninterrupted remote facility power.',
+    specs: [
+      { label: 'Pump Capacity', val: '5 HP – 25 HP' },
+      { label: 'Storage Chemistry', val: 'Lithium Ferro Phosphate (LFP)' },
+      { label: 'Failover Speed', val: '< 10ms UPS Transfer' },
+      { label: 'Autonomy', val: '8 – 12 Hours Storage' },
+    ],
+    highlights: [
+      'Reliable, unthrottled daytime water pumping for high-yield farming',
+      'Lithium battery banks with 6,000+ cycle life (15-year durability)',
+      'Automated generator synchronization during prolonged monsoon clouds',
+      'PM-KUSUM subsidy guidance and agricultural compliance support',
+    ],
+  },
+  {
+    id: 'carport',
+    num: '05',
+    title: 'EV Solar Carports & Canopies',
+    subtitle: 'Corporate Campuses, Malls & Fleet Depots',
+    badge: 'Integrated EV Fast Charging',
+    desc: 'Architectural solar car shade structures integrated with Level-2 AC and CCS2 DC fast charging stations, transforming unused parking spaces into clean power generators.',
+    specs: [
+      { label: 'Scale', val: '2 to 500+ Car Bays' },
+      { label: 'EV Charging', val: '7.4 kW AC to 60 kW DC' },
+      { label: 'Framing', val: 'Engineered Cantilever Steel' },
+      { label: 'Cable Routing', val: 'Concealed Water Gutters' },
+    ],
+    highlights: [
+      'Dual functionality: vehicle sun/rain protection + renewable power generation',
+      'Integrated smart load-balancing EV charging points',
+      'Engineered structural aesthetics with optional nighttime LED accents',
+      'High-visibility corporate ESG asset for green-certified facilities',
+    ],
+  },
+  {
+    id: 'ground',
+    num: '06',
+    title: 'Utility Ground-Mounted Farms',
+    subtitle: 'Independent Power Producers (IPP) & Open Access',
+    badge: 'Turnkey Land-to-Grid EPC',
+    desc: 'Utility-scale solar power generation plants on agricultural or barren land. Includes topographical contour mapping, piling foundations, automated single-axis solar trackers, and transmission lines.',
+    specs: [
+      { label: 'Land Sizing', val: '3.5 – 4 Acres / MW' },
+      { label: 'Annual Yield', val: '15 – 17 Lakh Units / MW' },
+      { label: 'Grid Tie-In', val: '33kV / 66kV / 110kV' },
+      { label: 'Design Life', val: '25 – 30 Years' },
+    ],
+    highlights: [
+      'Turnkey land feasibility, soil analysis, and contour grading',
+      'Optional single-axis astronomical trackers for +18% higher power yield',
+      'Dedicated transmission line erection and sub-station bay setup',
+      'Full statutory PPA, CEIG, and environmental approvals management',
+    ],
+  },
+]
+
+const SEED_SOLUTIONS_COMPARISON = [
+  {
+    attribute: 'Grid Interconnection',
+    onGrid: 'Exports surplus electricity to the grid via Net Meter',
+    hybrid: 'Operates with grid, battery, or solar in parallel',
+    offGrid: 'Completely disconnected from the state electricity grid',
+  },
+  {
+    attribute: 'Outage Continuity',
+    onGrid: 'Shuts down during grid cuts for line safety',
+    hybrid: 'Instant switchover (<10ms) powers priority loads',
+    offGrid: 'Full 24/7 autonomous battery power',
+  },
+  {
+    attribute: 'Capital Expenditure',
+    onGrid: 'Lowest initial cost; fastest payback (2.5–3 yrs)',
+    hybrid: 'Moderate (includes lithium storage system)',
+    offGrid: 'Higher (requires heavy battery capacity)',
+  },
+  {
+    attribute: 'PM Surya Ghar Subsidy',
+    onGrid: 'Eligible for up to ₹78,000 direct subsidy',
+    hybrid: 'Eligible on the solar module component',
+    offGrid: 'Not eligible for standard grid net-meter subsidy',
+  },
+]
+
 function SolutionsSectionEditor({ content, save }) {
-  const seedItems = {
-    Residential: ['Homes', 'Villas', 'Apartments', 'Farm Houses', 'Duplex Houses', 'Bungalows'],
-    Commercial: ['Offices', 'Hospitals', 'Schools', 'Colleges', 'Hotels', 'Shopping Complexes', 'IT Parks', 'Showrooms'],
-    Industrial: ['Textile', 'Steel', 'Cement', 'Chemical', 'Dairy', 'Sugar', 'Pharmaceutical', 'Manufacturing', 'Refineries']
-  }
+  const [activeTab, setActiveTab] = useState('segments')
+  const [selectedSolIndex, setSelectedSolIndex] = useState(0)
+
   const [f, setF] = useState({
-    solutionsTitle: content.solutionsTitle || 'Tailored solar for every building type',
-    solutionsItems: content.solutionsItems || seedItems
+    solutionsHeroTitle: content.solutionsHeroTitle || 'Engineered systems for every <span class="font-normal bg-gradient-to-r from-[#ff4b55] via-[#D71920] to-orange-500 bg-clip-text text-transparent">scale</span> of power generation.',
+    solutionsHeroSubtitle: content.solutionsHeroSubtitle || 'From residential villas with direct PM Surya Ghar subsidy integration to high-tension MW captive industrial plants, we deliver precision solar turnkey installations built for 25+ years of verified output.',
+    solutionsList: (content.solutionsList && content.solutionsList.length > 0) ? content.solutionsList : SEED_SOLUTIONS_LIST,
+    solutionsComparison: (content.solutionsComparison && content.solutionsComparison.length > 0) ? content.solutionsComparison : SEED_SOLUTIONS_COMPARISON,
+    solutionsCtaTitle: content.solutionsCtaTitle || 'Evaluate your premises for turnkey solar.',
+    solutionsCtaDesc: content.solutionsCtaDesc || 'Schedule a comprehensive site evaluation with our engineers to receive a shadow analysis, single-line diagram (SLD), and commercial ROI breakdown.',
+    solutionsCtaButtonText: content.solutionsCtaButtonText || 'Schedule Site Audit'
   })
+
+  const currentSol = f.solutionsList[selectedSolIndex] || f.solutionsList[0]
 
   return (
     <div className="rounded-2xl bg-white p-6 shadow-soft border border-neutral-100 space-y-6">
-      <div className="text-sm font-bold text-neutral-900 border-b pb-2">Solutions / Building Types Editor</div>
-      <FieldRow label="Section Title"><Input value={f.solutionsTitle} onChange={e => setF({ ...f, solutionsTitle: e.target.value })} className="h-11 rounded-xl" /></FieldRow>
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b pb-4">
+        <div>
+          <h3 className="font-bold text-neutral-900 text-lg">Solutions Page Content Manager</h3>
+          <p className="text-sm text-neutral-500 mt-1">Manage and update all 6 solution categories, parameters, comparison table, and headers on /solutions.</p>
+        </div>
+        <Button onClick={() => save(f)} className="bg-[#D71920] hover:bg-[#a5121a] text-white rounded-xl font-bold px-6">
+          <Save className="h-4 w-4 mr-2" /> Save Solutions Page
+        </Button>
+      </div>
 
-      {['Residential', 'Commercial', 'Industrial'].map(cat => (
-        <div key={cat} className="bg-neutral-50 p-4 rounded-2xl border border-neutral-200/80 space-y-3">
-          <div className="font-bold text-neutral-900 text-sm">{cat} Solar Category Tags</div>
-          <div className="flex flex-wrap gap-2">
-            {(f.solutionsItems[cat] || []).map((item, idx) => (
-              <div key={idx} className="flex items-center gap-1 bg-white px-3 py-1.5 rounded-xl border border-neutral-200">
-                <Input value={item} onChange={e => {
-                  const updated = [...(f.solutionsItems[cat] || [])]
-                  updated[idx] = e.target.value
-                  setF({ ...f, solutionsItems: { ...f.solutionsItems, [cat]: updated } })
-                }} className="h-7 w-32 border-none px-1 text-xs" />
-                <button type="button" onClick={() => {
-                  const updated = (f.solutionsItems[cat] || []).filter((_, i) => i !== idx)
-                  setF({ ...f, solutionsItems: { ...f.solutionsItems, [cat]: updated } })
-                }} className="text-red-500 hover:text-red-700 text-xs font-bold">✕</button>
+      {/* Sub Navigation */}
+      <div className="flex gap-2 border-b border-neutral-200 pb-2 overflow-x-auto">
+        {[
+          { id: 'hero', label: 'Hero Header' },
+          { id: 'segments', label: '6 Category Solutions & Specs' },
+          { id: 'comparison', label: 'Topology Comparison Matrix' },
+          { id: 'cta', label: 'Bottom CTA Bento Box' }
+        ].map(t => (
+          <button
+            key={t.id}
+            onClick={() => setActiveTab(t.id)}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+              activeTab === t.id
+                ? 'bg-[#D71920] text-white shadow-sm'
+                : 'bg-neutral-100 text-neutral-600 hover:text-neutral-900'
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {/* TAB 1: HERO */}
+      {activeTab === 'hero' && (
+        <div className="bg-neutral-50 p-5 rounded-2xl border border-neutral-200 space-y-4">
+          <div className="text-xs font-bold uppercase tracking-wider text-[#D71920]">Solutions Page Hero Section</div>
+          <FieldRow label="Main Headline (HTML supported)">
+            <Textarea value={f.solutionsHeroTitle} onChange={e => setF({ ...f, solutionsHeroTitle: e.target.value })} rows={3} className="rounded-xl bg-white font-mono text-xs" />
+          </FieldRow>
+          <FieldRow label="Subtitle / Overview">
+            <Textarea value={f.solutionsHeroSubtitle} onChange={e => setF({ ...f, solutionsHeroSubtitle: e.target.value })} rows={3} className="rounded-xl bg-white text-sm" />
+          </FieldRow>
+        </div>
+      )}
+
+      {/* TAB 2: 6 SOLUTIONS & SPECS */}
+      {activeTab === 'segments' && (
+        <div className="space-y-6">
+          {/* Solution Selector Tabs */}
+          <div className="flex gap-2 overflow-x-auto pb-2">
+            {f.solutionsList.map((sol, idx) => (
+              <button
+                key={sol.id || idx}
+                onClick={() => setSelectedSolIndex(idx)}
+                className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all shrink-0 ${
+                  selectedSolIndex === idx
+                    ? 'bg-[#D71920] text-white shadow-md'
+                    : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'
+                }`}
+              >
+                {sol.title.split(' ')[0]} ({sol.num})
+              </button>
+            ))}
+          </div>
+
+          {currentSol && (
+            <div className="bg-neutral-50 p-5 rounded-2xl border border-neutral-200 space-y-5">
+              <div className="flex justify-between items-center border-b pb-3">
+                <span className="text-sm font-bold text-neutral-900">
+                  Editing: <span className="text-[#D71920]">{currentSol.title}</span>
+                </span>
+                <span className="text-xs font-mono text-neutral-400">ID: {currentSol.id}</span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FieldRow label="Solution Title">
+                  <Input
+                    value={currentSol.title}
+                    onChange={e => {
+                      const list = [...f.solutionsList]
+                      list[selectedSolIndex].title = e.target.value
+                      setF({ ...f, solutionsList: list })
+                    }}
+                    className="h-11 rounded-xl bg-white font-bold"
+                  />
+                </FieldRow>
+                <FieldRow label="Badge / Scheme Pill">
+                  <Input
+                    value={currentSol.badge}
+                    onChange={e => {
+                      const list = [...f.solutionsList]
+                      list[selectedSolIndex].badge = e.target.value
+                      setF({ ...f, solutionsList: list })
+                    }}
+                    className="h-11 rounded-xl bg-white"
+                  />
+                </FieldRow>
+              </div>
+
+              <FieldRow label="Subtitle (Applications & Ideal Consumers)">
+                <Input
+                  value={currentSol.subtitle}
+                  onChange={e => {
+                    const list = [...f.solutionsList]
+                    list[selectedSolIndex].subtitle = e.target.value
+                    setF({ ...f, solutionsList: list })
+                  }}
+                  className="h-11 rounded-xl bg-white text-sm"
+                />
+              </FieldRow>
+
+              <FieldRow label="Detailed Overview Narrative">
+                <Textarea
+                  value={currentSol.desc}
+                  onChange={e => {
+                    const list = [...f.solutionsList]
+                    list[selectedSolIndex].desc = e.target.value
+                    setF({ ...f, solutionsList: list })
+                  }}
+                  rows={3}
+                  className="rounded-xl bg-white text-sm"
+                />
+              </FieldRow>
+
+              {/* Engineering Specs (4 items) */}
+              <div className="space-y-3 pt-2">
+                <label className="text-xs font-bold text-neutral-700 uppercase tracking-wider block">
+                  Engineering Specifications (4 Tiles)
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                  {(currentSol.specs || []).map((sp, sIdx) => (
+                    <div key={sIdx} className="bg-white p-3 rounded-xl border border-neutral-200 space-y-2">
+                      <span className="text-[10px] font-bold text-neutral-400 uppercase">Spec #{sIdx + 1}</span>
+                      <Input
+                        value={sp.label}
+                        onChange={e => {
+                          const list = [...f.solutionsList]
+                          list[selectedSolIndex].specs[sIdx].label = e.target.value
+                          setF({ ...f, solutionsList: list })
+                        }}
+                        placeholder="Label"
+                        className="h-8 rounded-lg text-xs"
+                      />
+                      <Input
+                        value={sp.val}
+                        onChange={e => {
+                          const list = [...f.solutionsList]
+                          list[selectedSolIndex].specs[sIdx].val = e.target.value
+                          setF({ ...f, solutionsList: list })
+                        }}
+                        placeholder="Value"
+                        className="h-8 rounded-lg text-xs font-bold text-neutral-900"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Highlights (4 bullets) */}
+              <div className="space-y-3 pt-2">
+                <div className="flex justify-between items-center">
+                  <label className="text-xs font-bold text-neutral-700 uppercase tracking-wider">
+                    Feature Highlights Checklist
+                  </label>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const list = [...f.solutionsList]
+                      list[selectedSolIndex].highlights = [...(list[selectedSolIndex].highlights || []), 'New feature point']
+                      setF({ ...f, solutionsList: list })
+                    }}
+                    className="rounded-xl h-8 text-xs"
+                  >
+                    <Plus className="h-3.5 w-3.5 mr-1" /> Add Highlight
+                  </Button>
+                </div>
+
+                <div className="space-y-2">
+                  {(currentSol.highlights || []).map((h, hIdx) => (
+                    <div key={hIdx} className="flex gap-2 items-center">
+                      <Input
+                        value={h}
+                        onChange={e => {
+                          const list = [...f.solutionsList]
+                          list[selectedSolIndex].highlights[hIdx] = e.target.value
+                          setF({ ...f, solutionsList: list })
+                        }}
+                        className="h-9 rounded-xl bg-white text-xs flex-1"
+                      />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const list = [...f.solutionsList]
+                          list[selectedSolIndex].highlights = list[selectedSolIndex].highlights.filter((_, i) => i !== hIdx)
+                          setF({ ...f, solutionsList: list })
+                        }}
+                        className="rounded-xl h-9 w-9 text-red-600 border-red-200 p-0 flex items-center justify-center"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* TAB 3: COMPARISON TABLE */}
+      {activeTab === 'comparison' && (
+        <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <div>
+              <div className="text-sm font-bold text-neutral-900">Topology Comparison Matrix (Grid-Tied vs Hybrid vs Off-Grid)</div>
+              <p className="text-xs text-neutral-500 mt-0.5">Manage rows in the enlarged comparison table on /solutions.</p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setF({
+                  ...f,
+                  solutionsComparison: [
+                    ...f.solutionsComparison,
+                    { attribute: 'New Attribute', onGrid: 'On-grid specification', hybrid: 'Hybrid specification', offGrid: 'Off-grid specification' }
+                  ]
+                })
+              }}
+              className="rounded-xl"
+            >
+              <Plus className="h-4 w-4 mr-1" /> Add Comparison Row
+            </Button>
+          </div>
+
+          <div className="space-y-3">
+            {f.solutionsComparison.map((row, rIdx) => (
+              <div key={rIdx} className="bg-neutral-50 p-4 rounded-2xl border border-neutral-200 space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs font-bold text-[#D71920]">Row #{rIdx + 1}: {row.attribute}</span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setF({ ...f, solutionsComparison: f.solutionsComparison.filter((_, i) => i !== rIdx) })
+                    }}
+                    className="rounded-xl text-red-600 border-red-200 h-8"
+                  >
+                    <Trash2 className="h-3.5 w-3.5 mr-1" /> Remove
+                  </Button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                  <div>
+                    <label className="text-[10px] font-bold text-neutral-400 uppercase block mb-1">Attribute Name</label>
+                    <Input
+                      value={row.attribute}
+                      onChange={e => {
+                        const list = [...f.solutionsComparison]
+                        list[rIdx].attribute = e.target.value
+                        setF({ ...f, solutionsComparison: list })
+                      }}
+                      className="h-10 rounded-xl bg-white font-bold text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-[#D71920] uppercase block mb-1">On-Grid (Net Metered)</label>
+                    <Textarea
+                      value={row.onGrid}
+                      onChange={e => {
+                        const list = [...f.solutionsComparison]
+                        list[rIdx].onGrid = e.target.value
+                        setF({ ...f, solutionsComparison: list })
+                      }}
+                      rows={2}
+                      className="rounded-xl bg-white text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-amber-600 uppercase block mb-1">Hybrid (BESS)</label>
+                    <Textarea
+                      value={row.hybrid}
+                      onChange={e => {
+                        const list = [...f.solutionsComparison]
+                        list[rIdx].hybrid = e.target.value
+                        setF({ ...f, solutionsComparison: list })
+                      }}
+                      rows={2}
+                      className="rounded-xl bg-white text-xs"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-neutral-700 uppercase block mb-1">Off-Grid (Standalone)</label>
+                    <Textarea
+                      value={row.offGrid}
+                      onChange={e => {
+                        const list = [...f.solutionsComparison]
+                        list[rIdx].offGrid = e.target.value
+                        setF({ ...f, solutionsComparison: list })
+                      }}
+                      rows={2}
+                      className="rounded-xl bg-white text-xs"
+                    />
+                  </div>
+                </div>
               </div>
             ))}
-            <Button variant="outline" size="sm" onClick={() => {
-              const updated = [...(f.solutionsItems[cat] || []), 'New Tag']
-              setF({ ...f, solutionsItems: { ...f.solutionsItems, [cat]: updated } })
-            }} className="rounded-xl h-8 text-xs"><Plus className="h-3 w-3 mr-1" /> Add Tag</Button>
           </div>
         </div>
-      ))}
+      )}
 
-      <div className="pt-4 flex justify-end">
-        <Button onClick={() => save(f)} className="bg-[#D71920] hover:bg-[#a5121a] rounded-xl"><Save className="h-4 w-4 mr-2" /> Save Solutions Settings</Button>
+      {/* TAB 4: BOTTOM CTA */}
+      {activeTab === 'cta' && (
+        <div className="bg-neutral-50 p-5 rounded-2xl border border-neutral-200 space-y-4">
+          <div className="text-xs font-bold uppercase tracking-wider text-[#D71920]">Bottom Dark CTA Bento Box</div>
+          <FieldRow label="Headline">
+            <Input value={f.solutionsCtaTitle} onChange={e => setF({ ...f, solutionsCtaTitle: e.target.value })} className="h-11 rounded-xl bg-white font-bold" />
+          </FieldRow>
+          <FieldRow label="Description">
+            <Textarea value={f.solutionsCtaDesc} onChange={e => setF({ ...f, solutionsCtaDesc: e.target.value })} rows={3} className="rounded-xl bg-white text-sm" />
+          </FieldRow>
+          <FieldRow label="Button Text">
+            <Input value={f.solutionsCtaButtonText} onChange={e => setF({ ...f, solutionsCtaButtonText: e.target.value })} className="h-11 rounded-xl bg-white" />
+          </FieldRow>
+        </div>
+      )}
+
+      <div className="pt-4 flex justify-end border-t border-neutral-200">
+        <Button onClick={() => save(f)} className="bg-[#D71920] hover:bg-[#a5121a] text-white rounded-xl font-bold h-12 px-8 text-sm">
+          <Save className="h-4 w-4 mr-2" /> Save All Solutions Page Sections
+        </Button>
       </div>
     </div>
   )
@@ -1760,7 +2780,7 @@ function ProcessSectionEditor({ content, save }) {
   const [f, setF] = useState({
     processEyebrow: content.processEyebrow || 'Our Process',
     processTitle: content.processTitle || 'Your solar journey in <span class="text-gradient-red" >8 seamless steps</span>',
-    processSubtitle: content.processSubtitle || 'A refined, transparent execution playbook honed across 180+ projects.',
+    processSubtitle: content.processSubtitle || `A refined, transparent execution playbook honed across ${companyStats.projects} projects.`,
     processSteps: content.processSteps || seedProcess
   })
 
@@ -2109,15 +3129,20 @@ function ContactInfoEditor({ content, save }) {
   const rawEmail = c.email || ''
   const emailParts = rawEmail.includes(',') ? rawEmail.split(',').map(s => s.trim()) : [rawEmail, c.secondaryEmail || '']
 
+  const [headerContent, setHeaderContent] = useState({
+    contactPageTitle: content.contactPageTitle || 'Let’s Power Your Space with <span class="text-gradient-red">Clean Solar Energy</span>',
+    contactPageSubtitle: content.contactPageSubtitle || 'Have questions about rooftop feasibility, TANGEDCO net-metering, or PM Surya Ghar subsidies? Our engineering desk in Chennai is ready to assist with custom 3D layouts and zero-obligation site surveys.'
+  })
+
   const [f, setF] = useState({
-    phone: c.phone || '+91 90477 77936',
-    phoneRaw: c.phoneRaw || '919047777936',
-    secondaryPhone: c.secondaryPhone || '+91 90477 77935',
-    secondaryPhoneRaw: c.secondaryPhoneRaw || '919047777935',
-    email: emailParts[0] || 'ivrenergysolutions@gmail.com',
-    secondaryEmail: emailParts[1] || c.secondaryEmail || 'info@ivrenergy.com',
-    whatsapp: c.whatsapp || '919047777936',
-    address: c.address || '3rd floor, Door No - 1,\nPlot No - A, Manasarovar Nagar,\nGerugambakkam,\nChennai - 600122.',
+    phone: c.phone || companyNAP.phone,
+    phoneRaw: c.phoneRaw || companyNAP.phoneRaw,
+    secondaryPhone: c.secondaryPhone || companyNAP.secondaryPhone,
+    secondaryPhoneRaw: c.secondaryPhoneRaw || companyNAP.secondaryPhoneRaw,
+    email: emailParts[0] || companyNAP.primaryEmail,
+    secondaryEmail: emailParts[1] || c.secondaryEmail || companyNAP.secondaryEmail,
+    whatsapp: c.whatsapp || companyNAP.phoneRaw,
+    address: c.address || companyNAP.address.multiline,
     hours: c.hours || 'Mon - Sat, 9:30 AM - 7:30 PM',
     mapLat: c.mapLat || '13.013944',
     mapLng: c.mapLng || '80.136667',
@@ -2125,15 +3150,80 @@ function ContactInfoEditor({ content, save }) {
     linkedin: c.linkedin || 'https://www.linkedin.com/company/ivr-energy',
     facebook: c.facebook || '',
     youtube: c.youtube || '',
-    gstNumber: c.gstNumber || '33BTTPR9122F1ZB',
+    gstNumber: c.gstNumber || companyNAP.gstNumber,
     secondaryAddressTitle: c.secondaryAddressTitle || '',
     secondaryAddress: c.secondaryAddress || '',
     secondaryAddressPhone: c.secondaryAddressPhone || '',
   })
+
   return (
-    <div className="rounded-2xl bg-white p-6 shadow-soft border border-neutral-100 space-y-5">
-      <div className="text-sm text-neutral-600">Update the contact details shown on the site. Displayed in the Contact section, Dedicated Contact Page (/contact), Footer, top nav phone link, floating WhatsApp button, and social links.</div>
-      <div className="grid md:grid-cols-2 gap-4">
+    <div className="space-y-6">
+      {/* Contact Page Header & SEO Banner Settings Card */}
+      <div className="rounded-2xl bg-white p-6 shadow-soft border border-neutral-100 space-y-5">
+        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-neutral-100 pb-4">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-red-50 text-[#D71920] border border-red-100 flex items-center justify-center shrink-0">
+              <Mail className="h-5 w-5" />
+            </div>
+            <div>
+              <h3 className="font-bold text-neutral-900 text-base flex items-center gap-2">
+                Contact Page Header Settings
+                <span className="text-[11px] font-normal text-neutral-500 bg-neutral-100 px-2 py-0.5 rounded-md">
+                  /contact
+                </span>
+              </h3>
+              <p className="text-xs text-neutral-500 mt-0.5">
+                Customize the main title headline and description on the public contact page.
+              </p>
+            </div>
+          </div>
+
+          <a
+            href="/contact"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 text-xs font-semibold text-[#D71920] hover:underline"
+          >
+            <ExternalLink className="h-3.5 w-3.5" /> View Live Page
+          </a>
+        </div>
+
+        <FieldRow
+          label="Contact Page Main Title (HTML Supported)"
+          hint='Use &lt;span class="text-gradient-red"&gt;text&lt;/span&gt; for red gradient words'
+        >
+          <Input
+            value={headerContent.contactPageTitle}
+            onChange={e => setHeaderContent({ ...headerContent, contactPageTitle: e.target.value })}
+            placeholder='e.g. Let’s Power Your Space with <span class="text-gradient-red">Clean Solar Energy</span>'
+            className="h-11 rounded-xl bg-white font-semibold text-xs"
+          />
+        </FieldRow>
+
+        <FieldRow label="Contact Page Subtitle / Description">
+          <Textarea
+            value={headerContent.contactPageSubtitle}
+            onChange={e => setHeaderContent({ ...headerContent, contactPageSubtitle: e.target.value })}
+            placeholder="Enter descriptive subtitle for the contact page..."
+            rows={3}
+            className="rounded-xl bg-white text-xs leading-relaxed"
+          />
+        </FieldRow>
+
+        <div className="flex justify-end pt-1">
+          <Button
+            onClick={() => save(headerContent)}
+            className="bg-[#D71920] hover:bg-[#a5121a] text-white rounded-xl text-xs h-10 px-5 font-bold shadow-glow-red flex items-center gap-1.5 cursor-pointer"
+          >
+            <Save className="h-4 w-4" /> Save Contact Page Header
+          </Button>
+        </div>
+      </div>
+
+      {/* Main Contact & Company Details Card */}
+      <div className="rounded-2xl bg-white p-6 shadow-soft border border-neutral-100 space-y-5">
+        <div className="text-sm text-neutral-600">Update the contact details shown on the site. Displayed in the Contact section, Dedicated Contact Page (/contact), Footer, top nav phone link, floating WhatsApp button, and social links.</div>
+        <div className="grid md:grid-cols-2 gap-4">
         <FieldRow label="Primary Display phone number" hint="Shown to visitors (e.g. +91 90477 77936)"><Input value={f.phone} onChange={e => setF({ ...f, phone: e.target.value, phoneRaw: e.target.value.replace(/\D/g, '') || f.phoneRaw })} className="h-11 rounded-xl" /></FieldRow>
         <FieldRow label="Primary Phone (raw digits)" hint="For tel: & WhatsApp links, e.g. 919047777936"><Input value={f.phoneRaw} onChange={e => setF({ ...f, phoneRaw: e.target.value.replace(/\D/g, '') })} className="h-11 rounded-xl" /></FieldRow>
         <FieldRow label="Secondary Display phone number" hint="Second hotline on Contact page (e.g. +91 90477 77935)"><Input value={f.secondaryPhone} onChange={e => setF({ ...f, secondaryPhone: e.target.value, secondaryPhoneRaw: e.target.value.replace(/\D/g, '') || f.secondaryPhoneRaw })} className="h-11 rounded-xl" /></FieldRow>
@@ -2179,7 +3269,8 @@ function ContactInfoEditor({ content, save }) {
         <Button onClick={() => save({ contact: f })} className="bg-[#D71920] hover:bg-[#a5121a] rounded-xl"><Save className="h-4 w-4 mr-2"/> Save Contact & Social Links</Button>
       </div>
     </div>
-  )
+  </div>
+)
 }
 
 const DEFAULT_TERMS_HTML = `<section>
@@ -2279,7 +3370,7 @@ const DEFAULT_PRIVACY_HTML = `<section>
     Introduction
   </h2>
   <p>
-    IVR Energy (OPC) Private Limited ("<strong>IVR Energy</strong>", "we", "our", or "us") respects your privacy. This Privacy Policy explains how we collect, use, disclose, and protect personal and technical information gathered when you visit <strong>ivrenergysolutions.com</strong>, request a quote, or use our solar installation services.
+    IVR Energy (OPC) Private Limited ("<strong>IVR Energy</strong>", "we", "our", or "us") respects your privacy. This Privacy Policy explains how we collect, use, disclose, and protect personal and technical information gathered when you visit <strong>ivrenergy.com</strong>, request a quote, or use our solar installation services.
   </p>
 </section>
 
@@ -2361,8 +3452,8 @@ const DEFAULT_PRIVACY_HTML = `<section>
   </p>
   <div class="bg-neutral-50 p-5 rounded-2xl border border-neutral-200 text-sm space-y-1.5">
     <p><strong>IVR Energy (OPC) Private Limited</strong></p>
-    <p>3rd Floor, Door No. 1, Plot No. A, Manasarovar Nagar, Gerugambakkam, Chennai - 600122</p>
-    <p>Email: ivrengersolutions@gmail.com | Phone: +91 90477 77936</p>
+    <p>3rd Floor, Door No. 1, Plot A, Manasarovar Nagar, Gerugambakkam, Chennai, Tamil Nadu 600122</p>
+    <p>Email: info@ivrenergy.com | ivrenergysolutions@gmail.com | Phone: +91 90477 77936</p>
   </div>
 </section>`
 
@@ -3323,6 +4414,12 @@ function BlogsManager({ token }) {
   const [statusFilter, setStatusFilter] = useState('All')
   const [editing, setEditing] = useState(null)
   const [isNew, setIsNew] = useState(false)
+  const [savingHeader, setSavingHeader] = useState(false)
+  const [headerOpen, setHeaderOpen] = useState(false)
+  const [headerContent, setHeaderContent] = useState({
+    blogPageTitle: 'Solar Energy Guides, Subsidies & <span class="text-gradient-red">Industry Innovations</span>',
+    blogPageSubtitle: 'Actionable technical breakdowns, TANGEDCO policy updates, commercial ROI modeling, and PM Surya Ghar step-by-step guides authored by IVR Energy engineers.'
+  })
 
   async function load() {
     setLoading(true)
@@ -3330,6 +4427,15 @@ function BlogsManager({ token }) {
       const r = await fetch('/api/admin/blogs', { headers: { Authorization: `Bearer ${token}` } })
       const j = await r.json()
       setBlogs(j.blogs || [])
+
+      const cr = await fetch('/api/content')
+      const cj = await cr.json()
+      if (cj.content) {
+        setHeaderContent({
+          blogPageTitle: cj.content.blogPageTitle || 'Solar Energy Guides, Subsidies & <span class="text-gradient-red">Industry Innovations</span>',
+          blogPageSubtitle: cj.content.blogPageSubtitle || 'Actionable technical breakdowns, TANGEDCO policy updates, commercial ROI modeling, and PM Surya Ghar step-by-step guides authored by IVR Energy engineers.'
+        })
+      }
     } catch {
       toast.error('Failed to load blog posts')
     }
@@ -3339,6 +4445,27 @@ function BlogsManager({ token }) {
   useEffect(() => {
     load()
   }, [])
+
+  async function saveHeaderSettings(e) {
+    e.preventDefault()
+    setSavingHeader(true)
+    try {
+      const r = await fetch('/api/admin/content', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify(headerContent)
+      })
+      const j = await r.json()
+      if (j.success) {
+        toast.success('Blog Page Header saved & synced to live /blog')
+      } else {
+        toast.error(j.error || 'Failed to save blog header')
+      }
+    } catch (e) {
+      toast.error('Save failed: ' + e.message)
+    }
+    setSavingHeader(false)
+  }
 
   async function saveBlog(doc) {
     try {
@@ -3463,6 +4590,98 @@ function BlogsManager({ token }) {
 
   return (
     <div className="space-y-6">
+      {/* Blog Page Header Banner Settings Card */}
+      <div className="bg-white rounded-2xl border border-neutral-200 shadow-soft overflow-hidden">
+        <div 
+          onClick={() => setHeaderOpen(!headerOpen)}
+          className="p-5 flex items-center justify-between cursor-pointer hover:bg-neutral-50/80 transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-red-50 text-[#D71920] border border-red-100 flex items-center justify-center shrink-0">
+              <BookOpen className="h-5 w-5" />
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-neutral-900 flex items-center gap-2">
+                Blog Page Header Settings
+                <span className="text-[11px] font-normal text-neutral-500 bg-neutral-100 px-2 py-0.5 rounded-md">
+                  /blog
+                </span>
+              </h2>
+              <p className="text-xs text-neutral-500 mt-0.5">
+                Customize the main headline and introduction description on the public blog page.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <a
+              href="/blog"
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="hidden sm:inline-flex items-center gap-1 text-xs font-semibold text-[#D71920] hover:underline mr-2"
+            >
+              <ExternalLink className="h-3.5 w-3.5" /> View Live Page
+            </a>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="rounded-xl text-xs"
+            >
+              {headerOpen ? 'Hide Settings' : 'Edit Page Header'}
+            </Button>
+          </div>
+        </div>
+
+        {headerOpen && (
+          <form onSubmit={saveHeaderSettings} className="p-5 pt-0 border-t border-neutral-100 bg-neutral-50/50 space-y-4">
+            <div className="space-y-3 pt-4">
+              <div>
+                <label className="text-xs font-bold text-neutral-700 uppercase tracking-wider block mb-1.5">
+                  Blog Page Main Title (HTML Supported)
+                </label>
+                <Input
+                  value={headerContent.blogPageTitle}
+                  onChange={(e) => setHeaderContent({ ...headerContent, blogPageTitle: e.target.value })}
+                  placeholder='e.g. Solar Energy Guides, Subsidies & <span class="text-gradient-red">Industry Innovations</span>'
+                  className="h-11 rounded-xl bg-white text-xs font-semibold"
+                  required
+                />
+                <p className="text-[11px] text-neutral-400 mt-1">
+                  Tip: Wrap highlighted words in <code className="text-[#D71920]">&lt;span class="text-gradient-red"&gt;text&lt;/span&gt;</code> for the red gradient style.
+                </p>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-neutral-700 uppercase tracking-wider block mb-1.5">
+                  Blog Page Subtitle / Description
+                </label>
+                <Textarea
+                  value={headerContent.blogPageSubtitle}
+                  onChange={(e) => setHeaderContent({ ...headerContent, blogPageSubtitle: e.target.value })}
+                  placeholder="Enter descriptive subhead for the blog hub..."
+                  rows={3}
+                  className="rounded-xl bg-white text-xs leading-relaxed"
+                  required
+                />
+              </div>
+
+              <div className="flex justify-end pt-2">
+                <Button
+                  type="submit"
+                  disabled={savingHeader}
+                  className="bg-[#D71920] hover:bg-[#a5121a] text-white rounded-xl text-xs h-10 px-5 font-bold shadow-glow-red flex items-center gap-1.5"
+                >
+                  {savingHeader ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                  Save Blog Header
+                </Button>
+              </div>
+            </div>
+          </form>
+        )}
+      </div>
+
       {/* Header & Stats Banner */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-neutral-200 shadow-soft">
         <div>
@@ -4582,20 +5801,48 @@ function WebsiteFaqsManager({ token }) {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [search, setSearch] = useState('')
-  const [editing, setEditing] = useState(null) // { index, q, a }
+  const [selectedCategory, setSelectedCategory] = useState('All')
+  const [editing, setEditing] = useState(null) // { index, id, q, a, category }
+  const [savingHeader, setSavingHeader] = useState(false)
+  const [headerOpen, setHeaderOpen] = useState(false)
+  const [headerContent, setHeaderContent] = useState({
+    faqPageTitle: 'Frequently Asked <span class="text-gradient-red">Questions</span>',
+    faqPageSubtitle: 'Direct, expert answers on solar system pricing in Chennai, PM Surya Ghar ₹78,000 subsidies, TANGEDCO net metering, and turnkey EPC engineering.'
+  })
+
+  function normalizeFaq(f, idx) {
+    return {
+      id: f.id || `faq-${idx}-${Date.now()}`,
+      category: f.category || 'General',
+      q: f.q || '',
+      a: f.a || f.directAnswer || '',
+      directAnswer: f.directAnswer || f.a || '',
+      details: f.details || '',
+      lastUpdated: f.lastUpdated || ''
+    }
+  }
 
   async function load() {
     setLoading(true)
     try {
       const r = await fetch('/api/content')
       const j = await r.json()
-      if (j.content?.faqsList && Array.isArray(j.content.faqsList) && j.content.faqsList.length > 0) {
-        setFaqs(j.content.faqsList)
+      if (j.content) {
+        setHeaderContent({
+          faqPageTitle: j.content.faqPageTitle || 'Frequently Asked <span class="text-gradient-red">Questions</span>',
+          faqPageSubtitle: j.content.faqPageSubtitle || 'Direct, expert answers on solar system pricing in Chennai, PM Surya Ghar ₹78,000 subsidies, TANGEDCO net metering, and turnkey EPC engineering.'
+        })
+
+        if (j.content.faqsList && Array.isArray(j.content.faqsList) && j.content.faqsList.length > 0) {
+          setFaqs(j.content.faqsList.map(normalizeFaq))
+        } else {
+          setFaqs(DEFAULT_FAQS.map(normalizeFaq))
+        }
       } else {
-        setFaqs(DEFAULT_FAQS)
+        setFaqs(DEFAULT_FAQS.map(normalizeFaq))
       }
     } catch (e) {
-      setFaqs(DEFAULT_FAQS)
+      setFaqs(DEFAULT_FAQS.map(normalizeFaq))
     }
     setLoading(false)
   }
@@ -4603,6 +5850,27 @@ function WebsiteFaqsManager({ token }) {
   useEffect(() => {
     load()
   }, [])
+
+  async function saveHeaderSettings(e) {
+    if (e) e.preventDefault()
+    setSavingHeader(true)
+    try {
+      const r = await fetch('/api/admin/content', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify(headerContent)
+      })
+      const j = await r.json()
+      if (j.success) {
+        toast.success('FAQs Page Header saved & synced to live /faqs')
+      } else {
+        toast.error(j.error || 'Failed to save FAQs header')
+      }
+    } catch (e) {
+      toast.error('Save failed: ' + e.message)
+    }
+    setSavingHeader(false)
+  }
 
   async function saveFaqsList(updatedList) {
     setSaving(true)
@@ -4631,34 +5899,158 @@ function WebsiteFaqsManager({ token }) {
       toast.error('Both question and answer are required')
       return
     }
+    const cleanItem = {
+      id: item.id || `faq-${Date.now()}`,
+      category: item.category?.trim() || 'General',
+      q: item.q.trim(),
+      a: item.a.trim(),
+      directAnswer: item.a.trim(),
+      lastUpdated: '2026'
+    }
+
     let updated = [...faqs]
     if (item.index !== undefined && item.index >= 0) {
-      updated[item.index] = { q: item.q.trim(), a: item.a.trim() }
+      updated[item.index] = { ...updated[item.index], ...cleanItem }
     } else {
-      updated.unshift({ q: item.q.trim(), a: item.a.trim() })
+      updated.unshift(cleanItem)
     }
     saveFaqsList(updated)
   }
 
-  function deleteFaq(idx) {
+  function deleteFaq(index) {
     if (!confirm('Are you sure you want to delete this FAQ item?')) return
-    const updated = faqs.filter((_, i) => i !== idx)
+    const updated = faqs.filter((_, i) => i !== index)
+    saveFaqsList(updated)
+  }
+
+  function moveFaq(fromIndex, toIndex) {
+    if (toIndex < 0 || toIndex >= faqs.length) return
+    const updated = [...faqs]
+    const item = updated.splice(fromIndex, 1)[0]
+    updated.splice(toIndex, 0, item)
     saveFaqsList(updated)
   }
 
   function resetToDefaults() {
-    if (!confirm('Reset all website FAQs back to the 30+ default questions? Any custom changes will be overwritten.')) return
-    saveFaqsList(DEFAULT_FAQS)
+    if (!confirm('Reset all FAQs back to the 51 default structured questions? (Custom changes will be replaced)')) return
+    saveFaqsList(DEFAULT_FAQS.map(normalizeFaq))
   }
 
+  const categoryOptions = useMemo(() => {
+    const cats = new Set(FAQ_CATEGORIES)
+    faqs.forEach(f => {
+      if (f.category) cats.add(f.category)
+    })
+    return ['All', ...Array.from(cats)]
+  }, [faqs])
+
   const filtered = faqs.filter(f => {
+    const matchesCat = selectedCategory === 'All' || f.category === selectedCategory
+    if (!matchesCat) return false
     if (!search) return true
     const s = search.toLowerCase()
-    return (f.q || '').toLowerCase().includes(s) || (f.a || '').toLowerCase().includes(s)
+    return (
+      (f.q || '').toLowerCase().includes(s) ||
+      (f.a || '').toLowerCase().includes(s) ||
+      (f.directAnswer || '').toLowerCase().includes(s) ||
+      (f.category || '').toLowerCase().includes(s)
+    )
   })
 
   return (
     <div className="space-y-6">
+      {/* FAQs Page Header & SEO Banner Settings Card */}
+      <div className="bg-white rounded-2xl border border-neutral-200 shadow-soft overflow-hidden">
+        <div 
+          onClick={() => setHeaderOpen(!headerOpen)}
+          className="p-5 flex items-center justify-between cursor-pointer hover:bg-neutral-50/80 transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-red-50 text-[#D71920] border border-red-100 flex items-center justify-center shrink-0">
+              <HelpCircle className="h-5 w-5" />
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-neutral-900 flex items-center gap-2">
+                FAQs Page Header & SEO Banner Settings
+                <span className="text-[11px] font-normal text-neutral-500 bg-neutral-100 px-2 py-0.5 rounded-md">
+                  /faqs
+                </span>
+              </h2>
+              <p className="text-xs text-neutral-500 mt-0.5">
+                Customize the main title headline and description on the public FAQ knowledge base page.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <a
+              href="/faqs"
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="hidden sm:inline-flex items-center gap-1 text-xs font-semibold text-[#D71920] hover:underline mr-2"
+            >
+              <ExternalLink className="h-3.5 w-3.5" /> View Live Page
+            </a>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="rounded-xl text-xs"
+            >
+              {headerOpen ? 'Hide Settings' : 'Edit Page Header'}
+            </Button>
+          </div>
+        </div>
+
+        {headerOpen && (
+          <form onSubmit={saveHeaderSettings} className="p-5 pt-0 border-t border-neutral-100 bg-neutral-50/50 space-y-4">
+            <div className="space-y-3 pt-4">
+              <div>
+                <label className="text-xs font-bold text-neutral-700 uppercase tracking-wider block mb-1.5">
+                  Page Main Title (HTML Supported)
+                </label>
+                <Input
+                  value={headerContent.faqPageTitle}
+                  onChange={(e) => setHeaderContent({ ...headerContent, faqPageTitle: e.target.value })}
+                  placeholder='e.g. Frequently Asked <span class="text-gradient-red">Questions</span>'
+                  className="h-11 rounded-xl bg-white text-xs font-semibold"
+                  required
+                />
+                <p className="text-[11px] text-neutral-400 mt-1">
+                  Tip: Wrap highlighted words in <code className="text-[#D71920]">&lt;span class="text-gradient-red"&gt;text&lt;/span&gt;</code> for the red gradient style.
+                </p>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-neutral-700 uppercase tracking-wider block mb-1.5">
+                  Page Subtitle / Description
+                </label>
+                <Textarea
+                  value={headerContent.faqPageSubtitle}
+                  onChange={(e) => setHeaderContent({ ...headerContent, faqPageSubtitle: e.target.value })}
+                  placeholder="Enter descriptive subtitle for the FAQ knowledge base..."
+                  rows={3}
+                  className="rounded-xl bg-white text-xs leading-relaxed"
+                  required
+                />
+              </div>
+
+              <div className="flex justify-end pt-2">
+                <Button
+                  type="submit"
+                  disabled={savingHeader}
+                  className="bg-[#D71920] hover:bg-[#a5121a] text-white rounded-xl text-xs h-10 px-5 font-bold shadow-glow-red flex items-center gap-1.5 cursor-pointer"
+                >
+                  {savingHeader ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                  Save FAQs Header
+                </Button>
+              </div>
+            </div>
+          </form>
+        )}
+      </div>
+
       {/* Header Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-neutral-200 shadow-soft">
         <div>
@@ -4667,7 +6059,11 @@ function WebsiteFaqsManager({ token }) {
             Website Frequently Asked Questions (FAQs)
           </h2>
           <p className="text-xs text-neutral-500 mt-1">
-            Manage the FAQ accordion items displayed publicly on <a href="/faqs" target="_blank" className="text-[#D71920] underline font-medium">/faqs</a>. Edits sync instantly.
+            Manage the FAQ items displayed publicly on{' '}
+            <a href="/faqs" target="_blank" rel="noopener noreferrer" className="text-[#D71920] underline font-medium">
+              /faqs
+            </a>
+            . Edits sync instantly.
           </p>
         </div>
 
@@ -4677,38 +6073,51 @@ function WebsiteFaqsManager({ token }) {
             size="sm"
             onClick={resetToDefaults}
             disabled={saving}
-            className="rounded-xl text-xs text-neutral-600 hover:text-neutral-900"
+            className="rounded-xl text-xs text-neutral-600 hover:text-neutral-900 cursor-pointer"
           >
             <RefreshCw className="h-3.5 w-3.5 mr-1" /> Reset Defaults
           </Button>
 
           <Button
-            onClick={() => setEditing({ index: -1, q: '', a: '' })}
-            className="bg-[#D71920] hover:bg-[#a5121a] text-white rounded-xl text-xs font-bold"
+            onClick={() => setEditing({ index: -1, q: '', a: '', category: 'Cost' })}
+            className="bg-[#D71920] hover:bg-[#a5121a] text-white rounded-xl text-xs font-bold shadow-glow-red cursor-pointer"
           >
             <Plus className="h-4 w-4 mr-1.5" /> Add New FAQ
           </Button>
         </div>
       </div>
 
-      {/* Search & Stats Filter */}
+      {/* Search & Category Filter */}
       <div className="flex flex-wrap gap-3 items-center">
-        <div className="relative flex-1 min-w-[260px]">
+        <div className="relative flex-1 min-w-[240px]">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400" />
           <Input
-            placeholder="Search questions or answers..."
+            placeholder="Search questions, answers, or category..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-10 h-11 rounded-xl bg-white text-xs"
           />
         </div>
 
-        <div className="px-3.5 py-2.5 rounded-xl bg-neutral-100 text-xs font-bold text-neutral-600">
-          Showing {filtered.length} of {faqs.length} FAQs
+        <div className="flex items-center gap-2">
+          <select
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            className="h-11 px-3.5 rounded-xl bg-white border border-neutral-200 text-xs font-semibold text-neutral-700 focus:outline-none focus:ring-2 focus:ring-[#D71920]"
+          >
+            <option value="All">All Categories</option>
+            {categoryOptions.filter(c => c !== 'All').map(c => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
+
+          <div className="px-3.5 py-2.5 rounded-xl bg-neutral-100 text-xs font-bold text-neutral-600 whitespace-nowrap">
+            Showing {filtered.length} of {faqs.length} FAQs
+          </div>
         </div>
       </div>
 
-      {/* Content List */}
+      {/* FAQ List */}
       {loading ? (
         <div className="p-16 flex justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-[#D71920]" />
@@ -4721,36 +6130,71 @@ function WebsiteFaqsManager({ token }) {
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-3.5">
-          {filtered.map((faq, idx) => {
-            const originalIndex = faqs.findIndex(f => f.q === faq.q && f.a === faq.a)
+          {filtered.map((faq) => {
+            const originalIndex = faqs.findIndex(f => f.id === faq.id || (f.q === faq.q && (f.a === faq.a || f.directAnswer === faq.directAnswer)))
+            const actualIndex = originalIndex >= 0 ? originalIndex : 0
+            const answerText = faq.a || faq.directAnswer || ''
+
             return (
               <div
-                key={idx}
-                className="rounded-2xl bg-white p-5 border border-neutral-200/90 shadow-soft hover:shadow-md transition-all flex flex-col sm:flex-row items-start justify-between gap-4"
+                key={faq.id || actualIndex}
+                className="rounded-2xl bg-white p-5 border border-neutral-200 shadow-soft hover:shadow-md transition-all flex flex-col sm:flex-row items-start justify-between gap-4"
               >
-                <div className="space-y-2 flex-1">
-                  <div className="flex items-center gap-2">
+                <div className="space-y-2 flex-1 min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
                     <span className="h-6 w-6 rounded-full bg-red-50 text-[#D71920] border border-red-100 text-xs font-extrabold flex items-center justify-center shrink-0">
-                      {originalIndex >= 0 ? originalIndex + 1 : idx + 1}
+                      {actualIndex + 1}
                     </span>
-                    <h3 className="font-bold text-neutral-900 text-sm leading-snug">
-                      {faq.q}
-                    </h3>
+                    {faq.category && (
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-neutral-100 text-neutral-700 border border-neutral-200">
+                        {faq.category}
+                      </span>
+                    )}
                   </div>
-                  <p className="text-xs text-neutral-600 leading-relaxed pl-8 whitespace-pre-line">
-                    {faq.a}
+                  <h3 className="font-bold text-neutral-900 text-sm leading-snug">
+                    {faq.q}
+                  </h3>
+                  <p className="text-xs text-neutral-600 leading-relaxed whitespace-pre-line bg-neutral-50 p-3 rounded-xl border border-neutral-100">
+                    {answerText}
                   </p>
                 </div>
 
-                <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-center">
+                <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-start">
                   <button
-                    onClick={() => setEditing({ index: originalIndex >= 0 ? originalIndex : idx, q: faq.q, a: faq.a })}
+                    type="button"
+                    title="Move Up"
+                    disabled={actualIndex === 0}
+                    onClick={() => moveFaq(actualIndex, actualIndex - 1)}
+                    className="h-8 w-8 rounded-lg bg-neutral-100 hover:bg-neutral-200 disabled:opacity-30 disabled:cursor-not-allowed text-neutral-700 flex items-center justify-center transition-colors"
+                  >
+                    <ArrowUp className="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    title="Move Down"
+                    disabled={actualIndex === faqs.length - 1}
+                    onClick={() => moveFaq(actualIndex, actualIndex + 1)}
+                    className="h-8 w-8 rounded-lg bg-neutral-100 hover:bg-neutral-200 disabled:opacity-30 disabled:cursor-not-allowed text-neutral-700 flex items-center justify-center transition-colors"
+                  >
+                    <ArrowDown className="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEditing({
+                      index: actualIndex,
+                      id: faq.id,
+                      q: faq.q,
+                      a: answerText,
+                      category: faq.category || 'Cost'
+                    })}
                     className="h-8 px-3 rounded-lg bg-neutral-100 hover:bg-neutral-200 text-neutral-700 text-xs font-semibold flex items-center gap-1 transition-colors"
                   >
                     <Edit3 className="h-3.5 w-3.5" /> Edit
                   </button>
                   <button
-                    onClick={() => deleteFaq(originalIndex >= 0 ? originalIndex : idx)}
+                    type="button"
+                    title="Delete FAQ"
+                    onClick={() => deleteFaq(actualIndex)}
                     className="h-8 w-8 rounded-lg bg-red-50 text-red-600 hover:bg-red-600 hover:text-white flex items-center justify-center transition-colors"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
@@ -4802,12 +6246,31 @@ function WebsiteFaqsManager({ token }) {
               <div className="p-6 space-y-4">
                 <div>
                   <label className="text-xs font-bold text-neutral-700 uppercase tracking-wider block mb-1.5">
+                    Category *
+                  </label>
+                  <select
+                    value={editing.category || 'Cost'}
+                    onChange={(e) => setEditing({ ...editing, category: e.target.value })}
+                    className="w-full h-11 px-3.5 rounded-xl border border-neutral-200 bg-white text-xs font-medium text-neutral-800 focus:outline-none focus:ring-2 focus:ring-[#D71920]"
+                    required
+                  >
+                    {FAQ_CATEGORIES.filter(c => c !== 'All').map(c => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                    {!FAQ_CATEGORIES.includes(editing.category) && editing.category && (
+                      <option value={editing.category}>{editing.category}</option>
+                    )}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-neutral-700 uppercase tracking-wider block mb-1.5">
                     Question *
                   </label>
                   <Input
                     value={editing.q}
                     onChange={(e) => setEditing({ ...editing, q: e.target.value })}
-                    placeholder="e.g. How much space is required for a rooftop solar system?"
+                    placeholder="e.g. How much does a 3 kW solar system cost in Chennai?"
                     className="h-11 rounded-xl text-xs font-semibold"
                     required
                   />
@@ -4815,12 +6278,12 @@ function WebsiteFaqsManager({ token }) {
 
                 <div>
                   <label className="text-xs font-bold text-neutral-700 uppercase tracking-wider block mb-1.5">
-                    Answer * (Line breaks & detailed paragraphs supported)
+                    Answer *
                   </label>
                   <Textarea
                     value={editing.a}
                     onChange={(e) => setEditing({ ...editing, a: e.target.value })}
-                    placeholder="Enter comprehensive answer explaining the system capacity, requirements, or government guidelines..."
+                    placeholder="Enter comprehensive answer explaining the system capacity, pricing, subsidy, or guidelines..."
                     rows={6}
                     className="rounded-xl text-xs leading-relaxed"
                     required
@@ -4833,21 +6296,831 @@ function WebsiteFaqsManager({ token }) {
                   type="button"
                   variant="outline"
                   onClick={() => setEditing(null)}
-                  className="rounded-xl text-xs h-10 px-4"
+                  className="rounded-xl text-xs h-10 px-4 cursor-pointer"
                 >
                   Cancel
                 </Button>
                 <Button
                   type="submit"
                   disabled={saving}
-                  className="bg-[#D71920] hover:bg-[#a5121a] text-white rounded-xl text-xs h-10 px-5 font-bold"
+                  className="bg-[#D71920] hover:bg-[#a5121a] text-white rounded-xl text-xs h-10 px-5 font-bold shadow-glow-red cursor-pointer flex items-center gap-1.5"
                 >
-                  {saving ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : <Save className="h-4 w-4 mr-1.5" />}
+                  {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                   Save FAQ
                 </Button>
               </div>
             </motion.form>
           </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
+
+// -------- SEO Landing Pages Manager --------
+function LandingPagesManager({ token }) {
+  const [pages, setPages] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState('')
+  const [editing, setEditing] = useState(null)
+  const [saving, setSaving] = useState(false)
+  const [modalTab, setModalTab] = useState('basic')
+
+  const defaultTemplate = {
+    slug: '',
+    metaTitle: '',
+    metaDescription: '',
+    h1: '',
+    tagline: '',
+    badge: 'Certified Solar EPC Contractor · Chennai & Tamil Nadu',
+    directAnswer: '',
+    heroStats: [
+      { label: 'Installed Capacity', val: '15+ MW' },
+      { label: 'Delivered Projects', val: '250+' },
+      { label: 'Happy Clients', val: '180+' },
+      { label: 'Field Experience', val: '12+ Years' },
+    ],
+    overviewTitle: 'Why Choose IVR Energy for Solar in Chennai',
+    overviewText: 'Chennai enjoys over 300 sunny days each year. IVR Energy designs wind-load certified, corrosion-resistant solar mounting structures paired with high heat-tolerant N-Type TOPCon dual-glass panels.',
+    systemSpecs: [
+      { label: 'Module Technology', val: 'Tier-1 TOPCon / Mono PERC (550Wp – 580Wp)' },
+      { label: 'Inverter Types', val: 'Smart On-Grid String Inverter with Dual MPPT & Cloud WiFi' },
+      { label: 'Mounting Structure', val: 'Hot-Dip Galvanized (80µm) / Elevated Pergola' },
+      { label: 'Performance Warranty', val: '25 to 30 Years Linear Power Guarantee' },
+    ],
+    pricingData: {
+      capacity: '3 kW to 10 kW Residential / 10 kW+ Commercial',
+      priceRange: '₹1,80,000 to ₹6,50,000',
+      subsidyAvailable: 'Up to ₹78,000 Direct DBT under PM Surya Ghar',
+      effectiveCost: 'Starting from ₹1,02,000 for 3 kW On-Grid',
+      typicalPayback: '3.2 to 3.8 Years',
+    },
+    chennaiEngineeringHighlights: [
+      '**Cyclone & Coastal Wind Proof:** Structural anchor fasteners and heavy hot-dip galvanized steel built to withstand severe coastal winds.',
+      '**High Heat Tolerance:** TOPCon panels feature low temperature coefficient (-0.30%/°C) for peak Chennai summer yield.',
+      '**Complete TANGEDCO Handling:** End-to-end DISCOM paperwork, bi-directional net meter synchronization, and DBT subsidy processing.'
+    ],
+    processSteps: [
+      { step: '01', title: 'Free Site Assessment', desc: 'On-site 3D shadow analysis, roof load check, and consumption evaluation.' },
+      { step: '02', title: 'DISCOM & Subsidy Filing', desc: 'Online registration on the National Solar Portal and TANGEDCO feasibility clearance.' },
+      { step: '03', title: 'Precision Installation', desc: '1 to 3 days precision structural assembly, panel clamping, and inverter wiring.' },
+      { step: '04', title: 'Net Meter & Commissioning', desc: 'Joint TANGEDCO inspection, bi-directional meter installation, and live power generation.' },
+    ],
+    projectExamples: [
+      { title: '330 kW Solar Rooftop', client: 'Muthukumaran Medical College', loc: 'Chennai', capacity: '330 kW' },
+      { title: '82 kW Solar Rooftop', client: 'Thyrocare', loc: 'Chennai / Regional', capacity: '82 kW' },
+      { title: '5 kW Residential Villa', client: 'Independent Rooftop', loc: 'Anna Nagar, Chennai', capacity: '5 kW' },
+    ],
+    faqs: [
+      { q: 'How long does solar panel installation take in Chennai?', a: 'Physical rooftop installation takes 1 to 2 days for residential systems. Complete TANGEDCO net metering approval takes 20 to 30 working days.' },
+      { q: 'What subsidy is available under PM Surya Ghar in Tamil Nadu?', a: 'Residential homeowners receive up to ₹78,000 direct bank transfer subsidy for systems of 3 kW and higher.' }
+    ],
+    relatedLinks: [
+      { label: '3 kW Solar System Chennai', href: '/3kw-solar-system-chennai' },
+      { label: '5 kW Solar System Chennai', href: '/5kw-solar-system-chennai' },
+      { label: 'PM Surya Ghar Chennai Guide', href: '/pm-surya-ghar-chennai' },
+    ]
+  }
+
+  function loadPages() {
+    setLoading(true)
+    fetch('/api/admin/landing-pages', { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.json())
+      .then(j => {
+        if (Array.isArray(j.landingPages) && j.landingPages.length > 0) {
+          setPages(j.landingPages)
+        } else {
+          setPages(ALL_LANDING_PAGES_LIST)
+        }
+        setLoading(false)
+      })
+      .catch(() => {
+        setPages(ALL_LANDING_PAGES_LIST)
+        setLoading(false)
+      })
+  }
+
+  useEffect(() => {
+    loadPages()
+  }, [token])
+
+  async function handleSave(pageData) {
+    if (!pageData.slug || !pageData.h1) {
+      toast.error('Slug and Page Title (H1) are required')
+      return
+    }
+    setSaving(true)
+    const isNew = !pages.some(p => p.slug === pageData.slug || (editing?.originalSlug && p.slug === editing.originalSlug))
+    const method = isNew ? 'POST' : 'PATCH'
+    const payload = isNew ? pageData : { ...pageData, id: editing?.originalSlug || pageData.slug }
+
+    try {
+      const res = await fetch('/api/admin/landing-pages', {
+        method,
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify(payload)
+      })
+      const j = await res.json()
+      if (res.ok && j.success) {
+        toast.success(`Landing page ${isNew ? 'created' : 'updated'} successfully`)
+        setEditing(null)
+        loadPages()
+      } else {
+        toast.error(j.error || 'Failed to save landing page')
+      }
+    } catch {
+      toast.error('Network error saving landing page')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function handleDelete(slug) {
+    if (!confirm(`Are you sure you want to delete the landing page "/${slug}"?`)) return
+    try {
+      const res = await fetch(`/api/admin/landing-pages?slug=${encodeURIComponent(slug)}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      const j = await res.json()
+      if (res.ok && j.success) {
+        toast.success('Landing page removed')
+        loadPages()
+      } else {
+        toast.error(j.error || 'Failed to delete page')
+      }
+    } catch {
+      toast.error('Network error deleting page')
+    }
+  }
+
+  const filteredPages = pages.filter(p => {
+    const q = search.toLowerCase()
+    return (
+      p.h1?.toLowerCase().includes(q) ||
+      p.slug?.toLowerCase().includes(q) ||
+      p.badge?.toLowerCase().includes(q) ||
+      p.directAnswer?.toLowerCase().includes(q)
+    )
+  })
+
+  return (
+    <div className="space-y-6">
+      {/* Header Banner */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-6 rounded-3xl border border-neutral-100 shadow-soft">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#D71920]" />
+            <h2 className="text-xl sm:text-2xl font-bold text-neutral-900">SEO Landing Pages</h2>
+            <span className="px-2.5 py-0.5 rounded-full bg-red-50 text-[#D71920] text-xs font-extrabold border border-red-100">
+              {pages.length} Pages
+            </span>
+          </div>
+          <p className="text-xs sm:text-sm text-neutral-500 mt-1">
+            Manage high-intent commercial landing pages, subsidies, Chennai engineering specs, and FAQ schemas.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <Button
+            onClick={() => {
+              setModalTab('basic')
+              setEditing({ ...defaultTemplate, originalSlug: null })
+            }}
+            className="bg-[#D71920] hover:bg-[#a5121a] text-white font-bold rounded-xl text-xs sm:text-sm h-11 px-5 shadow-glow-red flex items-center gap-2 cursor-pointer"
+          >
+            <Plus className="h-4 w-4" /> Add Landing Page
+          </Button>
+        </div>
+      </div>
+
+      {/* Search & Stats Bar */}
+      <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
+        <div className="relative w-full sm:max-w-md">
+          <Search className="h-4 w-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-neutral-400" />
+          <Input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search by title, slug, or keywords..."
+            className="pl-10 h-11 rounded-xl bg-white border-neutral-200 text-xs sm:text-sm font-medium"
+          />
+        </div>
+        <div className="text-xs text-neutral-500 font-medium self-end sm:self-center">
+          Showing <span className="font-bold text-neutral-900">{filteredPages.length}</span> of {pages.length} pages
+        </div>
+      </div>
+
+      {/* Page List */}
+      {loading ? (
+        <div className="p-16 flex flex-col items-center justify-center gap-3 bg-white rounded-3xl border border-neutral-100">
+          <Loader2 className="h-8 w-8 animate-spin text-[#D71920]" />
+          <span className="text-xs text-neutral-400 font-medium">Loading landing pages...</span>
+        </div>
+      ) : filteredPages.length === 0 ? (
+        <div className="p-12 text-center bg-white rounded-3xl border border-neutral-100">
+          <Globe className="h-10 w-10 text-neutral-300 mx-auto mb-2" />
+          <div className="text-sm font-bold text-neutral-700">No landing pages found</div>
+          <p className="text-xs text-neutral-400 mt-1">Try adjusting your search query or click Add Landing Page.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {filteredPages.map((lp) => (
+            <div
+              key={lp.slug}
+              className="rounded-2xl bg-white p-5 border border-neutral-200/80 shadow-2xs hover:shadow-soft hover:border-red-200 transition-all flex flex-col justify-between"
+            >
+              <div>
+                <div className="flex items-start justify-between gap-3 mb-2">
+                  <span className="text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full bg-neutral-100 text-neutral-700 border border-neutral-200">
+                    {lp.badge?.split('·')[0]?.trim() || 'Solar Solution'}
+                  </span>
+                  <a
+                    href={`/${lp.slug}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-xs text-neutral-400 hover:text-[#D71920] font-mono flex items-center gap-1 transition-colors"
+                  >
+                    <span>/{lp.slug}</span>
+                    <ExternalLink className="h-3 w-3" />
+                  </a>
+                </div>
+
+                <h3 className="text-base font-bold text-neutral-900 leading-snug tracking-tight mb-1.5">
+                  {lp.h1}
+                </h3>
+
+                <p className="text-xs text-neutral-500 line-clamp-2 leading-relaxed mb-4">
+                  {lp.directAnswer || lp.tagline}
+                </p>
+
+                {/* Sizing & Pricing Pill */}
+                <div className="p-2.5 rounded-xl bg-neutral-50 border border-neutral-100 text-xs flex items-center justify-between mb-4">
+                  <div className="text-neutral-600">
+                    <span className="text-[10px] uppercase font-bold text-neutral-400 block">Pricing</span>
+                    <span className="font-semibold text-neutral-900">{lp.pricingData?.effectiveCost || lp.pricingData?.priceRange || 'Turnkey EPC'}</span>
+                  </div>
+                  <div className="text-right text-neutral-600">
+                    <span className="text-[10px] uppercase font-bold text-neutral-400 block">Subsidy</span>
+                    <span className="font-semibold text-emerald-700">{lp.pricingData?.subsidyAvailable || 'Eligible'}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Actions Footer */}
+              <div className="pt-3 border-t border-neutral-100 flex items-center justify-between">
+                <span className="text-[11px] text-neutral-400 font-mono">
+                  {lp.faqs?.length || 0} FAQs · {lp.projectExamples?.length || 0} Projects
+                </span>
+                <div className="flex items-center gap-2">
+                  <Button
+                    onClick={() => {
+                      setModalTab('basic')
+                      setEditing({ ...lp, originalSlug: lp.slug })
+                    }}
+                    variant="outline"
+                    size="sm"
+                    className="rounded-xl h-8 text-xs font-semibold hover:border-red-300 hover:text-[#D71920] flex items-center gap-1 cursor-pointer"
+                  >
+                    <Edit3 className="h-3 w-3" /> Edit
+                  </Button>
+                  <button
+                    onClick={() => handleDelete(lp.slug)}
+                    className="h-8 w-8 rounded-xl bg-red-50 text-red-600 hover:bg-red-600 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+                    title="Delete page"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Landing Page Edit / Create Modal */}
+      <AnimatePresence>
+        {editing && (
+          <div
+            className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 overflow-y-auto"
+            onClick={() => setEditing(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.96, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.96, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-3xl w-full max-w-4xl shadow-2xl border border-neutral-200 overflow-hidden flex flex-col max-h-[90vh]"
+            >
+              {/* Modal Header */}
+              <div className="px-6 py-4 border-b border-neutral-200 flex items-center justify-between bg-neutral-50 shrink-0">
+                <div className="flex items-center gap-2">
+                  <Globe className="h-5 w-5 text-[#D71920]" />
+                  <div>
+                    <h3 className="font-bold text-neutral-900 text-sm sm:text-base">
+                      {editing.originalSlug ? `Edit Page: /${editing.originalSlug}` : 'Create New SEO Landing Page'}
+                    </h3>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setEditing(null)}
+                  className="h-8 w-8 rounded-full hover:bg-neutral-200 text-neutral-500 flex items-center justify-center cursor-pointer"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              {/* Sub-Navigation Tabs for Modal */}
+              <div className="px-6 border-b border-neutral-200 bg-white flex gap-2 overflow-x-auto shrink-0 py-2">
+                {[
+                  { id: 'basic', label: '1. SEO & Headings' },
+                  { id: 'content', label: '2. Direct Answer & Text' },
+                  { id: 'pricing', label: '3. Pricing & Hardware' },
+                  { id: 'faqs', label: `4. FAQs (${editing.faqs?.length || 0})` },
+                  { id: 'projects', label: `5. Projects (${editing.projectExamples?.length || 0})` },
+                ].map(t => (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => setModalTab(t.id)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors whitespace-nowrap cursor-pointer ${
+                      modalTab === t.id
+                        ? 'bg-[#D71920] text-white shadow-xs'
+                        : 'text-neutral-600 hover:bg-neutral-100'
+                    }`}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Modal Body Form (Scrollable) */}
+              <div className="p-6 space-y-5 overflow-y-auto flex-1">
+                {modalTab === 'basic' && (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-xs font-bold text-neutral-700 uppercase tracking-wider block mb-1">
+                          URL Slug * (e.g. 5kw-solar-system-chennai)
+                        </label>
+                        <div className="flex items-center">
+                          <span className="px-3 py-2.5 bg-neutral-100 border border-r-0 border-neutral-200 rounded-l-xl text-xs font-mono text-neutral-500">
+                            /
+                          </span>
+                          <Input
+                            required
+                            value={editing.slug}
+                            onChange={e => setEditing({ ...editing, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '') })}
+                            placeholder="commercial-solar-chennai"
+                            className="rounded-l-none rounded-r-xl text-xs font-semibold h-10"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-bold text-neutral-700 uppercase tracking-wider block mb-1">
+                          Badge Label
+                        </label>
+                        <Input
+                          value={editing.badge || ''}
+                          onChange={e => setEditing({ ...editing, badge: e.target.value })}
+                          placeholder="PM Surya Ghar ₹78,000 Subsidy Approved"
+                          className="rounded-xl text-xs font-semibold h-10"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-bold text-neutral-700 uppercase tracking-wider block mb-1">
+                        Page Title (H1 Heading) *
+                      </label>
+                      <Input
+                        required
+                        value={editing.h1}
+                        onChange={e => setEditing({ ...editing, h1: e.target.value })}
+                        placeholder="Residential Rooftop Solar in Chennai"
+                        className="rounded-xl text-xs font-semibold h-10"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-bold text-neutral-700 uppercase tracking-wider block mb-1">
+                        Tagline / Subheading
+                      </label>
+                      <Input
+                        value={editing.tagline || ''}
+                        onChange={e => setEditing({ ...editing, tagline: e.target.value })}
+                        placeholder="Turnkey Solar Power Systems for Independent Homes & Villas in Chennai"
+                        className="rounded-xl text-xs font-semibold h-10"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                      <div>
+                        <label className="text-xs font-bold text-neutral-700 uppercase tracking-wider block mb-1">
+                          SEO Meta Title
+                        </label>
+                        <Input
+                          value={editing.metaTitle || ''}
+                          onChange={e => setEditing({ ...editing, metaTitle: e.target.value })}
+                          placeholder="Residential Rooftop Solar in Chennai | IVR Energy"
+                          className="rounded-xl text-xs font-semibold h-10"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-bold text-neutral-700 uppercase tracking-wider block mb-1">
+                          SEO Meta Description
+                        </label>
+                        <Textarea
+                          rows={2}
+                          value={editing.metaDescription || ''}
+                          onChange={e => setEditing({ ...editing, metaDescription: e.target.value })}
+                          placeholder="Zero your EB bills with residential solar in Chennai. Get ₹78,000 subsidy..."
+                          className="rounded-xl text-xs leading-relaxed"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {modalTab === 'content' && (
+                  <div className="space-y-4">
+                    <div>
+                      <label className="text-xs font-bold text-neutral-700 uppercase tracking-wider block mb-1">
+                        Direct Answer Introduction (AEO &amp; Google Featured Snippets)
+                      </label>
+                      <Textarea
+                        rows={3}
+                        value={editing.directAnswer || ''}
+                        onChange={e => setEditing({ ...editing, directAnswer: e.target.value })}
+                        placeholder="Direct high-level summary explaining costs, subsidy, and system output..."
+                        className="rounded-xl text-xs leading-relaxed"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-bold text-neutral-700 uppercase tracking-wider block mb-1">
+                        Overview Section Title
+                      </label>
+                      <Input
+                        value={editing.overviewTitle || ''}
+                        onChange={e => setEditing({ ...editing, overviewTitle: e.target.value })}
+                        placeholder="Why Chennai Homeowners Choose IVR Energy for Solar"
+                        className="rounded-xl text-xs font-semibold h-10"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-bold text-neutral-700 uppercase tracking-wider block mb-1">
+                        Overview Section Narrative
+                      </label>
+                      <Textarea
+                        rows={4}
+                        value={editing.overviewText || ''}
+                        onChange={e => setEditing({ ...editing, overviewText: e.target.value })}
+                        placeholder="Detailed engineering overview explaining insolation, wind speeds, and TANGEDCO grid parameters..."
+                        className="rounded-xl text-xs leading-relaxed"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-bold text-neutral-700 uppercase tracking-wider block mb-1">
+                        Chennai Engineering Highlights (Use **bold** text format)
+                      </label>
+                      {(editing.chennaiEngineeringHighlights || []).map((hl, idx) => (
+                        <div key={idx} className="flex items-center gap-2 mb-2">
+                          <Input
+                            value={hl}
+                            onChange={e => {
+                              const arr = [...editing.chennaiEngineeringHighlights]
+                              arr[idx] = e.target.value
+                              setEditing({ ...editing, chennaiEngineeringHighlights: arr })
+                            }}
+                            className="rounded-xl text-xs h-9"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const arr = editing.chennaiEngineeringHighlights.filter((_, i) => i !== idx)
+                              setEditing({ ...editing, chennaiEngineeringHighlights: arr })
+                            }}
+                            className="text-red-500 hover:text-red-700 p-1.5"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      ))}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setEditing({
+                            ...editing,
+                            chennaiEngineeringHighlights: [...(editing.chennaiEngineeringHighlights || []), '**Highlight Title:** Description']
+                          })
+                        }}
+                        className="text-xs rounded-xl h-8 mt-1"
+                      >
+                        <Plus className="h-3 w-3 mr-1" /> Add Highlight
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {modalTab === 'pricing' && (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-xs font-bold text-neutral-700 uppercase tracking-wider block mb-1">
+                          Capacity Scope
+                        </label>
+                        <Input
+                          value={editing.pricingData?.capacity || ''}
+                          onChange={e => setEditing({ ...editing, pricingData: { ...editing.pricingData, capacity: e.target.value } })}
+                          placeholder="3 kW to 10 kW Residential Systems"
+                          className="rounded-xl text-xs h-10 font-semibold"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-bold text-neutral-700 uppercase tracking-wider block mb-1">
+                          Gross Price Range
+                        </label>
+                        <Input
+                          value={editing.pricingData?.priceRange || ''}
+                          onChange={e => setEditing({ ...editing, pricingData: { ...editing.pricingData, priceRange: e.target.value } })}
+                          placeholder="₹1,80,000 – ₹2,20,000"
+                          className="rounded-xl text-xs h-10 font-semibold"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-bold text-neutral-700 uppercase tracking-wider block mb-1">
+                          Subsidy Available
+                        </label>
+                        <Input
+                          value={editing.pricingData?.subsidyAvailable || ''}
+                          onChange={e => setEditing({ ...editing, pricingData: { ...editing.pricingData, subsidyAvailable: e.target.value } })}
+                          placeholder="₹78,000 Direct Bank Transfer"
+                          className="rounded-xl text-xs h-10 font-semibold"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-bold text-neutral-700 uppercase tracking-wider block mb-1">
+                          Net Effective Cost
+                        </label>
+                        <Input
+                          value={editing.pricingData?.effectiveCost || ''}
+                          onChange={e => setEditing({ ...editing, pricingData: { ...editing.pricingData, effectiveCost: e.target.value } })}
+                          placeholder="₹1,02,000 – ₹1,42,000"
+                          className="rounded-xl text-xs h-10 font-semibold"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-bold text-neutral-700 uppercase tracking-wider block mb-1">
+                          Typical Payback Period
+                        </label>
+                        <Input
+                          value={editing.pricingData?.typicalPayback || ''}
+                          onChange={e => setEditing({ ...editing, pricingData: { ...editing.pricingData, typicalPayback: e.target.value } })}
+                          placeholder="3.2 to 3.8 Years"
+                          className="rounded-xl text-xs h-10 font-semibold"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="pt-3 border-t border-neutral-100">
+                      <label className="text-xs font-bold text-neutral-700 uppercase tracking-wider block mb-2">
+                        Hardware Specifications Table (Key/Value pairs)
+                      </label>
+                      {(editing.systemSpecs || []).map((spec, idx) => (
+                        <div key={idx} className="grid grid-cols-1 sm:grid-cols-12 gap-2 mb-2 items-center">
+                          <Input
+                            value={spec.label}
+                            onChange={e => {
+                              const arr = [...editing.systemSpecs]
+                              arr[idx] = { ...arr[idx], label: e.target.value }
+                              setEditing({ ...editing, systemSpecs: arr })
+                            }}
+                            placeholder="Specification Label"
+                            className="sm:col-span-4 rounded-xl text-xs h-9"
+                          />
+                          <Input
+                            value={spec.val}
+                            onChange={e => {
+                              const arr = [...editing.systemSpecs]
+                              arr[idx] = { ...arr[idx], val: e.target.value }
+                              setEditing({ ...editing, systemSpecs: arr })
+                            }}
+                            placeholder="Value / Technology Details"
+                            className="sm:col-span-7 rounded-xl text-xs h-9 font-semibold"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const arr = editing.systemSpecs.filter((_, i) => i !== idx)
+                              setEditing({ ...editing, systemSpecs: arr })
+                            }}
+                            className="sm:col-span-1 text-red-500 hover:text-red-700 p-1 flex justify-center"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      ))}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setEditing({
+                            ...editing,
+                            systemSpecs: [...(editing.systemSpecs || []), { label: 'Feature', val: 'Specification details' }]
+                          })
+                        }}
+                        className="text-xs rounded-xl h-8 mt-1"
+                      >
+                        <Plus className="h-3 w-3 mr-1" /> Add Specification Row
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {modalTab === 'faqs' && (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-neutral-500 uppercase tracking-wider">
+                        Page FAQ Schema Items
+                      </span>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setEditing({
+                            ...editing,
+                            faqs: [...(editing.faqs || []), { q: 'New question?', a: 'Detailed answer...' }]
+                          })
+                        }}
+                        className="text-xs rounded-xl h-8"
+                      >
+                        <Plus className="h-3 w-3 mr-1" /> Add FAQ Item
+                      </Button>
+                    </div>
+
+                    {(editing.faqs || []).map((faq, idx) => (
+                      <div key={idx} className="p-3.5 rounded-2xl bg-neutral-50 border border-neutral-200 space-y-2 relative">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] font-extrabold text-[#D71920] uppercase font-mono">
+                            Q{idx + 1}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const arr = editing.faqs.filter((_, i) => i !== idx)
+                              setEditing({ ...editing, faqs: arr })
+                            }}
+                            className="text-red-500 hover:text-red-700 p-1"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                        <Input
+                          value={faq.q}
+                          onChange={e => {
+                            const arr = [...editing.faqs]
+                            arr[idx] = { ...arr[idx], q: e.target.value }
+                            setEditing({ ...editing, faqs: arr })
+                          }}
+                          placeholder="Question title"
+                          className="rounded-xl text-xs font-bold bg-white"
+                        />
+                        <Textarea
+                          rows={2}
+                          value={faq.a}
+                          onChange={e => {
+                            const arr = [...editing.faqs]
+                            arr[idx] = { ...arr[idx], a: e.target.value }
+                            setEditing({ ...editing, faqs: arr })
+                          }}
+                          placeholder="Answer description"
+                          className="rounded-xl text-xs bg-white leading-relaxed"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {modalTab === 'projects' && (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-neutral-500 uppercase tracking-wider">
+                        Proven Project Examples on this Page
+                      </span>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setEditing({
+                            ...editing,
+                            projectExamples: [...(editing.projectExamples || []), { title: 'Solar Project', client: 'Client Name', loc: 'Chennai', capacity: '5 kW' }]
+                          })
+                        }}
+                        className="text-xs rounded-xl h-8"
+                      >
+                        <Plus className="h-3 w-3 mr-1" /> Add Project
+                      </Button>
+                    </div>
+
+                    {(editing.projectExamples || []).map((pj, idx) => (
+                      <div key={idx} className="p-3.5 rounded-2xl bg-neutral-50 border border-neutral-200 grid grid-cols-1 sm:grid-cols-12 gap-2 items-center">
+                        <Input
+                          value={pj.title}
+                          onChange={e => {
+                            const arr = [...editing.projectExamples]
+                            arr[idx] = { ...arr[idx], title: e.target.value }
+                            setEditing({ ...editing, projectExamples: arr })
+                          }}
+                          placeholder="Project Title"
+                          className="sm:col-span-4 rounded-xl text-xs bg-white font-semibold"
+                        />
+                        <Input
+                          value={pj.client}
+                          onChange={e => {
+                            const arr = [...editing.projectExamples]
+                            arr[idx] = { ...arr[idx], client: e.target.value }
+                            setEditing({ ...editing, projectExamples: arr })
+                          }}
+                          placeholder="Client / Facility"
+                          className="sm:col-span-3 rounded-xl text-xs bg-white"
+                        />
+                        <Input
+                          value={pj.capacity}
+                          onChange={e => {
+                            const arr = [...editing.projectExamples]
+                            arr[idx] = { ...arr[idx], capacity: e.target.value }
+                            setEditing({ ...editing, projectExamples: arr })
+                          }}
+                          placeholder="Capacity"
+                          className="sm:col-span-2 rounded-xl text-xs bg-white"
+                        />
+                        <Input
+                          value={pj.loc}
+                          onChange={e => {
+                            const arr = [...editing.projectExamples]
+                            arr[idx] = { ...arr[idx], loc: e.target.value }
+                            setEditing({ ...editing, projectExamples: arr })
+                          }}
+                          placeholder="Location"
+                          className="sm:col-span-2 rounded-xl text-xs bg-white"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const arr = editing.projectExamples.filter((_, i) => i !== idx)
+                            setEditing({ ...editing, projectExamples: arr })
+                          }}
+                          className="sm:col-span-1 text-red-500 hover:text-red-700 p-1 flex justify-center"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Modal Footer Actions */}
+              <div className="px-6 py-4 border-t border-neutral-200 bg-neutral-50 flex items-center justify-between shrink-0">
+                <div className="text-xs text-neutral-400 font-mono">
+                  {editing.slug ? `Live URL: /${editing.slug}` : 'Enter slug to activate'}
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setEditing(null)}
+                    className="rounded-xl text-xs h-10 px-4 cursor-pointer"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    type="button"
+                    disabled={saving}
+                    onClick={() => handleSave(editing)}
+                    className="bg-[#D71920] hover:bg-[#a5121a] text-white font-bold rounded-xl text-xs h-10 px-5 shadow-glow-red cursor-pointer flex items-center gap-1.5"
+                  >
+                    {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                    Save Landing Page
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </div>
@@ -4860,6 +7133,7 @@ function AdminShell({ user, token, onLogout }) {
   const tabs = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'leads', label: 'Leads', icon: Users },
+    { id: 'landing-pages', label: 'SEO Landing Pages', icon: Globe },
     { id: 'capacities', label: 'Solar kW Packages', icon: Zap },
     { id: 'projects', label: 'Projects', icon: FolderKanban },
     { id: 'blogs', label: 'Blog Posts', icon: BookOpen },
@@ -4905,6 +7179,7 @@ function AdminShell({ user, token, onLogout }) {
       <main className="container mx-auto px-4 md:px-6 py-8">
         {tab === 'dashboard' && <Dashboard token={token} />}
         {tab === 'leads' && <Leads token={token} />}
+        {tab === 'landing-pages' && <LandingPagesManager token={token} />}
         {tab === 'capacities' && <CapacitiesManager token={token} />}
         {tab === 'projects' && <Projects token={token} />}
         {tab === 'blogs' && <BlogsManager token={token} />}

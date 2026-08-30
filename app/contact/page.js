@@ -26,13 +26,16 @@ import {
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { companyNAP } from '@/data/companyStats'
 
 const PROJECT_TYPES = [
-  { id: 'residential', label: 'Residential Rooftop' },
-  { id: 'commercial', label: 'Commercial Rooftop' },
-  { id: 'industrial', label: 'Industrial MW EPC' },
-  { id: 'maintenance', label: 'Solar O&M' },
-  { id: 'consultancy', label: 'DPR & Subsidy Advisory' },
+  { id: 'residential', label: 'Residential Rooftop (3kW - 10kW)' },
+  { id: 'commercial', label: 'Commercial Rooftop (10kW - 100kW+)' },
+  { id: 'industrial', label: 'Industrial Captive (100kW - 5MW+)' },
+  { id: 'dpr_consulting', label: 'Solar DPR & Consultancy' },
+  { id: 'subsidy_liaison', label: 'PM Surya Ghar Subsidy Liaison' },
 ]
 
 export default function ContactPage() {
@@ -64,20 +67,20 @@ export default function ContactPage() {
   }, [])
 
   const contactData = content?.contact || {}
-  const phone1 = contactData.phone || contactData.phoneRaw || '+91 90477 77936'
-  const phone1Raw = contactData.phoneRaw || (phone1 ? phone1.replace(/\D/g, '') : '919047777936')
-  const phone2 = contactData.secondaryPhone || contactData.secondaryPhoneRaw || '+91 90477 77935'
-  const phone2Raw = contactData.secondaryPhoneRaw || (phone2 ? phone2.replace(/\D/g, '') : '919047777935')
-  const email1 = contactData.email || 'ivrenergysolutions@gmail.com'
-  const email2 = contactData.secondaryEmail || 'info@ivrenergy.com'
-  const whatsappNumber = contactData.whatsapp || phone1Raw || '919047777936'
+  const phone1 = contactData.phone || contactData.phoneRaw || companyNAP.phone
+  const phone1Raw = contactData.phoneRaw || companyNAP.phoneRaw
+  const phone2 = contactData.secondaryPhone || contactData.secondaryPhoneRaw || companyNAP.secondaryPhone
+  const phone2Raw = contactData.secondaryPhoneRaw || companyNAP.secondaryPhoneRaw
+  const email1 = contactData.email || companyNAP.primaryEmail
+  const email2 = contactData.secondaryEmail || companyNAP.secondaryEmail
+  const whatsappNumber = contactData.whatsapp || phone1Raw || companyNAP.phoneRaw
   const address =
     contactData.address ||
-    '3rd floor, Door No - 1,\nPlot No - A, Manasarovar Nagar,\nGerugambakkam,\nChennai - 600122.'
+    companyNAP.address.multiline
   const secondaryAddressTitle = contactData.secondaryAddressTitle || ''
   const secondaryAddress = contactData.secondaryAddress || ''
   const secondaryAddressPhone = contactData.secondaryAddressPhone || ''
-  const gst = contactData.gstNumber || '33BTTPR9122F1ZB'
+  const gst = contactData.gstNumber || companyNAP.gstNumber
   const instagramUrl = contactData.instagram || 'https://www.instagram.com/ivrenergy/'
   const linkedinUrl = contactData.linkedin || 'https://www.linkedin.com/company/ivr-energy'
   const hours = contactData.hours || 'Mon - Sat, 9:30 AM - 7:30 PM'
@@ -150,24 +153,24 @@ export default function ContactPage() {
           __html: JSON.stringify({
             '@context': 'https://schema.org',
             '@type': 'ContactPage',
-            name: 'Contact IVR Energy Solutions',
+            name: 'Contact IVR Energy',
             description:
-              'Get in touch with IVR Energy Solutions for solar rooftop installations, turnkey EPC engineering, PM Surya Ghar subsidy processing, and site surveys in Tamil Nadu.',
+              'Get in touch with IVR Energy for solar rooftop installations, turnkey EPC engineering, PM Surya Ghar subsidy processing, and site surveys in Tamil Nadu.',
             url: 'https://ivrenergy.com/contact',
             mainEntity: {
               '@type': 'LocalBusiness',
-              name: 'IVR Energy Solutions Private Limited',
+              name: 'IVR Energy',
               image: 'https://ivrenergy.com/icon.png',
               telephone: phone1,
               email: email1,
               priceRange: '₹₹₹',
               address: {
                 '@type': 'PostalAddress',
-                streetAddress: 'Door No - 1, Plot No - A, Manasarovar Nagar, Gerugambakkam',
-                addressLocality: 'Chennai',
-                addressRegion: 'Tamil Nadu',
-                postalCode: '600122',
-                addressCountry: 'IN',
+                streetAddress: companyNAP.address.streetAddress,
+                addressLocality: companyNAP.address.city,
+                addressRegion: companyNAP.address.state,
+                postalCode: companyNAP.address.pincode,
+                addressCountry: companyNAP.address.countryCode,
               },
               geo: {
                 '@type': 'GeoCoordinates',
@@ -196,13 +199,22 @@ export default function ContactPage() {
 
         <div className="container mx-auto px-4 sm:px-6 max-w-7xl relative z-10">
           {/* Main Hero Header */}
-          <h1 className="text-3xl sm:text-5xl md:text-6xl font-extrabold text-[#D71920] tracking-tight leading-[1.15] max-w-4xl mb-6">
-            Let’s Power Your Home & Industry with Clean Solar Energy
-          </h1>
+          {content?.contactPageTitle ? (
+            <h1
+              className="text-4xl sm:text-6xl md:text-7xl font-light tracking-tight leading-[1.08] text-neutral-900 max-w-4xl mb-6"
+              dangerouslySetInnerHTML={{ __html: content.contactPageTitle }}
+            />
+          ) : (
+            <h1 className="text-4xl sm:text-6xl md:text-7xl font-light tracking-tight leading-[1.08] text-neutral-900 max-w-4xl mb-6">
+              Let’s Power Your Space with{' '}
+              <span className="font-normal text-transparent bg-clip-text bg-gradient-to-r from-red-600 via-[#D71920] to-amber-600">
+                Clean Solar Energy
+              </span>
+            </h1>
+          )}
 
           <p className="text-neutral-600 text-base sm:text-lg md:text-xl leading-relaxed max-w-3xl font-normal">
-            Have questions about rooftop feasibility, TANGEDCO net-metering, or PM Surya Ghar subsidies? 
-            Our engineering desk in Chennai is ready to assist with custom 3D layouts and zero-obligation site surveys.
+            {content?.contactPageSubtitle || 'Have questions about rooftop feasibility, TANGEDCO net-metering, or PM Surya Ghar subsidies? Our engineering desk in Chennai is ready to assist with custom 3D layouts and zero-obligation site surveys.'}
           </p>
         </div>
       </section>
@@ -347,9 +359,9 @@ export default function ContactPage() {
               </div>
               <div className="text-xs font-bold text-neutral-500 uppercase tracking-wider mb-1">Chennai Office</div>
               <h3 className="text-lg font-bold text-neutral-900 mb-2">Visit Our Office</h3>
-              <p className="text-xs text-neutral-600 leading-relaxed mb-3 whitespace-pre-line">
+              <address className="not-italic text-xs text-neutral-600 leading-relaxed mb-3 whitespace-pre-line">
                 {address}
-              </p>
+              </address>
             </div>
 
             <div className="pt-3 border-t border-neutral-100 flex items-center text-[11px] text-neutral-500">
@@ -555,7 +567,7 @@ export default function ContactPage() {
               </div>
 
               <div className="flex items-center justify-between pt-2">
-                <div className="text-xs text-neutral-600">3rd Floor, Manasarovar Nagar, Gerugambakkam, Chennai - 600122</div>
+                <address className="not-italic text-xs text-neutral-600">{companyNAP.address.fullFormatted}</address>
                 <a
                   href="https://www.google.com/maps/dir/?api=1&destination=13.013929,80.136652"
                   target="_blank"

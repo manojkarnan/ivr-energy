@@ -97,16 +97,23 @@ export default function ProjectsPage() {
 
         <div className="container mx-auto px-4 sm:px-6 max-w-7xl relative z-10 text-center max-w-3xl">
           {/* Main Headline */}
-          <h1 className="text-3xl sm:text-5xl md:text-6xl font-extrabold tracking-tight leading-[1.15] text-white">
-            Engineering Excellence Across{' '}
-            <span className="bg-gradient-to-r from-[#ff4b55] via-[#D71920] to-orange-500 bg-clip-text text-transparent">
-              Tamil Nadu & Beyond
-            </span>
-          </h1>
+          {content?.projectsPageTitle ? (
+            <h1
+              className="text-4xl sm:text-6xl md:text-7xl font-light tracking-tight leading-[1.08] text-white"
+              dangerouslySetInnerHTML={{ __html: content.projectsPageTitle }}
+            />
+          ) : (
+            <h1 className="text-4xl sm:text-6xl md:text-7xl font-light tracking-tight leading-[1.08] text-white">
+              Engineering Excellence Across{' '}
+              <span className="font-normal bg-gradient-to-r from-[#ff4b55] via-[#D71920] to-orange-500 bg-clip-text text-transparent">
+                Tamil Nadu & Beyond
+              </span>
+            </h1>
+          )}
 
           {/* Subtitle */}
           <p className="mt-4 text-base sm:text-lg text-neutral-400 leading-relaxed max-w-2xl mx-auto font-normal">
-            Explore our commissioned utility-scale, industrial captive, and commercial rooftop solar installations engineered for peak kilowatt-hour generation.
+            {content?.projectsPageSubtitle || 'Explore our commissioned utility-scale, industrial captive, and commercial rooftop solar installations engineered for peak kilowatt-hour generation.'}
           </p>
         </div>
       </section>

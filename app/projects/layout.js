@@ -1,4 +1,5 @@
 import Script from 'next/script'
+import { companyNAP } from '@/data/companyStats'
 
 export const metadata = {
   title: 'Solar EPC Projects & Rooftop Solar Installations | IVR Energy',
@@ -58,15 +59,14 @@ const projectsPageJsonLd = {
     '@type': 'LocalBusiness',
     name: 'IVR Energy',
     url: 'https://ivrenergy.com',
-    telephone: '+91 90477 77936',
+    telephone: companyNAP.phone,
     address: {
       '@type': 'PostalAddress',
-      streetAddress:
-        '3rd floor, Door No - 1, Plot No - A, Manasarovar Nagar, Gerugambakkam',
-      addressLocality: 'Chennai',
-      addressRegion: 'Tamil Nadu',
-      postalCode: '600122',
-      addressCountry: 'IN',
+      streetAddress: companyNAP.address.streetAddress,
+      addressLocality: companyNAP.address.city,
+      addressRegion: companyNAP.address.state,
+      postalCode: companyNAP.address.pincode,
+      addressCountry: companyNAP.address.countryCode,
     },
     areaServed: [
       { '@type': 'City', name: 'Chennai' },

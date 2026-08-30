@@ -19,6 +19,7 @@ export default function BlogIndexPage() {
   const [posts, setPosts] = useState(BLOG_POSTS)
   const [searchQuery, setSearchQuery] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
+  const [content, setContent] = useState(null)
 
   useEffect(() => {
     fetch('/api/blogs')
@@ -28,6 +29,11 @@ export default function BlogIndexPage() {
           setPosts(data.blogs)
         }
       })
+      .catch(() => {})
+
+    fetch('/api/content')
+      .then((r) => r.json())
+      .then((data) => setContent(data.content))
       .catch(() => {})
   }, [])
 
@@ -157,16 +163,23 @@ export default function BlogIndexPage() {
 
         <div className="container mx-auto px-4 sm:px-6 max-w-7xl relative z-10 text-center max-w-3xl">
           {/* Main Headline */}
-          <h1 className="text-3xl sm:text-5xl md:text-6xl font-extrabold tracking-tight leading-[1.15] text-white">
-            Solar Energy Guides, Subsidies &{' '}
-            <span className="bg-gradient-to-r from-[#ff4b55] via-[#D71920] to-orange-500 bg-clip-text text-transparent">
-              Industry Innovations
-            </span>
-          </h1>
+          {content?.blogPageTitle ? (
+            <h1
+              className="text-4xl sm:text-6xl md:text-7xl font-light tracking-tight leading-[1.08] text-white"
+              dangerouslySetInnerHTML={{ __html: content.blogPageTitle }}
+            />
+          ) : (
+            <h1 className="text-4xl sm:text-6xl md:text-7xl font-light tracking-tight leading-[1.08] text-white">
+              Solar Energy Guides, Subsidies &{' '}
+              <span className="font-normal bg-gradient-to-r from-[#ff4b55] via-[#D71920] to-orange-500 bg-clip-text text-transparent">
+                Industry Innovations
+              </span>
+            </h1>
+          )}
 
           {/* Subtitle */}
           <p className="mt-5 text-base sm:text-lg text-neutral-400 leading-relaxed max-w-2xl mx-auto font-normal">
-            Actionable technical breakdowns, TANGEDCO policy updates, commercial ROI modeling, and PM Surya Ghar step-by-step guides authored by IVR Energy engineers.
+            {content?.blogPageSubtitle || 'Actionable technical breakdowns, TANGEDCO policy updates, commercial ROI modeling, and PM Surya Ghar step-by-step guides authored by IVR Energy engineers.'}
           </p>
 
           {/* Live Search Bar */}

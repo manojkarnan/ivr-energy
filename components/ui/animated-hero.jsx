@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { Sparkles, ArrowDown, Zap, ShieldCheck, Sun, IndianRupee, Award, ArrowRight } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { companyStats } from '@/data/companyStats'
 
 export default function AnimatedHero({
   badgeText = 'Free • Instant • No Signup Required',
@@ -17,7 +18,7 @@ export default function AnimatedHero({
     { label: 'Avg. Bill Reduction', value: 'Up to 90%', icon: Zap },
     { label: 'Govt. MNRE Subsidy', value: 'Up to ₹78,000', icon: IndianRupee },
     { label: 'Solar Warranty', value: '25 Years', icon: ShieldCheck },
-    { label: 'Rooftops Powered', value: '500+ Sites', icon: Sun },
+    { label: 'Projects Delivered', value: `${companyStats.projects} Projects`, icon: Sun },
   ],
 }) {
   const [mousePosition, setMousePosition] = useState({ x: 600, y: 300 })

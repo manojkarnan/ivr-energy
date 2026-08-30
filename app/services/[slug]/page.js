@@ -134,7 +134,7 @@ export default function CapacityDetailPage({ params }) {
                 </span>
               </div>
 
-              <h1 className="text-2xl sm:text-4xl md:text-5xl font-extrabold text-white tracking-tight leading-tight">
+              <h1 className="text-3xl sm:text-5xl md:text-6xl font-light tracking-tight text-white leading-[1.08]">
                 {cap.title}
               </h1>
 
